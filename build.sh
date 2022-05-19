@@ -15,6 +15,6 @@ echo "assembling kernel"
 
 echo "adding files to fox32os.img"
 cd base_image
-for file in "./*"; do
+for file in ./*; do
     ../build/ryfs/ryfs.py add ../fox32os.img $file
 done
