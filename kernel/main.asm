@@ -60,21 +60,27 @@ draw_startup_text:
     rjmp 0
 
 startup_error:
+    mov r0, BACKGROUND_COLOR
+    call fill_background
+
     mov r0, startup_error_str
     mov r1, 16
-    mov r2, 16
+    mov r2, 464
     mov r3, TEXT_COLOR
     mov r4, 0x00000000
-    call draw_str_to_background
+    mov r10, FOX32OS_VERSION_MAJOR
+    mov r11, FOX32OS_VERSION_MINOR
+    mov r12, FOX32OS_VERSION_PATCH
+    call draw_format_str_to_background
     rjmp 0
 
     #include "allocator.asm"
     #include "fxf/fxf.asm"
 
 startup_str: data.str "fox32 - OS version %u.%u.%u" data.8 0
+startup_error_str: data.str "fox32 - OS version %u.%u.%u - startup.cfg is invalid!" data.8 0
 
 startup_file: data.str "startup cfg"
-startup_error_str: data.str "startup.cfg is invalid" data.8 0
 startup_file_struct: data.32 0 data.32 0
 
     #include "../../fox32rom/fox32rom.def"
