@@ -4,13 +4,13 @@
 ; inputs:
 ; r0: pointer to memory buffer containing an FXF binary
 ; outputs:
-; none
-execute_fxf_binary:
+; r0: relocation address
+parse_fxf_binary:
     ; TODO: check the magic bytes and header version
 
     call fxf_reloc
 
-    jmp r0
+    ret
 
     #include "fxf/reloc.asm"
 

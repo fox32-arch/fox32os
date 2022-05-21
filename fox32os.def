@@ -1,0 +1,15 @@
+; fox32os routine definitions
+
+; system jump table
+get_os_version:   jmp [0x00000810]
+
+; FXF jump table
+parse_fxf_binary: jmp [0x00000820]
+
+; task jump table
+new_task:         jmp [0x00000830]
+yield_task:       jmp [0x00000834]
+end_current_task: jmp [0x00000838]
+
+; memory jump table
+allocate_memory:  jmp [0x00000840]
