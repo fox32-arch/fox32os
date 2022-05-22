@@ -13,6 +13,9 @@ fi
 echo "assembling kernel"
 ../fox32asm/target/release/fox32asm kernel/main.asm base_image/system.bin
 
+echo "assembling vulpine"
+../fox32asm/target/release/fox32asm vulpine/main.asm base_image/vulpine.fxf
+
 echo "adding files to fox32os.img"
 cd base_image
 for file in ./*; do
