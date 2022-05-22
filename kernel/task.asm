@@ -43,13 +43,14 @@ yield_task:
 ; outputs:
 ; none
 end_current_task:
-    cmp [task_queue_ptr], task_queue_bottom
-    ifz jmp task_empty
-
     mov r0, current_task ; get the current task struct
     call task_load
     bcl [task_id_bitmap], r2 ; mark this task ID as unused
+end_current_task_no_mark:
     pop r0 ; pop the return address off of the stack
+
+    cmp [task_queue_ptr], task_queue_bottom
+    ifz jmp task_empty
 yield_task_0:
     mov r0, task_queue_bottom
     call task_load

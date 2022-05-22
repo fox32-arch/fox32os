@@ -84,8 +84,9 @@ draw_startup_text:
 
     ; when the startup file yields for the first time, we'll end up back here
     ; jump back to it without adding this "task" (not really a task) into the queue
+    ; end_current_task_no_mark is used specifically because it doesn't mark the current task (still set to 0) as unused
     ; this does not return
-    call end_current_task
+    call end_current_task_no_mark
 
 startup_error:
     mov r0, BACKGROUND_COLOR
