@@ -7,7 +7,7 @@ mkdir -p base_image
 # if fox32os.img doesn't exist, then create it
 if [ ! -f fox32os.img ]; then
     echo "fox32os.img not found, creating it"
-    build/ryfs/ryfs.py -s 16777216 -l fox32os create fox32os.img
+    meta/ryfs/ryfs.py -s 16777216 -l fox32os create fox32os.img
 fi
 
 echo "assembling kernel"
@@ -19,5 +19,5 @@ echo "assembling vulpine"
 echo "adding files to fox32os.img"
 cd base_image
 for file in ./*; do
-    ../build/ryfs/ryfs.py add ../fox32os.img $file
+    ../meta/ryfs/ryfs.py add ../fox32os.img $file
 done
