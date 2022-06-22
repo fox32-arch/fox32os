@@ -1,0 +1,3 @@
+[submodule "meta/ryfs"]
+	path = meta/ryfs
+	url = https://github.com/ry755/ryfs
