@@ -83,6 +83,7 @@ run_startup_task:
     mov r1, r0
     mov r0, 0
     mov r2, rsp
+    sub r2, 4
     call new_task
 
     ; when the startup file yields for the first time, we'll end up back here
