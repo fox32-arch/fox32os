@@ -132,7 +132,7 @@ task_empty:
     mov r2, [task_queue_ptr] ; show the the task queue pointer in the panic brk output
     call panic
 
-task_panic_str: data.str "Task queue empty! Hanging here" data.8 10 data.8 0
+task_panic_str: data.str "Scheduler starved, task queue empty!" data.8 10 data.8 0
 
 const TASK_SIZE: 16
 task_id_bitmap: data.32 0
