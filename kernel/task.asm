@@ -5,7 +5,7 @@
 ; r0: task ID
 ; r1: pointer to task code
 ; r2: pointer to task stack
-; r3: pointer to memory block to free when task ends
+; r3: pointer to memory block to free when task ends, or zero for none
 ; outputs:
 ; none
 new_task:
@@ -52,7 +52,8 @@ end_current_task:
     call task_load
     bcl [task_id_bitmap], r2 ; mark this task ID as unused
     mov r0, r5 ; memory block pointer
-    call free_memory
+    cmp r0, 0
+    ifnz call free_memory
 end_current_task_no_mark_no_free:
     pop r0 ; pop the return address off of the stack
 
