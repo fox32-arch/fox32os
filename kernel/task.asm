@@ -3,17 +3,21 @@
 ; add a new task to the queue and jump to it immediately
 ; inputs:
 ; r0: task ID
-; r1: task instruction pointer
-; r2: task stack pointer
+; r1: pointer to task code
+; r2: pointer to task stack
+; r3: pointer to memory block to free when task ends
 ; outputs:
 ; none
 new_task:
-    bse [task_id_bitmap], r0 ; mark this task ID as used
+    ; mark this task ID as used
+    bse [task_id_bitmap], r0
 
-    mov r4, r2
-    mov r3, r1
-    mov r2, r0
+    mov r4, r2 ; stack pointer
+    mov r5, r3 ; memory block pointer
+    mov r3, r1 ; instruction pointer
+    mov r2, r0 ; task ID
 
+    ; add to the queue
     mov r0, [task_queue_ptr]
     call task_store
     mov [task_queue_ptr], r0
@@ -38,6 +42,7 @@ yield_task:
     jmp yield_task_0
 
 ; switch to the next task without adding the current task back into the queue
+; this will automatically free the task's code block
 ; inputs:
 ; none
 ; outputs:
@@ -46,7 +51,9 @@ end_current_task:
     mov r0, current_task ; get the current task struct
     call task_load
     bcl [task_id_bitmap], r2 ; mark this task ID as unused
-end_current_task_no_mark:
+    mov r0, r5 ; memory block pointer
+    call free_memory
+end_current_task_no_mark_no_free:
     pop r0 ; pop the return address off of the stack
 
     cmp [task_queue_ptr], task_queue_bottom
@@ -104,6 +111,8 @@ task_load:
     add r0, 4
     mov r4, [r0] ; stack pointer
     add r0, 4
+    mov r5, [r0] ; memory block pointer
+    add r0, 4
     ret
 
 task_store:
@@ -112,6 +121,8 @@ task_store:
     mov [r0], r3 ; instruction pointer
     add r0, 4
     mov [r0], r4 ; stack pointer
+    add r0, 4
+    mov [r0], r5 ; memory block pointer
     add r0, 4
     ret
 
@@ -123,43 +134,12 @@ task_empty:
 
 task_panic_str: data.str "Task queue empty! Hanging here" data.8 10 data.8 0
 
-const TASK_SIZE: 12
+const TASK_SIZE: 16
 task_id_bitmap: data.32 0
 current_task:
     data.32 0 ; task ID
     data.32 0 ; instruction pointer
     data.32 0 ; stack pointer
+    data.32 0 ; memory block pointer
 task_queue_ptr: data.32 task_queue_bottom
-task_queue_bottom:
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
-    data.32 0 data.32 0 data.32 0
+task_queue_bottom: data.fill 0, 512 ; 32 tasks * 4 entries per task * 4 bytes per word = 512

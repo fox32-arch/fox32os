@@ -9,8 +9,6 @@ const FOX32OS_VERSION_PATCH: 0
 const BACKGROUND_COLOR: 0xFF674764
 const TEXT_COLOR:       0xFFFFFFFF
 
-const STARTUP_TASK_LOAD_ADDRESS: 0x03000000
-
     jmp entry
 
 jump_table:
@@ -75,26 +73,36 @@ entry:
     cmp r0, 0
     ifz jmp boot_disk_1
 
-    ; read the startup file into memory starting at STARTUP_TASK_LOAD_ADDRESS
+    ; allocate memory for the startup file
     mov r0, startup_file_struct
-    mov r1, STARTUP_TASK_LOAD_ADDRESS
+    call ryfs_get_size
+    call allocate_memory
+    cmp r0, 0
+    ifz jmp memory_error
+
+    ; read the startup file into memory
+    mov r1, r0
+    mov r0, startup_file_struct
     call ryfs_read_whole_file
 
     ; relocate and execute it as a new task
 run_startup_task:
-    mov r0, STARTUP_TASK_LOAD_ADDRESS
+    mov r0, r1
     call parse_fxf_binary
+    mov r3, r1
     mov r1, r0
     mov r0, 0
     mov r2, rsp
     sub r2, 4
     call new_task
 
-    ; when the startup file yields for the first time, we'll end up back here
-    ; jump back to it without adding this "task" (not really a task) into the queue
-    ; end_current_task_no_mark is used specifically because it doesn't mark the current task (still set to 0) as unused
-    ; this does not return
-    call end_current_task_no_mark
+    ; when the startup file yields for the first time, we'll end up back here.
+    ; jump back to it without adding this "task" (not really a task) into the queue.
+    ; end_current_task_no_mark_no_free is used specifically because it doesn't mark
+    ;   the current task (still set to 0) as unused, and it doesn't free the memory
+    ;   block.
+    ; this does not return.
+    call end_current_task_no_mark_no_free
 
 ; if startup.cfg is invalid, try loading the raw contents of disk 1 as an FXF binary
 ; if disk 1 is not inserted, then fail
@@ -105,12 +113,21 @@ boot_disk_1:
     ifz jmp startup_error
 
     ; a disk is inserted, load it!!
+
+    ; allocate memory for the startup file
+    ; r31 contains disk size
+    mov r0, r31
+    call allocate_memory
+    cmp r0, 0
+    ifz jmp memory_error
+
     div r31, 512
     inc r31
 
+    mov r2, r0         ; destination pointer
+    mov r5, r0
     mov r0, 0          ; sector counter
-    mov r2, STARTUP_TASK_LOAD_ADDRESS ; destination pointer
-    mov r3, 0x80003001 ; command to read a sector from disk 01 into memory
+    mov r3, 0x80003001 ; command to read a sector from disk 1 into memory
     mov r4, 0x80002000 ; command to set the location of the buffer
 boot_disk_1_loop:
     out r4, r2         ; set the memory buffer location
@@ -119,6 +136,7 @@ boot_disk_1_loop:
     add r2, 512        ; increment the destination pointer
     loop boot_disk_1_loop
 
+    mov r1, r5
     jmp run_startup_task
 
 startup_error:
@@ -126,6 +144,21 @@ startup_error:
     call fill_background
 
     mov r0, startup_error_str
+    mov r1, 16
+    mov r2, 464
+    mov r3, TEXT_COLOR
+    mov r4, 0x00000000
+    mov r10, FOX32OS_VERSION_MAJOR
+    mov r11, FOX32OS_VERSION_MINOR
+    mov r12, FOX32OS_VERSION_PATCH
+    call draw_format_str_to_background
+    rjmp 0
+
+memory_error:
+    mov r0, BACKGROUND_COLOR
+    call fill_background
+
+    mov r0, memory_error_str
     mov r1, 16
     mov r2, 464
     mov r3, TEXT_COLOR
@@ -148,6 +181,7 @@ get_os_version:
 
 startup_str: data.str "fox32 - OS version %u.%u.%u" data.8 0
 startup_error_str: data.str "fox32 - OS version %u.%u.%u - startup.cfg is invalid!" data.8 0
+memory_error_str: data.str "fox32 - OS version %u.%u.%u - not enough memory to load startup file!" data.8 0
 
 startup_file: data.str "startup cfg"
 startup_file_struct: data.32 0 data.32 0
