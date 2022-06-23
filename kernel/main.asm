@@ -31,6 +31,7 @@ jump_table:
     ; memory jump table
     org.pad 0x00000840
     data.32 allocate_memory
+    data.32 free_memory
 
     ; initialization code
 entry:
@@ -38,7 +39,10 @@ entry:
     mov r0, BACKGROUND_COLOR
     call fill_background
 
-draw_startup_text:
+    ; initialize the memory allocator
+    call initialize_allocator
+
+    ; draw the startup text
     mov r0, startup_str
     mov r1, 16
     mov r2, 464

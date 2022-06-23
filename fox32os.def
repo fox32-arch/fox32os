@@ -13,3 +13,4 @@ end_current_task: jmp [0x00000838]
 
 ; memory jump table
 allocate_memory:  jmp [0x00000840]
+free_memory:      jmp [0x00000844]
