@@ -6,6 +6,7 @@ const FOX32OS_VERSION_MAJOR: 0
 const FOX32OS_VERSION_MINOR: 1
 const FOX32OS_VERSION_PATCH: 0
 
+const SYSTEM_STACK:     0x01FFF800
 const BACKGROUND_COLOR: 0xFF674764
 const TEXT_COLOR:       0xFFFFFFFF
 
@@ -33,6 +34,8 @@ jump_table:
 
     ; initialization code
 entry:
+    mov rsp, SYSTEM_STACK
+
     ; clear the background
     mov r0, BACKGROUND_COLOR
     call fill_background
