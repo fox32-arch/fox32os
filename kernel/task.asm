@@ -5,15 +5,17 @@
 ; r0: task ID
 ; r1: pointer to task code
 ; r2: pointer to task stack
-; r3: pointer to memory block to free when task ends, or zero for none
+; r3: pointer to code block to free when task ends, or zero for none
+; r4: pointer to stack block to free when task ends, or zero for none
 ; outputs:
 ; none
 new_task:
     ; mark this task ID as used
     bse [task_id_bitmap], r0
 
+    mov r6, r4 ; stack block pointer
+    mov r5, r3 ; code block pointer
     mov r4, r2 ; stack pointer
-    mov r5, r3 ; memory block pointer
     mov r3, r1 ; instruction pointer
     mov r2, r0 ; task ID
 
@@ -42,7 +44,7 @@ yield_task:
     jmp yield_task_0
 
 ; switch to the next task without adding the current task back into the queue
-; this will automatically free the task's code block
+; this will automatically free the task's code and stack blocks
 ; inputs:
 ; none
 ; outputs:
@@ -51,7 +53,10 @@ end_current_task:
     mov r0, current_task ; get the current task struct
     call task_load
     bcl [task_id_bitmap], r2 ; mark this task ID as unused
-    mov r0, r5 ; memory block pointer
+    mov r0, r5 ; code block pointer
+    cmp r0, 0
+    ifnz call free_memory
+    mov r0, r6 ; stack block pointer
     cmp r0, 0
     ifnz call free_memory
 end_current_task_no_mark_no_free:
@@ -112,7 +117,9 @@ task_load:
     add r0, 4
     mov r4, [r0] ; stack pointer
     add r0, 4
-    mov r5, [r0] ; memory block pointer
+    mov r5, [r0] ; code block pointer
+    add r0, 4
+    mov r6, [r0] ; stack block pointer
     add r0, 4
     ret
 
@@ -123,7 +130,9 @@ task_store:
     add r0, 4
     mov [r0], r4 ; stack pointer
     add r0, 4
-    mov [r0], r5 ; memory block pointer
+    mov [r0], r5 ; code block pointer
+    add r0, 4
+    mov [r0], r6 ; stack block pointer
     add r0, 4
     ret
 
@@ -135,12 +144,13 @@ task_empty:
 
 task_panic_str: data.str "Scheduler starved, task queue empty!" data.8 10 data.8 0
 
-const TASK_SIZE: 16
+const TASK_SIZE: 20
 task_id_bitmap: data.32 0
 current_task:
     data.32 0 ; task ID
     data.32 0 ; instruction pointer
     data.32 0 ; stack pointer
-    data.32 0 ; memory block pointer
+    data.32 0 ; code block pointer
+    data.32 0 ; stack block pointer
 task_queue_ptr: data.32 task_queue_bottom
-task_queue_bottom: data.fill 0, 512 ; 32 tasks * 4 entries per task * 4 bytes per word = 512
+task_queue_bottom: data.fill 0, 640 ; 32 tasks * 5 entries per task * 4 bytes per word = 640

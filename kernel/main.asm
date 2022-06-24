@@ -97,6 +97,7 @@ run_startup_task:
     mov r0, 0
     mov r2, rsp
     sub r2, 4
+    mov r4, 0 ; don't attempt to free any stack block if the task ends
     call new_task
 
     ; when the startup file yields for the first time, we'll end up back here.
