@@ -6,7 +6,7 @@
 ; data.32 next - pointer to next free block, or zero
 
 const HEADER_SIZE: 12
-const MEMORY_TOP:  0x02000000
+const MEMORY_TOP:  0x01FEF800 ; 64KB below the stack
 
 initialize_allocator:
     push r0
