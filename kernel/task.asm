@@ -3,8 +3,8 @@
 ; add a new task to the queue and jump to it immediately
 ; inputs:
 ; r0: task ID
-; r1: pointer to task code
-; r2: pointer to task stack
+; r1: initial instruction pointer
+; r2: initial stack pointer (remember that the stack grows down!)
 ; r3: pointer to code block to free when task ends, or zero for none
 ; r4: pointer to stack block to free when task ends, or zero for none
 ; outputs:
