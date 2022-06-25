@@ -18,17 +18,17 @@ jump_table:
     data.32 get_os_version
 
     ; FXF jump table
-    org.pad 0x00000820
+    org.pad 0x00000910
     data.32 parse_fxf_binary
 
     ; task jump table
-    org.pad 0x00000830
+    org.pad 0x00000A10
     data.32 new_task
     data.32 yield_task
     data.32 end_current_task
 
     ; memory jump table
-    org.pad 0x00000840
+    org.pad 0x00000B10
     data.32 allocate_memory
     data.32 free_memory
 
