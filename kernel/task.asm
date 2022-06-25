@@ -106,8 +106,31 @@ get_unused_task_id_loop:
     inc r0
     cmp r0, 32
     iflt jmp get_unused_task_id_loop
-    ; if we reach this point, then add task IDs are used
+    ; if we reach this point, then all task IDs are used
     mov r0, 0
+    ret
+
+; get the task ID of the currently running task
+; inputs:
+; none
+; outputs:
+; r0: task ID
+get_current_task_id:
+    push r2
+    push r3
+    push r4
+    push r5
+    push r6
+
+    mov r0, current_task
+    call task_load
+    mov r0, r2
+
+    pop r6
+    pop r5
+    pop r4
+    pop r3
+    pop r2
     ret
 
 task_load:
