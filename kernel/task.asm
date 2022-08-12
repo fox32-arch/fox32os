@@ -133,6 +133,15 @@ get_current_task_id:
     pop r2
     ret
 
+; check if a task ID is used
+; inputs:
+; r0: task ID
+; outputs:
+; Z flag: set if unused, reset if used
+is_task_id_used:
+    bts [task_id_bitmap], r0
+    ret
+
 task_load:
     mov r2, [r0] ; task ID
     add r0, 4

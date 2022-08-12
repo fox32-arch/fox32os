@@ -28,6 +28,7 @@ jump_table:
     data.32 end_current_task
     data.32 get_current_task_id
     data.32 get_unused_task_id
+    data.32 is_task_id_used
 
     ; memory jump table
     org.pad 0x00000B10
