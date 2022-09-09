@@ -16,6 +16,9 @@ echo "assembling kernel"
 echo "assembling launcher"
 ../fox32asm/target/release/fox32asm launcher/main.asm base_image/launcher.fxf
 
+echo "assembling barclock"
+../fox32asm/target/release/fox32asm barclock/main.asm base_image/barclock.fxf
+
 echo "creating wallpapr.raw"
 ../tools/gfx2inc/target/release/gfx2inc 640 480 launcher/wallpaper.png launcher/wallpaper.inc
 ../fox32asm/target/release/fox32asm launcher/wallpaper.inc base_image/wallpapr.raw
