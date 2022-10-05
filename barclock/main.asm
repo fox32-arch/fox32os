@@ -29,6 +29,8 @@ loop:
 
     ; minute
     in r0, 0x80000704
+    cmp r0, 10
+    iflt call minute_less_than_10
     call draw_decimal_to_overlay
 
 loop_end:
@@ -38,6 +40,12 @@ loop_end:
 afternoon:
     sub r0, 12
     add r1, 8
+    ret
+
+minute_less_than_10:
+    mov r0, 0
+    call draw_decimal_to_overlay
+    in r0, 0x80000704
     ret
 
 second_counter: data.8 0
