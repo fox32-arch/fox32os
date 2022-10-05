@@ -1,6 +1,8 @@
 # fox32os
 
-**fox32os** is the main operating system for **fox32**. It runs on top of **fox32rom** and allows the use of relocatable FXF binaries, cooperative multitasking, filesystem access, and memory allocation.
+**fox32os** is the main operating system for **fox32**. It runs on top of **fox32rom** and allows the use of relocatable FXF binaries, cooperative multitasking, filesystem access, memory allocation, and window management.
+
+![Screenshot of fox32os](docs/screenshots/screenshot_launcher_about.png)
 
 ## Getting Started
 
