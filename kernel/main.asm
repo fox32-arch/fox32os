@@ -35,6 +35,18 @@ jump_table:
     data.32 allocate_memory
     data.32 free_memory
 
+    ; window jump table
+    org.pad 0x00000C10
+    data.32 new_window
+    data.32 destroy_window
+    data.32 new_window_event
+    data.32 get_next_window_event
+    data.32 draw_title_bar_to_window
+    data.32 move_window
+    data.32 fill_window
+    data.32 get_window_overlay_number
+    data.32 start_dragging_window
+
     ; initialization code
 entry:
     mov rsp, SYSTEM_STACK
@@ -56,6 +68,12 @@ entry:
     mov r11, FOX32OS_VERSION_MINOR
     mov r12, FOX32OS_VERSION_PATCH
     call draw_format_str_to_background
+
+    ; check if a disk is inserted as disk 1
+    ; if so, skip checking startup.cfg and just run disk 1
+    in r31, 0x80001001
+    cmp r31, 0
+    ifnz jmp boot_disk_1
 
     ; open startup.cfg
     mov r0, startup_cfg
@@ -135,6 +153,9 @@ load_startup_task:
     jmp load_startup_task
 
 no_other_tasks:
+    ; start the event manager task
+    call start_event_manager_task
+
     ; jump back to it without adding this "task" (not really a task) into the queue.
     ; end_current_task_no_mark_no_free is used specifically because it doesn't mark
     ;   the current task (still set to 0) as unused, and it doesn't free the memory
@@ -225,6 +246,7 @@ get_os_version:
     #include "allocator.asm"
     #include "fxf/fxf.asm"
     #include "task.asm"
+    #include "window/window.asm"
 
 startup_str: data.str "fox32 - OS version %u.%u.%u" data.8 0
 startup_error_str: data.str "fox32 - OS version %u.%u.%u - startup.cfg is invalid!" data.8 0
