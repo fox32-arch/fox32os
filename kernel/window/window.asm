@@ -198,9 +198,36 @@ start_dragging_window_loop:
 ; r1: Y position
 ; r2: pointer to window struct
 move_window:
+    push r0
+    push r1
     push r2
+    push r3
+    push r4
+    push r5
+    push r6
 
-    add r2, 20
+    ; prevent windows from being moved off-screen
+    add r2, 16
+    movz.16 r3, [r2]
+    add r2, 2
+    movz.16 r4, [r2]
+    mov r5, 640
+    mov r6, 480
+    sub r5, r3
+    sub r6, r4
+
+    cmp r0, 0x80000000
+    ifgt mov r0, 0
+    cmp r1, 0x80000000
+    ifgt mov r1, 0
+
+    cmp r0, r5
+    ifgt mov r0, r5
+    cmp r1, r6
+    ifgt mov r1, r6
+
+    ; move the window
+    add r2, 2
     mov.16 [r2], r0
     add r2, 2
     mov.16 [r2], r1
@@ -208,7 +235,13 @@ move_window:
     movz.8 r2, [r2]
     call move_overlay
 
+    pop r6
+    pop r5
+    pop r4
+    pop r3
     pop r2
+    pop r1
+    pop r0
     ret
 
 ; fill a whole window with a color
