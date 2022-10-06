@@ -429,40 +429,40 @@ add_mouse_event_to_active_window_end:
 
 window_title_bar_patterns:
     ; 1x16 tile
-    data.32 0xFF000000
+    data.32 0x00000000
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
     data.32 0xFFFFFFFF
 
     ; 1x16 tile
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
 
 active_window: data.32 0
 
