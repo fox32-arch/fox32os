@@ -55,6 +55,10 @@ jump_table:
     data.32 read
     data.32 write
 
+    ; shell jump table
+    org.pad 0x00000E10
+    data.32 new_shell_task
+
     ; initialization code
 entry:
     mov rsp, SYSTEM_STACK
@@ -253,6 +257,7 @@ get_os_version:
 
     #include "allocator.asm"
     #include "fxf/fxf.asm"
+    #include "shell/shell.asm"
     #include "task.asm"
     #include "window/window.asm"
     #include "vfs.asm"

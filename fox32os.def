@@ -35,3 +35,6 @@ seek:                      jmp [0x00000D14]
 tell:                      jmp [0x00000D18]
 read:                      jmp [0x00000D1C]
 write:                     jmp [0x00000D20]
+
+; shell jump table
+new_shell_task:            jmp [0x00000E10]
