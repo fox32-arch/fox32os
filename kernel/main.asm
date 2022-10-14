@@ -47,6 +47,14 @@ jump_table:
     data.32 get_window_overlay_number
     data.32 start_dragging_window
 
+    ; VFS jump table
+    org.pad 0x00000D10
+    data.32 open
+    data.32 seek
+    data.32 tell
+    data.32 read
+    data.32 write
+
     ; initialization code
 entry:
     mov rsp, SYSTEM_STACK
@@ -247,6 +255,7 @@ get_os_version:
     #include "fxf/fxf.asm"
     #include "task.asm"
     #include "window/window.asm"
+    #include "vfs.asm"
 
 startup_str: data.str "fox32 - OS version %u.%u.%u" data.8 0
 startup_error_str: data.str "fox32 - OS version %u.%u.%u - startup.cfg is invalid!" data.8 0
