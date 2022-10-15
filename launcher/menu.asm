@@ -49,11 +49,16 @@ system_menu_click_event:
     ; r2 contains the clicked root menu
     ; r3 contains the clicked menu item
 
+    ; about
     cmp r3, 0
     ifz jmp about_dialog
 
-    ; shut down
+    ; quit launcher
     cmp r3, 1
+    ifz jmp quit_launcher
+
+    ; shut down
+    cmp r3, 2
     ifz icl
     ifz halt
 
@@ -64,42 +69,43 @@ menu_items_root:
     data.32 menu_items_system_list   data.32 menu_items_system_name   ; pointer to menu list, pointer to menu name
     data.32 menu_items_launcher_list data.32 menu_items_launcher_name ; pointer to menu list, pointer to menu name
 menu_items_system_name:
-    data.8 6  data.str "System"    data.8 0x00 ; text length, text, null-terminator
+    data.8 6  data.str "System"   data.8 0x00 ; text length, text, null-terminator
 menu_items_launcher_name:
-    data.8 8  data.str "Launcher"  data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "Launcher" data.8 0x00 ; text length, text, null-terminator
 menu_items_system_list:
-    data.8 2                                   ; number of items
-    data.8 11                                  ; menu width (usually longest item + 2)
-    data.8 5  data.str "About"     data.8 0x00 ; text length, text, null-terminator
-    data.8 9  data.str "Shut Down" data.8 0x00 ; text length, text, null-terminator
+    data.8 3                                       ; number of items
+    data.8 15                                      ; menu width (usually longest item + 2)
+    data.8 5  data.str "About"         data.8 0x00 ; text length, text, null-terminator
+    data.8 13 data.str "Quit Launcher" data.8 0x00 ; text length, text, null-terminator
+    data.8 9  data.str "Shut Down"     data.8 0x00 ; text length, text, null-terminator
 menu_items_launcher_list:                      ; reserve enough room for up to 28 items
     data.8 1                                   ; number of items
     data.8 10                                  ; menu width (usually longest item + 2)
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
-    data.8 8  data.str "        "  data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator
+    data.8 8  data.str "        " data.8 0x00 ; text length, text, null-terminator

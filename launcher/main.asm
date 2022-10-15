@@ -45,6 +45,11 @@ event_loop:
     call yield_task
     jmp event_loop
 
+quit_launcher:
+    call disable_menu_bar
+    call end_current_task
+    jmp hang
+
 allocate_error:
     mov r0, allocate_error_str
     mov r1, 16
