@@ -293,7 +293,7 @@ shell_clear_buffer:
     pop r0
     ret
 
-shell_text_buf_bottom: data.fill 0, 32
+shell_text_buf_bottom: data.fill 0, 512
 shell_text_buf_top:
 shell_text_buf_ptr:    data.32 0 ; pointer to the current input character
 shell_args_ptr:        data.32 0 ; pointer to the beginning of the command arguments
