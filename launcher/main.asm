@@ -1,14 +1,6 @@
 ; launcher
 
 entry:
-    ; disable all overlays except the mouse cursor
-    mov r31, 0x1E
-    mov r0, 0x80000300
-disable_all_overlays_loop:
-    out r0, 0
-    inc r0
-    loop disable_all_overlays_loop
-
     ; set up the menu bar
     call enable_menu_bar
     call clear_menu_bar
