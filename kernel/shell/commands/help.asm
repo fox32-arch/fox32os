@@ -24,4 +24,7 @@ shell_help_text:
     data.str "type the name of an FXF binary to launch" data.8 10
     data.str "it as a new task; the shell will suspend" data.8 10
     data.str "until the launched task ends" data.8 10
+    data.8 10
+    data.str "prefix the name of an FXF binary with *" data.8 10
+    data.str "to launch it without suspending" data.8 10
     data.8 0

@@ -2,7 +2,7 @@
 
 ; launch an FXF binary from a shell entry
 ; inputs:
-; r0-r3: shell arguments
+; r0: pointer to FXF binary name
 ; outputs:
 ; none, does not return if task started successfully
 ; returns if FXF file not found
@@ -15,6 +15,14 @@ launch_fxf:
     call copy_memory_bytes
     pop r0
 
+    ; if the name was prefixed with a '*' character then
+    ; clear a flag to have the shell return control immediately
+    cmp.8 [r0], '*'
+    ifnz mov.8 [launch_fxf_yield_should_suspend], 1
+    ifnz jmp launch_fxf_no_prefix
+    inc r0
+    mov.8 [launch_fxf_yield_should_suspend], 0
+launch_fxf_no_prefix:
     ; copy the name into the launch_fxf_name buffer
     mov r1, launch_fxf_name
     mov r31, 8
@@ -86,6 +94,8 @@ launch_fxf_name_loop_done:
 
 ; loop until the launched task ends
 launch_fxf_yield_loop:
+    cmp.8 [launch_fxf_yield_should_suspend], 0
+    ifz jmp shell_task_return
     movz.8 r0, [launch_fxf_task_id]
     call is_task_id_used
     ifz jmp shell_task_return
@@ -103,5 +113,7 @@ launch_fxf_struct: data.32 0 data.32 0
 launch_fxf_task_id: data.8 0
 launch_fxf_binary_ptr: data.32 0
 launch_fxf_stack_ptr: data.32 0
+
+launch_fxf_yield_should_suspend: data.8 0
 
 out_of_memory_string: data.str "failed to allocate for new task!" data.8 10 data.8 0
