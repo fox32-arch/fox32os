@@ -12,7 +12,7 @@ initialize_allocator:
     push r0
     push r1
 
-    mov [free_list_head], kernel_bottom
+    mov [free_list_head], 0x0000FFFF
 
     ; set the free block size to MEMORY_TOP - [free_list_head]
     mov r0, [free_list_head]
