@@ -7,11 +7,17 @@ mkdir -p base_image
 # if fox32os.img doesn't exist, then create it
 if [ ! -f fox32os.img ]; then
     echo "fox32os.img not found, creating it"
-    meta/ryfs/ryfs.py -s 16777216 -l fox32os create fox32os.img
+
+    echo "assembling bootloader"
+    ../fox32asm/target/release/fox32asm bootloader/main.asm bootloader/bootloader.bin
+
+    meta/ryfs/ryfs.py -s 16777216 -l fox32os -b bootloader/bootloader.bin create fox32os.img
+
+    rm bootloader/bootloader.bin
 fi
 
 echo "assembling kernel"
-../fox32asm/target/release/fox32asm kernel/main.asm base_image/system.bin
+../fox32asm/target/release/fox32asm kernel/main.asm base_image/kernel.fxf
 
 echo "assembling launcher"
 ../fox32asm/target/release/fox32asm launcher/main.asm base_image/launcher.fxf

@@ -1,10 +1,8 @@
 ; fox32os kernel
 
-    org 0x00000800
-
 const FOX32OS_VERSION_MAJOR: 0
 const FOX32OS_VERSION_MINOR: 1
-const FOX32OS_VERSION_PATCH: 0
+const FOX32OS_VERSION_PATCH: 1
 
 const SYSTEM_STACK:     0x01FFF800
 const BACKGROUND_COLOR: 0xFF674764
@@ -12,17 +10,17 @@ const TEXT_COLOR:       0xFFFFFFFF
 
     jmp entry
 
-jump_table:
     ; system jump table
-    org.pad 0x00000810
+    org.pad 0x00000010
+jump_table:
     data.32 get_os_version
 
     ; FXF jump table
-    org.pad 0x00000910
+    org.pad 0x00000110
     data.32 parse_fxf_binary
 
     ; task jump table
-    org.pad 0x00000A10
+    org.pad 0x00000210
     data.32 new_task
     data.32 yield_task
     data.32 end_current_task
@@ -31,12 +29,12 @@ jump_table:
     data.32 is_task_id_used
 
     ; memory jump table
-    org.pad 0x00000B10
+    org.pad 0x00000310
     data.32 allocate_memory
     data.32 free_memory
 
     ; window jump table
-    org.pad 0x00000C10
+    org.pad 0x00000410
     data.32 new_window
     data.32 destroy_window
     data.32 new_window_event
@@ -48,7 +46,7 @@ jump_table:
     data.32 start_dragging_window
 
     ; VFS jump table
-    org.pad 0x00000D10
+    org.pad 0x00000510
     data.32 open
     data.32 seek
     data.32 tell
@@ -56,8 +54,9 @@ jump_table:
     data.32 write
 
     ; shell jump table
-    org.pad 0x00000E10
+    org.pad 0x00000610
     data.32 new_shell_task
+jump_table_end:
 
     ; initialization code
 entry:
@@ -80,6 +79,13 @@ entry:
     mov r11, FOX32OS_VERSION_MINOR
     mov r12, FOX32OS_VERSION_PATCH
     call draw_format_str_to_background
+
+    ; copy the jump table to 0x00000810
+    mov r0, jump_table
+    mov r1, 0x00000810
+    mov r2, jump_table_end
+    sub r2, jump_table
+    call copy_memory_bytes
 
     ; check if a disk is inserted as disk 1
     ; if so, skip checking startup.cfg and just run disk 1
