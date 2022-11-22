@@ -1,6 +1,6 @@
 ; shell routines
 
-const CURSOR: 138
+const CURSOR: 0x8A
 
 ; create a new shell task
 ; inputs:
