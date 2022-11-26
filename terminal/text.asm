@@ -6,6 +6,11 @@ const TERMINAL_Y_SIZE: 25
 const TEXT_COLOR:       0xFFFFFFFF
 const BACKGROUND_COLOR: 0xFF000000
 
+const FILL_TERM: 0xF0
+const MOVE_CURSOR: 0xF1
+const REDRAW_LINE: 0xFE
+const REDRAW: 0xFF
+
 ; print a single character to the terminal
 ; inputs:
 ; r0: ASCII character or control character
@@ -61,6 +66,8 @@ print_character_to_terminal_cr:
     mov.8 [terminal_x], 0
     jmp print_character_to_terminal_end
 print_character_to_terminal_lf:
+    ; draw the line
+    call redraw_terminal_line
     ; return to the beginning of the line and increment the line
     mov.8 [terminal_x], 0
     inc.8 [terminal_y]
@@ -73,7 +80,6 @@ print_character_to_terminal_bs:
     cmp.8 [terminal_x], 0
     ifnz dec.8 [terminal_x]
 print_character_to_terminal_end:
-    call redraw_terminal_line
     pop r2
     pop r1
     pop r0
@@ -98,12 +104,20 @@ handle_control_character:
     ifz mov.8 [terminal_state], 0
 
     ; fill terminal
-    cmp.8 [terminal_control_char], 0xF0
+    cmp.8 [terminal_control_char], FILL_TERM
     ifz jmp handle_control_character_fill_term
 
     ; set cursor position
-    cmp.8 [terminal_control_char], 0xF1
+    cmp.8 [terminal_control_char], MOVE_CURSOR
     ifz jmp handle_control_character_set_cursor_pos
+
+    ; redraw line
+    cmp.8 [terminal_control_char], REDRAW_LINE
+    ifz jmp handle_control_character_redraw_line
+
+    ; redraw
+    cmp.8 [terminal_control_char], REDRAW
+    ifz jmp handle_control_character_redraw
 
     ret
 handle_control_character_fill_term:
@@ -120,8 +134,15 @@ handle_control_character_fill_term_loop:
     pop r0
     ret
 handle_control_character_set_cursor_pos:
+    call redraw_terminal_line
     mov.8 [terminal_x], [terminal_control_parameter_1]
     mov.8 [terminal_y], [terminal_control_parameter_2]
+    ret
+handle_control_character_redraw_line:
+    call redraw_terminal_line
+    ret
+handle_control_character_redraw:
+    call redraw_terminal
     ret
 
 ; scroll the terminal
