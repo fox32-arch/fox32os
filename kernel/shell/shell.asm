@@ -1,6 +1,7 @@
 ; shell routines
 
 const CURSOR: 0x8A
+const REDRAW_LINE: 0xFE
 
 ; create a new shell task
 ; inputs:
@@ -120,8 +121,15 @@ shell_task_parse_key:
     call print_character_to_terminal
     call shell_push_character
 
-    ; finally, print the cursor
+    ; then, print the cursor
     mov r0, CURSOR
+    call print_character_to_terminal
+
+    ; finally, redraw the line
+    ; print character 3 times in order to execute the control character once (see terminal's text.asm for details)
+    mov r0, REDRAW_LINE
+    call print_character_to_terminal
+    call print_character_to_terminal
     call print_character_to_terminal
     ret
 shell_key_down_enter:
@@ -160,6 +168,10 @@ shell_key_down_backspace:
     mov r0, CURSOR ; cursor
     call print_character_to_terminal
     call shell_delete_character
+    mov r0, REDRAW_LINE
+    call print_character_to_terminal
+    call print_character_to_terminal
+    call print_character_to_terminal
     ret
 
 shell_print_prompt:
@@ -168,6 +180,10 @@ shell_print_prompt:
     call print_character_to_terminal
     mov r0, shell_prompt
     call print_str_to_terminal
+    mov r0, REDRAW_LINE
+    call print_character_to_terminal
+    call print_character_to_terminal
+    call print_character_to_terminal
     ret
 
 shell_parse_line:
