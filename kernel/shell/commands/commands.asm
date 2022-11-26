@@ -3,6 +3,11 @@
 shell_parse_command:
     mov r0, shell_text_buf_bottom
 
+    ; clear
+    mov r1, shell_clear_command_string
+    call compare_string
+    ifz jmp shell_clear_command
+
     ; dir
     mov r1, shell_dir_command_string
     call compare_string
@@ -45,6 +50,7 @@ shell_parse_command:
 shell_invalid_command_string: data.str "invalid command or FXF binary" data.8 10 data.8 0
 
     ; all commands
+    #include "shell/commands/clear.asm"
     #include "shell/commands/dir.asm"
     #include "shell/commands/disk.asm"
     #include "shell/commands/diskrm.asm"
