@@ -28,6 +28,7 @@ const TITLE_BAR_HEIGHT: 16
 ; outputs:
 ; none
 new_window:
+    push r0
     push r1
     push r2
     push r3
@@ -140,6 +141,7 @@ new_window:
     pop r3
     pop r2
     pop r1
+    pop r0
     ret
 
 ; destroy a window and free memory used by it
