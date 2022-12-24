@@ -94,7 +94,7 @@ new_window:
     add r10, 24
     mov.8 [r10], r11
 
-    ; finally, set the properties of the overlay
+    ; then, set the properties of the overlay
     push r0
     push r1
     push r2
@@ -119,8 +119,18 @@ new_window:
     call fill_overlay
     pop r0
 
-    mov [active_window], r0
+    ; then, draw the title bar
     call draw_title_bar_to_window
+
+    ; finally, add this window to the window list
+    push r0
+    mov r0, 0x00000000
+    call search_for_window_list_entry
+    mov.8 [active_window_offset], r0
+    mul r0, 4
+    add r0, window_list
+    pop r1
+    mov [r0], r1
 
     pop r12
     pop r11
@@ -153,9 +163,22 @@ destroy_window:
     mov r0, [r1]
     call free_memory
 
+    ; disable the window's overlay
     add r1, 16
     movz.8 r0, [r1]
     call disable_overlay
+
+    ; remove the window from the window list
+    sub r1, 24
+    mov r0, r1
+    call search_for_window_list_entry
+    mul r0, 4
+    add r0, window_list
+    mov [r0], 0
+
+    ; set the active window to whatever entry is found first
+    call search_for_nonempty_window_list_entry
+    mov.8 [active_window_offset], r0
 
     pop r1
     pop r0
@@ -238,6 +261,35 @@ move_window:
     pop r6
     pop r5
     pop r4
+    pop r3
+    pop r2
+    pop r1
+    pop r0
+    ret
+
+; swap two windows
+; inputs:
+; r0: pointer to window struct
+; r1: pointer to window struct
+; outputs:
+; none
+swap_windows:
+    push r0
+    push r1
+    push r2
+    push r3
+
+    mov r2, r0
+    mov r3, r1
+
+    add r2, 24
+    movz.8 r0, [r2]
+    add r3, 24
+    movz.8 r1, [r3]
+    call swap_overlays
+    movz.8 [r2], r1
+    movz.8 [r3], r0
+
     pop r3
     pop r2
     pop r1
@@ -377,7 +429,11 @@ draw_title_bar_to_window_loop:
 ; outputs:
 ; none
 add_event_to_active_window:
-    mov r8, [active_window]
+    push r0
+    movz.8 r0, [active_window_offset]
+    call window_list_offset_to_struct
+    mov r8, r0
+    pop r0
     call new_window_event
 
     ret
@@ -401,7 +457,8 @@ add_mouse_event_to_active_window:
     mov r12, r0
 
     ; get the window's overlay number
-    mov r0, [active_window]
+    movz.8 r0, [active_window_offset]
+    call window_list_offset_to_struct
     call get_window_overlay_number
 
     ; check if the window's overlay covers the clicked position
@@ -425,6 +482,125 @@ add_mouse_event_to_active_window_end:
     pop r10
     pop r2
     pop r0
+    ret
+
+; search for an entry in the window list
+; inputs:
+; r0: entry (pointer to window struct)
+; outputs:
+; r0: window list offset, or 0xFFFFFFFF if not found
+search_for_window_list_entry:
+    push r1
+    push r2
+    push r31
+
+    mov r1, window_list
+    mov r2, 0
+    mov r31, 31
+search_for_window_list_entry_loop:
+    cmp [r1], r0
+    ifz jmp search_for_window_list_entry_found
+    inc r2
+    add r1, 4
+    loop search_for_window_list_entry_loop
+    ; not found, return 0xFFFFFFFF
+    mov r0, 0xFFFFFFFF
+
+    pop r31
+    pop r2
+    pop r1
+    ret
+search_for_window_list_entry_found:
+    ; found the entry, return its offset
+    mov r0, r2
+
+    pop r31
+    pop r2
+    pop r1
+    ret
+
+; search for the first non-empty entry in the window list
+; inputs:
+; none
+; outputs:
+; r0: window list offset, or 0xFFFFFFFF if not found
+search_for_nonempty_window_list_entry:
+    push r1
+    push r2
+    push r31
+
+    mov r1, window_list
+    mov r2, 0
+    mov r31, 31
+search_for_nonempty_window_list_entry_loop:
+    cmp [r1], 0
+    ifnz jmp search_for_nonempty_window_list_entry_found
+    inc r2
+    add r1, 4
+    loop search_for_nonempty_window_list_entry_loop
+    ; not found, return 0xFFFFFFFF
+    mov r0, 0xFFFFFFFF
+
+    pop r31
+    pop r2
+    pop r1
+    ret
+search_for_nonempty_window_list_entry_found:
+    ; found the entry, return its offset
+    mov r0, r2
+
+    pop r31
+    pop r2
+    pop r1
+    ret
+
+; given an overlay number, get the window struct of the window associated with that overlay
+; inputs:
+; r0: overlay number
+; outputs:
+; r0: pointer to window struct, or 0x00000000 if not found
+get_window_with_overlay:
+    push r1
+    push r2
+    push r3
+    push r31
+
+    mov r1, window_list
+    mov r31, 31
+get_window_with_overlay_loop:
+    mov r2, [r1]
+    add r2, 24
+    cmp.8 [r2], r0
+    ifz jmp get_window_with_overlay_found
+    add r1, 4
+    loop get_window_with_overlay_loop
+    ; not found, return 0
+    mov r0, 0
+
+    pop r31
+    pop r3
+    pop r2
+    pop r1
+    ret
+get_window_with_overlay_found:
+    ; found the entry, return the pointer to its struct
+    mov r0, [r1]
+
+    pop r31
+    pop r3
+    pop r2
+    pop r1
+    ret
+
+; get a window struct pointer from the window list
+; inputs:
+; r0: window list offset
+; outputs:
+; r0: pointer to window struct
+window_list_offset_to_struct:
+    mul r0, 4
+    add r0, window_list
+    mov r0, [r0]
     ret
 
 window_title_bar_patterns:
@@ -464,7 +640,9 @@ window_title_bar_patterns:
     data.32 0xFFFFFFFF
     data.32 0x00000000
 
-active_window: data.32 0
+active_window_offset: data.8 0xFF
+window_list: data.fill 0, 124 ; 31 window structs * 4 bytes each
 
     #include "window/event.asm"
     #include "window/event_manager_task.asm"
+    #include "window/overlay.asm"
