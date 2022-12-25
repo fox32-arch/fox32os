@@ -223,7 +223,7 @@ boot_disk_1_loop:
     sub r2, 4
     mov r4, 0 ; don't attempt to free any stack block if the task ends
     call new_task
-    call end_current_task_no_mark_no_free
+    jmp no_other_tasks
 
 startup_error:
     mov r0, BACKGROUND_COLOR
