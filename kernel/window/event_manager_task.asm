@@ -35,6 +35,8 @@ event_manager_task_loop:
     ifz call add_event_to_active_window
     cmp r0, EVENT_TYPE_MENU_CLICK
     ifz call add_event_to_active_window
+    cmp r0, EVENT_TYPE_MENU_ACK
+    ifz call add_event_to_active_window
     cmp r0, EVENT_TYPE_MENU_UPDATE
     ifz call add_event_to_active_window
 
@@ -57,6 +59,18 @@ event_manager_task_mouse_event:
     push r0
     push r1
     push r2
+
+    ; if a menu is open, don't continue
+    ; this is hacky as fuck
+    push r0
+    in r0, 0x8000031D ; overlay 29: enable status
+    cmp r0, 0
+    ifnz pop r0
+    ifnz pop r2
+    ifnz pop r1
+    ifnz pop r0
+    ifnz ret
+    pop r0
 
     ; find which overlay was clicked on
     mov r0, r1

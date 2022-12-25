@@ -2,7 +2,7 @@
 
 ; given a position on screen, find which enabled overlay (if any) is covering it
 ; if multiple overlays are covering the same position, the highest priority one will be returned
-; overlay 31 (the mouse cursor) is ignored
+; overlays 31, 30, and 29 (mouse cursor, menu bar, menu) are ignored
 ; inputs:
 ; r0: X coordinate
 ; r1: Y coordinate
@@ -12,7 +12,7 @@ find_overlay_convering_position:
     push r2
     push r31
 
-    mov r31, 31
+    mov r31, 29
 find_overlay_convering_position_loop:
     mov r2, r31
     dec r2
