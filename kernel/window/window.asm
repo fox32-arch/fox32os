@@ -12,7 +12,7 @@
 ; data.8  overlay            - overlay number of this window
 ; data.8  reserved_1
 ; data.16 reserved_2
-; data.32 reserved_3
+; data.32 menu_bar_ptr       - pointer to this window's menu bar root struct, or 0 for none
 
 const WINDOW_STRUCT_SIZE: 32 ; 8 words = 32 bytes
 const TITLE_BAR_HEIGHT: 16
@@ -25,6 +25,7 @@ const TITLE_BAR_HEIGHT: 16
 ; r3: window height, not including the title bar
 ; r4: initial X coordinate (top left corner of title bar)
 ; r5: initial Y coordinate (top left corner of title bar)
+; r6: pointer to menu bar root struct, or 0x00000000 for no menu bar
 ; outputs:
 ; none
 new_window:
@@ -53,6 +54,9 @@ new_window:
     mov.16 [r10], r4
     add r10, 2
     mov.16 [r10], r5
+    ; menu bar root struct pointer
+    add r10, 6
+    mov [r10], r6
 
     ; then, allocate memory for the framebuffer
     ; the space required is width * (height + TITLE_BAR_HEIGHT) * 4
@@ -123,6 +127,18 @@ new_window:
     ; then, draw the title bar
     call draw_title_bar_to_window
 
+    ; then, draw the menu bar
+    push r0
+    call enable_menu_bar
+    mov r0, r6
+    cmp r0, 0
+    ifz call disable_menu_bar
+    call clear_menu_bar
+    mov r1, 0xFFFFFFFF
+    cmp r0, 0
+    ifnz call draw_menu_bar_root_items
+    pop r0
+
     ; finally, add this window to the window list
     push r0
     mov r0, 0x00000000
@@ -181,6 +197,17 @@ destroy_window:
     ; set the active window to whatever entry is found first
     call search_for_nonempty_window_list_entry
     mov.8 [active_window_offset], r0
+
+    ; set the menu bar for the newly active window
+    call window_list_offset_to_struct
+    call get_window_menu_bar_root_struct
+    call enable_menu_bar
+    cmp r0, 0
+    ifz call disable_menu_bar
+    call clear_menu_bar
+    mov r1, 0xFFFFFFFF
+    cmp r0, 0
+    ifnz call draw_menu_bar_root_items
 
     pop r1
     pop r0
@@ -330,6 +357,17 @@ fill_window:
 get_window_overlay_number:
     add r0, 24
     movz.8 r0, [r0]
+
+    ret
+
+; get the menu bar root struct used by a window
+; inputs:
+; r0: pointer to window struct
+; outputs:
+; r0: pointer to menu bar root struct, or 0x00000000 for no menu bar
+get_window_menu_bar_root_struct:
+    add r0, 28
+    mov r0, [r0]
 
     ret
 

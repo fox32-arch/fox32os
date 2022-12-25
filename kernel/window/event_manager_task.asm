@@ -27,16 +27,16 @@ start_event_manager_task:
 event_manager_task_loop:
     call get_next_event
 
-    ; HACK: put menu bar events back into the system event queue
-    cmp r0, EVENT_TYPE_MENU_BAR_CLICK
-    ifz call new_event
-    cmp r0, EVENT_TYPE_MENU_CLICK
-    ifz call new_event
-    cmp r0, EVENT_TYPE_MENU_UPDATE
-    ifz call new_event
-
     cmp.8 [active_window_offset], 0xFF
     ifz rjmp event_manager_task_loop_end
+
+    ; menu bar
+    cmp r0, EVENT_TYPE_MENU_BAR_CLICK
+    ifz call add_event_to_active_window
+    cmp r0, EVENT_TYPE_MENU_CLICK
+    ifz call add_event_to_active_window
+    cmp r0, EVENT_TYPE_MENU_UPDATE
+    ifz call add_event_to_active_window
 
     ; mouse
     cmp r0, EVENT_TYPE_MOUSE_CLICK
@@ -119,6 +119,17 @@ event_manager_task_mouse_event_inactive_window_was_clicked:
     mov r0, r1
     call search_for_window_list_entry
     mov.8 [active_window_offset], r0
+
+    ; set the menu bar for the newly active window
+    call window_list_offset_to_struct
+    call get_window_menu_bar_root_struct
+    call enable_menu_bar
+    cmp r0, 0
+    ifz call disable_menu_bar
+    call clear_menu_bar
+    mov r1, 0xFFFFFFFF
+    cmp r0, 0
+    ifnz call draw_menu_bar_root_items
 
     pop r2
     pop r1

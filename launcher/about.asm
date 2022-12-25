@@ -17,6 +17,7 @@ about_dialog:
     mov r3, 128
     mov r4, 64
     mov r5, 64
+    mov r6, 0
     call new_window
 
     ; fill the window with the fox32 purple color

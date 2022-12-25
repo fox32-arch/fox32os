@@ -6,6 +6,7 @@
     mov r3, 400
     mov r4, 32
     mov r5, 32
+    mov r6, 0
     call new_window
 
     call get_unused_task_id
