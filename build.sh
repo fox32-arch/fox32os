@@ -28,9 +28,12 @@ echo "assembling barclock"
 echo "assembling terminal"
 ../fox32asm/target/release/fox32asm terminal/main.asm base_image/terminal.fxf
 
-echo "creating wallpapr.raw"
-../tools/gfx2inc/target/release/gfx2inc 640 480 launcher/wallpaper.png launcher/wallpaper.inc
-../fox32asm/target/release/fox32asm launcher/wallpaper.inc base_image/wallpapr.raw
+echo "assembling bg"
+../fox32asm/target/release/fox32asm bg/main.asm base_image/bg.fxf
+
+echo "creating bg.raw"
+../tools/gfx2inc/target/release/gfx2inc 640 480 bg/bg.png bg/bg.inc
+../fox32asm/target/release/fox32asm bg/bg.inc base_image/bg.raw
 
 echo "adding files to fox32os.img"
 cd base_image

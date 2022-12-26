@@ -2,6 +2,6 @@
 **/.vscode/
 
 **/*.fxf
-**/wallpaper.inc
-**/wallpapr.raw
+**/bg.inc
+**/bg.raw
 **/fox32os.img
