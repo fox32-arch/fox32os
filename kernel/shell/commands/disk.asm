@@ -14,11 +14,10 @@ shell_disk_command:
     ifgt jmp shell_disk_command_out_of_range
 
     ; OR it with the IO port to get the current insert state of a disk
-    ; if no disk is inserted then prompt the user to insert a disk
     or r0, 0x80001000
     in r1, r0
     cmp r1, 0
-    ifz jmp shell_disk_command_insert_disk
+    ifz ret
 
     ; set the current disk ID
     mov.8 [shell_current_disk], r0
@@ -28,11 +27,6 @@ shell_disk_command:
 shell_disk_command_out_of_range:
     mov r0, shell_disk_command_out_of_range_string
     call print_str_to_terminal
-
-    ret
-
-shell_disk_command_insert_disk:
-    out r0, 0
 
     ret
 
