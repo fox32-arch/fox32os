@@ -19,9 +19,6 @@ fi
 echo "assembling kernel"
 ../fox32asm/target/release/fox32asm kernel/main.asm base_image/kernel.fxf
 
-echo "assembling launcher"
-../fox32asm/target/release/fox32asm launcher/main.asm base_image/launcher.fxf
-
 echo "assembling barclock"
 ../fox32asm/target/release/fox32asm barclock/main.asm base_image/barclock.fxf
 
