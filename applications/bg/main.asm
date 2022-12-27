@@ -20,5 +20,5 @@
 bg_file_name: data.str "bg      raw"
 bg_file_struct: data.fill 0, 8
 
-    #include "../../fox32rom/fox32rom.def"
-    #include "../fox32os.def"
+    #include "../../../fox32rom/fox32rom.def"
+    #include "../../fox32os.def"

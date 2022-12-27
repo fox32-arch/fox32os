@@ -101,5 +101,5 @@ stream_struct:
     #include "text.asm"
 
     ; include system defs
-    #include "../../fox32rom/fox32rom.def"
-    #include "../fox32os.def"
+    #include "../../../fox32rom/fox32rom.def"
+    #include "../../fox32os.def"

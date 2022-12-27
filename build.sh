@@ -20,17 +20,17 @@ echo "assembling kernel"
 ../fox32asm/target/release/fox32asm kernel/main.asm base_image/kernel.fxf
 
 echo "assembling barclock"
-../fox32asm/target/release/fox32asm barclock/main.asm base_image/barclock.fxf
+../fox32asm/target/release/fox32asm applications/barclock/main.asm base_image/barclock.fxf
 
 echo "assembling terminal"
-../fox32asm/target/release/fox32asm terminal/main.asm base_image/terminal.fxf
+../fox32asm/target/release/fox32asm applications/terminal/main.asm base_image/terminal.fxf
 
 echo "assembling bg"
-../fox32asm/target/release/fox32asm bg/main.asm base_image/bg.fxf
+../fox32asm/target/release/fox32asm applications/bg/main.asm base_image/bg.fxf
 
 echo "creating bg.raw"
-../tools/gfx2inc/target/release/gfx2inc 640 480 bg/bg.png bg/bg.inc
-../fox32asm/target/release/fox32asm bg/bg.inc base_image/bg.raw
+../tools/gfx2inc/target/release/gfx2inc 640 480 applications/bg/bg.png applications/bg/bg.inc
+../fox32asm/target/release/fox32asm applications/bg/bg.inc base_image/bg.raw
 
 echo "adding files to fox32os.img"
 cd base_image

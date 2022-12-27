@@ -50,5 +50,5 @@ minute_less_than_10:
 
 second_counter: data.8 0
 
-    #include "../../fox32rom/fox32rom.def"
-    #include "../fox32os.def"
+    #include "../../../fox32rom/fox32rom.def"
+    #include "../../fox32os.def"
