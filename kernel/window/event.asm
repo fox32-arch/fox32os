@@ -1,5 +1,8 @@
 ; window event routines
 
+; event types
+const EVENT_TYPE_BUTTON_CLICK: 0x80000000
+
 const WINDOW_EVENT_SIZE: 32
 
 ; get the next window event and remove it from the event queue

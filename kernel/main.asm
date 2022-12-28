@@ -56,6 +56,11 @@ jump_table:
     ; shell jump table
     org.pad 0x00000610
     data.32 new_shell_task
+
+    ; widget jump table
+    org.pad 0x00000710
+    data.32 draw_widgets_to_window
+    data.32 handle_widget_click
 jump_table_end:
 
     ; initialization code
@@ -265,6 +270,7 @@ get_os_version:
     #include "fxf/fxf.asm"
     #include "shell/shell.asm"
     #include "task.asm"
+    #include "widget/widget.asm"
     #include "window/window.asm"
     #include "vfs.asm"
 

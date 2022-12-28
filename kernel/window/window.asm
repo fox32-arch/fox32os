@@ -13,8 +13,9 @@
 ; data.8  reserved_1
 ; data.16 reserved_2
 ; data.32 menu_bar_ptr       - pointer to this window's menu bar root struct, or 0 for none
+; data.32 first_widget_ptr   - pointer to this window's first widget
 
-const WINDOW_STRUCT_SIZE: 32 ; 8 words = 32 bytes
+const WINDOW_STRUCT_SIZE: 36 ; 9 words = 36 bytes
 const TITLE_BAR_HEIGHT: 16
 
 ; create a new window and allocate memory as required
@@ -26,6 +27,7 @@ const TITLE_BAR_HEIGHT: 16
 ; r4: initial X coordinate (top left corner of title bar)
 ; r5: initial Y coordinate (top left corner of title bar)
 ; r6: pointer to menu bar root struct, or 0x00000000 for no menu bar
+; r7: pointer to first widget, or 0x00000000 for no widgets
 ; outputs:
 ; none
 new_window:
@@ -57,6 +59,9 @@ new_window:
     ; menu bar root struct pointer
     add r10, 6
     mov [r10], r6
+    ; first widget pointer
+    add r10, 4
+    mov [r10], r7
 
     ; then, allocate memory for the framebuffer
     ; the space required is width * (height + TITLE_BAR_HEIGHT) * 4

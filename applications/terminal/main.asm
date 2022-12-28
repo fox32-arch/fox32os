@@ -7,6 +7,7 @@
     mov r4, 32
     mov r5, 32
     mov r6, 0
+    mov r7, 0
     call new_window
 
     call get_unused_task_id
@@ -85,7 +86,7 @@ close_window:
     jmp event_loop_end
 
 window_title: data.str "Terminal" data.8 0
-window_struct: data.fill 0, 32
+window_struct: data.fill 0, 36
 
 shell_task_id: data.8 0
 
