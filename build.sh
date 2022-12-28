@@ -25,6 +25,9 @@ echo "assembling barclock"
 echo "assembling terminal"
 ../fox32asm/target/release/fox32asm applications/terminal/main.asm base_image/terminal.fxf
 
+echo "assembling foxpaint"
+../fox32asm/target/release/fox32asm applications/foxpaint/main.asm base_image/foxpaint.fxf
+
 echo "assembling bg"
 ../fox32asm/target/release/fox32asm applications/bg/main.asm base_image/bg.fxf
 
