@@ -202,6 +202,8 @@ destroy_window:
     ; set the active window to whatever entry is found first
     call search_for_nonempty_window_list_entry
     mov.8 [active_window_offset], r0
+    cmp r0, 0xFFFFFFFF
+    ifz jmp destroy_window_no_more_windows
 
     ; set the menu bar for the newly active window
     call window_list_offset_to_struct
@@ -213,6 +215,12 @@ destroy_window:
     mov r1, 0xFFFFFFFF
     cmp r0, 0
     ifnz call draw_menu_bar_root_items
+
+    pop r1
+    pop r0
+    ret
+destroy_window_no_more_windows:
+    call disable_menu_bar
 
     pop r1
     pop r0
