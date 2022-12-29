@@ -74,12 +74,46 @@ entry:
     ; initialize the memory allocator
     call initialize_allocator
 
-    ; draw the startup text
-    mov r0, startup_str
-    mov r1, 16
-    mov r2, 464
+    ; draw the bottom bar
+    mov r0, bottom_bar_str_0
+    mov r1, 8
+    mov r2, 448
     mov r3, TEXT_COLOR
     mov r4, 0x00000000
+    call draw_str_to_background
+    mov r0, bottom_bar_patterns
+    mov r1, 1
+    mov r2, 16
+    call set_tilemap
+    mov r1, 0
+    mov r2, 464
+    mov r31, 640
+draw_bottom_bar_loop:
+    mov r4, r31
+    rem r4, 2
+    cmp r4, 0
+    ifz mov r0, 0
+    ifnz mov r0, 1
+    call draw_tile_to_background
+    inc r1
+    loop draw_bottom_bar_loop
+    mov r0, 10
+    mov r1, 464
+    mov r2, 20
+    mov r3, 16
+    mov r4, 0xFFFFFFFF
+    call draw_filled_rectangle_to_background
+    mov r0, bottom_bar_str_1
+    mov r1, 12
+    mov r2, 464
+    mov r3, 0xFF000000
+    mov r4, 0xFFFFFFFF
+    call draw_str_to_background
+    mov r0, bottom_bar_str_2
+    mov r1, 488
+    mov r2, 464
+    mov r3, 0xFF000000
+    mov r4, 0xFFFFFFFF
     mov r10, FOX32OS_VERSION_MAJOR
     mov r11, FOX32OS_VERSION_MINOR
     mov r12, FOX32OS_VERSION_PATCH
@@ -274,9 +308,47 @@ get_os_version:
     #include "window/window.asm"
     #include "vfs.asm"
 
-startup_str: data.str "fox32 - OS version %u.%u.%u" data.8 0
+bottom_bar_str_0: data.str "FOX" data.8 0
+bottom_bar_str_1: data.str "32" data.8 0
+bottom_bar_str_2: data.str " OS version %u.%u.%u " data.8 0
 startup_error_str: data.str "fox32 - OS version %u.%u.%u - startup.cfg is invalid!" data.8 0
 memory_error_str: data.str "fox32 - OS version %u.%u.%u - not enough memory to perform operation!" data.8 0
+bottom_bar_patterns:
+    ; 1x16 tile
+    data.32 0xFF674764
+    data.32 0xFFFFFFFF
+    data.32 0xFF674764
+    data.32 0xFFFFFFFF
+    data.32 0xFF674764
+    data.32 0xFFFFFFFF
+    data.32 0xFF674764
+    data.32 0xFFFFFFFF
+    data.32 0xFF674764
+    data.32 0xFFFFFFFF
+    data.32 0xFF674764
+    data.32 0xFFFFFFFF
+    data.32 0xFF674764
+    data.32 0xFFFFFFFF
+    data.32 0xFF674764
+    data.32 0xFFFFFFFF
+
+    ; 1x16 tile
+    data.32 0xFFFFFFFF
+    data.32 0xFF674764
+    data.32 0xFFFFFFFF
+    data.32 0xFF674764
+    data.32 0xFFFFFFFF
+    data.32 0xFF674764
+    data.32 0xFFFFFFFF
+    data.32 0xFF674764
+    data.32 0xFFFFFFFF
+    data.32 0xFF674764
+    data.32 0xFFFFFFFF
+    data.32 0xFF674764
+    data.32 0xFFFFFFFF
+    data.32 0xFF674764
+    data.32 0xFFFFFFFF
+    data.32 0xFF674764
 
 next_task_id: data.8 0
 startup_cfg: data.str "startup cfg"
