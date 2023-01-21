@@ -46,6 +46,8 @@ mouse_down:
 key_down:
     mov r0, r1
 
+    cmp.8 r0, KEY_CTRL
+    ifz jmp event_loop_end
     cmp.8 r0, KEY_LSHIFT
     ifz push event_loop_end
     ifz jmp shift_pressed
@@ -63,6 +65,8 @@ key_down:
 key_up:
     mov r0, r1
 
+    cmp.8 r0, KEY_CTRL
+    ifz jmp event_loop_end
     cmp.8 r0, KEY_LSHIFT
     ifz push event_loop_end
     ifz jmp shift_released
