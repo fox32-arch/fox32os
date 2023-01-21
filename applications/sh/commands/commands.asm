@@ -50,10 +50,10 @@ shell_parse_command:
 shell_invalid_command_string: data.str "invalid command or FXF binary" data.8 10 data.8 0
 
     ; all commands
-    #include "shell/commands/clear.asm"
-    #include "shell/commands/dir.asm"
-    #include "shell/commands/disk.asm"
-    #include "shell/commands/diskrm.asm"
-    #include "shell/commands/exit.asm"
-    #include "shell/commands/help.asm"
-    #include "shell/commands/type.asm"
+    #include "commands/clear.asm"
+    #include "commands/dir.asm"
+    #include "commands/disk.asm"
+    #include "commands/diskrm.asm"
+    #include "commands/exit.asm"
+    #include "commands/help.asm"
+    #include "commands/type.asm"

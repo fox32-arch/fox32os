@@ -53,12 +53,8 @@ jump_table:
     data.32 read
     data.32 write
 
-    ; shell jump table
-    org.pad 0x00000610
-    data.32 new_shell_task
-
     ; widget jump table
-    org.pad 0x00000710
+    org.pad 0x00000610
     data.32 draw_widgets_to_window
     data.32 handle_widget_click
 jump_table_end:
@@ -302,7 +298,6 @@ get_os_version:
 
     #include "allocator.asm"
     #include "fxf/fxf.asm"
-    #include "shell/shell.asm"
     #include "task.asm"
     #include "widget/widget.asm"
     #include "window/window.asm"

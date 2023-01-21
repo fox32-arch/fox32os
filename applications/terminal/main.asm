@@ -1,5 +1,6 @@
 ; terminal
 
+    ; create the window
     mov r0, window_struct
     mov r1, window_title
     mov r2, 320
@@ -10,6 +11,7 @@
     mov r7, 0
     call new_window
 
+    ; start an instance of sh.fxf
     call get_unused_task_id
     mov.8 [shell_task_id], r0
     mov r1, stream_struct
@@ -103,6 +105,7 @@ stream_struct:
     data.32 stream_write_to_terminal
 
     #include "stream.asm"
+    #include "task.asm"
     #include "text.asm"
 
     ; include system defs

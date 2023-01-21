@@ -38,7 +38,7 @@ launch_fxf_name_loop_done:
     mov r0, launch_fxf_name
     movz.8 r1, [shell_current_disk]
     mov r2, launch_fxf_struct
-    call ryfs_open
+    call open
     cmp r0, 0
     ifz ret
 

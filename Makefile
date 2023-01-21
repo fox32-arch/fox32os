@@ -13,6 +13,9 @@ base_image:
 base_image/kernel.fxf: kernel/main.asm
 	$(FOX32ASM) $< $@
 
+base_image/sh.fxf: applications/sh/main.asm
+	$(FOX32ASM) $< $@
+
 base_image/barclock.fxf: applications/barclock/main.asm
 	$(FOX32ASM) $< $@
 
@@ -36,6 +39,7 @@ bootloader/bootloader.bin: bootloader/main.asm
 
 FILES = \
 	base_image/kernel.fxf \
+	base_image/sh.fxf \
 	base_image/barclock.fxf \
 	base_image/terminal.fxf \
 	base_image/foxpaint.fxf \

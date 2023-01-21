@@ -1,90 +1,8 @@
-; shell routines
+; fox32os shell
 
 const CURSOR: 0x8A
 const REDRAW_LINE: 0xFE
 
-; create a new shell task
-; inputs:
-; r0: task ID
-; r1: pointer to stream struct
-; outputs:
-; none
-new_shell_task:
-    push r0
-    push r1
-    push r2
-    push r3
-    push r4
-    push r10
-
-    ; allocate a 64KiB stack and push the pointer to the stream struct to it
-    push r0
-    push r1
-    mov r0, 65536
-    call allocate_memory
-    add r0, 65532
-    pop r1
-    mov [r0], r1
-    mov r10, r0
-    pop r0
-
-    ; then start the task
-    mov r1, shell_task ; initial instruction pointer
-    mov r2, r10        ; initial stack pointer
-    mov r3, 0          ; pointer to task code block to free when task ends
-                       ; (zero since we don't want to free any code blocks when the task ends)
-    mov r4, r10        ; pointer to task stack block to free when task ends
-    sub r4, 65536      ; point to the start of the stack block that we allocated above
-    call new_task
-
-    pop r10
-    pop r4
-    pop r3
-    pop r2
-    pop r1
-    pop r0
-    ret
-
-; print a character to the terminal
-; inputs:
-; r0: ASCII character
-; outputs:
-; none
-print_character_to_terminal:
-    push r1
-    push r2
-
-    mov.8 [shell_char_buffer], r0
-    mov r1, [shell_terminal_stream_struct_ptr]
-    mov r2, shell_char_buffer
-    call write
-
-    pop r2
-    pop r1
-    ret
-
-; print a string to the terminal
-; inputs:
-; r0: pointer to null-terminated string
-; outputs:
-; none
-print_str_to_terminal:
-    push r0
-    push r2
-
-    mov r1, [shell_terminal_stream_struct_ptr]
-    mov r2, r0
-print_str_to_terminal_loop:
-    call write
-    inc r2
-    cmp.8 [r2], 0x00
-    ifnz jmp print_str_to_terminal_loop
-
-    pop r2
-    pop r0
-    ret
-
-shell_task:
     pop [shell_terminal_stream_struct_ptr]
 shell_task_return:
     call shell_clear_buffer
@@ -309,6 +227,45 @@ shell_clear_buffer:
     pop r0
     ret
 
+; print a character to the terminal
+; inputs:
+; r0: ASCII character
+; outputs:
+; none
+print_character_to_terminal:
+    push r1
+    push r2
+
+    mov.8 [shell_char_buffer], r0
+    mov r1, [shell_terminal_stream_struct_ptr]
+    mov r2, shell_char_buffer
+    call write
+
+    pop r2
+    pop r1
+    ret
+
+; print a string to the terminal
+; inputs:
+; r0: pointer to null-terminated string
+; outputs:
+; none
+print_str_to_terminal:
+    push r0
+    push r2
+
+    mov r1, [shell_terminal_stream_struct_ptr]
+    mov r2, r0
+print_str_to_terminal_loop:
+    call write
+    inc r2
+    cmp.8 [r2], 0x00
+    ifnz jmp print_str_to_terminal_loop
+
+    pop r2
+    pop r0
+    ret
+
 shell_text_buf_bottom: data.fill 0, 512
 shell_text_buf_top:
 shell_text_buf_ptr:    data.32 0 ; pointer to the current input character
@@ -321,5 +278,9 @@ shell_prompt: data.str "> " data.8 CURSOR data.8 0
 shell_terminal_stream_struct_ptr: data.32 0
 shell_char_buffer: data.32 0
 
-    #include "shell/commands/commands.asm"
-    #include "shell/launch.asm"
+    #include "commands/commands.asm"
+    #include "launch.asm"
+
+    ; include system defs
+    #include "../../../fox32rom/fox32rom.def"
+    #include "../../fox32os.def"

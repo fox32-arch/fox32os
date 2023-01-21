@@ -36,12 +36,9 @@ tell:                      jmp [0x00000D18]
 read:                      jmp [0x00000D1C]
 write:                     jmp [0x00000D20]
 
-; shell jump table
-new_shell_task:            jmp [0x00000E10]
-
 ; widget jump table
-draw_widgets_to_window:    jmp [0x00000F10]
-handle_widget_click:       jmp [0x00000F14]
+draw_widgets_to_window:    jmp [0x00000E10]
+handle_widget_click:       jmp [0x00000E14]
 
 ; event types
 const EVENT_TYPE_BUTTON_CLICK: 0x80000000

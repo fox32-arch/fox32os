@@ -11,6 +11,27 @@ const MOVE_CURSOR: 0xF1
 const REDRAW_LINE: 0xFE
 const REDRAW: 0xFF
 
+; print a string to the terminal
+; inputs:
+; r0: pointer to null-terminated string
+; outputs:
+; none
+print_str_to_terminal:
+    push r0
+    push r1
+
+    mov r1, r0
+print_str_to_terminal_loop:
+    movz.8 r0, [r1]
+    call print_character_to_terminal
+    inc r1
+    cmp.8 [r1], 0x00
+    ifnz jmp print_str_to_terminal_loop
+
+    pop r1
+    pop r0
+    ret
+
 ; print a single character to the terminal
 ; inputs:
 ; r0: ASCII character or control character
