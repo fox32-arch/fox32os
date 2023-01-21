@@ -8,7 +8,9 @@
 
 Stable releases are available on the [Releases page](https://github.com/fox32-arch/fox32os/releases).
 
-## How to build
+Prebuilt images of the latest commit are also available on the [GitHub Actions page](https://github.com/fox32-arch/fox32os/actions).
+
+### Building
 
 - Download [tools](https://github.com/fox32-arch/tools) and [fox32asm](https://github.com/fox32-arch/fox32asm).
   Either use the pre-built binaries or build them.
