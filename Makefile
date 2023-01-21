@@ -10,16 +10,17 @@ all: fox32os.img
 base_image:
 	mkdir -p base_image
 
-base_image/kernel.fxf: kernel/main.asm
+base_image/kernel.fxf: kernel/main.asm $(wildcard kernel/*.asm kernel/*/*.asm)
 	$(FOX32ASM) $< $@
 
-base_image/sh.fxf: applications/sh/main.asm
+base_image/sh.fxf: applications/sh/main.asm $(wildcard applications/sh/*.asm applications/sh/*/*.asm)
+	echo $(wildcard applications/sh/**/*.asm)
 	$(FOX32ASM) $< $@
 
 base_image/barclock.fxf: applications/barclock/main.asm
 	$(FOX32ASM) $< $@
 
-base_image/terminal.fxf: applications/terminal/main.asm
+base_image/terminal.fxf: applications/terminal/main.asm $(wildcard applications/terminal/*.asm)
 	$(FOX32ASM) $< $@
 
 base_image/foxpaint.fxf: applications/foxpaint/main.asm
@@ -34,7 +35,7 @@ base_image/bg.raw: applications/bg/bg.inc
 applications/bg/bg.inc: applications/bg/bg.png
 	$(GFX2INC) 640 480 $< $@
 
-bootloader/bootloader.bin: bootloader/main.asm
+bootloader/bootloader.bin: bootloader/main.asm $(wildcard bootloader/*.asm)
 	$(FOX32ASM) $< $@
 
 FILES = \
