@@ -1,6 +1,7 @@
 
 **/.vscode/
 
+**/bootloader.bin
 **/*.fxf
 **/bg.inc
 **/bg.raw
