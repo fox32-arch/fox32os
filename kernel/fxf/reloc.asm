@@ -24,6 +24,14 @@ fxf_reloc:
     mov r1, [r1]
     div r1, 4
     mov r31, r1
+    cmp r31, 0
+    ifz mov r0, r5
+    ifz pop r5
+    ifz pop r4
+    ifz pop r3
+    ifz pop r2
+    ifz pop r1
+    ifz ret
 
     ; get the pointer to the table
     mov r1, r0
