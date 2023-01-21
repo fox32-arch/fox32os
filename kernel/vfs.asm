@@ -90,7 +90,6 @@ stream_read:
     ret
 
 ; write specified number of bytes into the specified file
-; this only supports writing to streams, RYFS is currently read-only
 ; inputs:
 ; r0: number of bytes to write (ignored if file struct is a stream)
 ; r1: pointer to file struct
@@ -105,7 +104,7 @@ write:
     pop r1
     cmp.8 r3, 0x00
     ifz pop r3
-    ifz ret
+    ifz jmp ryfs_write
     cmp.8 r3, 0x01
     ifz pop r3
     ifz jmp stream_write
