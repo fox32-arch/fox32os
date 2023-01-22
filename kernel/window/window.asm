@@ -698,4 +698,5 @@ window_list: data.fill 0, 124 ; 31 window structs * 4 bytes each
 
     #include "window/event.asm"
     #include "window/event_manager_task.asm"
+    #include "window/messagebox.asm"
     #include "window/overlay.asm"
