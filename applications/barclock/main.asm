@@ -45,6 +45,12 @@ loop_end:
 draw_window_title:
     mov [active_window_struct_ptr], r0
 
+    ; if there is no active window, clear the menu bar and return
+    cmp r0, 0
+    ifz call clear_menu_bar
+    cmp r0, 0
+    ifz ret
+
     ; get the title string pointer
     add r0, 12
     mov r0, [r0]
