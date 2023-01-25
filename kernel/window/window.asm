@@ -136,8 +136,6 @@ new_window:
     push r0
     call enable_menu_bar
     mov r0, r6
-    cmp r0, 0
-    ifz call disable_menu_bar
     call clear_menu_bar
     mov r1, 0xFFFFFFFF
     cmp r0, 0
@@ -209,19 +207,11 @@ destroy_window:
     call window_list_offset_to_struct
     call get_window_menu_bar_root_struct
     call enable_menu_bar
-    cmp r0, 0
-    ifz call disable_menu_bar
     call clear_menu_bar
     mov r1, 0xFFFFFFFF
     cmp r0, 0
     ifnz call draw_menu_bar_root_items
-
-    pop r1
-    pop r0
-    ret
 destroy_window_no_more_windows:
-    call disable_menu_bar
-
     pop r1
     pop r0
     ret

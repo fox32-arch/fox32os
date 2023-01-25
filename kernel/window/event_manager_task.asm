@@ -138,8 +138,6 @@ event_manager_task_mouse_event_inactive_window_was_clicked:
     call window_list_offset_to_struct
     call get_window_menu_bar_root_struct
     call enable_menu_bar
-    cmp r0, 0
-    ifz call disable_menu_bar
     call clear_menu_bar
     mov r1, 0xFFFFFFFF
     cmp r0, 0
