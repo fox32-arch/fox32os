@@ -45,6 +45,7 @@ jump_table:
     data.32 get_window_overlay_number
     data.32 start_dragging_window
     data.32 new_messagebox
+    data.32 get_active_window_struct
 
     ; VFS jump table
     org.pad 0x00000510

@@ -646,6 +646,16 @@ window_list_offset_to_struct:
     mov r0, [r0]
     ret
 
+; get a pointer to the active window struct
+; inputs:
+; none
+; outputs:
+; r0: pointer to current window struct
+get_active_window_struct:
+    movz.8 r0, [active_window_offset]
+    call window_list_offset_to_struct
+    ret
+
 window_title_bar_patterns:
     ; 1x16 tile
     data.32 0x00000000
