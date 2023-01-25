@@ -35,6 +35,12 @@ base_image/bg.raw: applications/bg/bg.inc
 applications/bg/bg.inc: applications/bg/bg.png
 	$(GFX2INC) 640 480 $< $@
 
+base_image/launcher.fxf: applications/launcher/main.asm $(wildcard applications/launcher/*.asm) applications/launcher/icons.inc
+	$(FOX32ASM) $< $@
+
+applications/launcher/icons.inc: applications/launcher/icons.png
+	$(GFX2INC) 16 16 $< $@
+
 bootloader/bootloader.bin: bootloader/main.asm $(wildcard bootloader/*.asm)
 	$(FOX32ASM) $< $@
 
@@ -45,7 +51,8 @@ FILES = \
 	base_image/terminal.fxf \
 	base_image/foxpaint.fxf \
 	base_image/bg.fxf \
-	base_image/bg.raw
+	base_image/bg.raw \
+	base_image/launcher.fxf
 
 fox32os.img: $(BOOTLOADER) $(FILES)
 	$(RYFS) -s $(IMAGE_SIZE) -l fox32os -b $(BOOTLOADER) create fox32os.img.tmp
