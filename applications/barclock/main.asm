@@ -1,6 +1,11 @@
 ; menu bar clock
 
 loop:
+    ; redraw the window title if the active window has changed
+    call get_active_window_struct
+    cmp r0, [active_window_struct_ptr]
+    ifnz call draw_window_title
+
     ; if no time has passed, don't bother redrawing the clock
     in r0, 0x80000705
     cmp.8 r0, [second_counter]
@@ -37,6 +42,33 @@ loop_end:
     call yield_task
     rjmp loop
 
+draw_window_title:
+    mov [active_window_struct_ptr], r0
+
+    ; get the title string pointer
+    add r0, 12
+    mov r0, [r0]
+
+    ; get the length of the string
+    mov r1, r0
+    call string_length
+
+    ; calculate the position of the text
+    mov r2, 574
+    mul r0, 8
+    sub r2, r0
+    mov r0, r1
+    mov r1, r2
+
+    ; draw the text
+    mov r2, 0
+    mov r3, 0xFFFFFFFF
+    mov r4, 0xFF3F3F3F
+    mov r5, 30
+    call draw_str_to_overlay
+
+    ret
+
 afternoon:
     sub r0, 12
     add r1, 8
@@ -49,6 +81,7 @@ minute_less_than_10:
     ret
 
 second_counter: data.8 0
+active_window_struct_ptr: data.32 0
 
     #include "../../../fox32rom/fox32rom.def"
     #include "../../fox32os.def"
