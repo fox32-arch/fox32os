@@ -650,9 +650,12 @@ window_list_offset_to_struct:
 ; inputs:
 ; none
 ; outputs:
-; r0: pointer to current window struct
+; r0: pointer to current window struct, or zero if none
 get_active_window_struct:
     movz.8 r0, [active_window_offset]
+    cmp.8 r0, 0xFF
+    ifz mov r0, 0
+    ifz ret
     call window_list_offset_to_struct
     ret
 
