@@ -1,5 +1,7 @@
 ; fox32os kernel
 
+const LOAD_ADDRESS: 0x03000000
+
 const FOX32OS_VERSION_MAJOR: 0
 const FOX32OS_VERSION_MINOR: 1
 const FOX32OS_VERSION_PATCH: 1
@@ -65,6 +67,28 @@ jump_table_end:
 entry:
     mov rsp, SYSTEM_STACK
 
+    ; before doing anything, check if we are running on top of an existing instance of the kernel
+    ; we can do this by comparing our load address to the known load address that the bootloader loads us to
+    ; only the high 16 bits are checked
+    rcall 6
+    pop r0
+    mov.16 r0, 0
+    cmp r0, LOAD_ADDRESS
+    ifz jmp entry_ok
+
+    ; if it appears that we're running on top of an existing kernel, then show a messagebox and exit
+    ; call the messagebox routines of the existing kernel
+    mov r0, 0
+    mov r1, kernelception_error_str
+    mov r2, 0
+    mov r3, 64
+    mov r4, 64
+    mov r5, 184
+    call [0x00000C34] ; new_messagebox
+    call [0x00000A18] ; end_current_task
+    rjmp 0
+
+entry_ok:
     ; clear the background
     mov r0, BACKGROUND_COLOR
     call fill_background
@@ -310,6 +334,7 @@ bottom_bar_str_1: data.str "32" data.8 0
 bottom_bar_str_2: data.str " OS version %u.%u.%u " data.8 0
 startup_error_str: data.str "fox32 - OS version %u.%u.%u - startup.cfg is invalid!" data.8 0
 memory_error_str: data.str "fox32 - OS version %u.%u.%u - not enough memory to perform operation!" data.8 0
+kernelception_error_str: data.str "Error: kernelception?" data.8 0
 bottom_bar_patterns:
     ; 1x16 tile
     data.32 0xFF674764
