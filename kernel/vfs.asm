@@ -91,7 +91,7 @@ stream_read:
 
 ; write specified number of bytes into the specified file
 ; inputs:
-; r0: number of bytes to write (ignored if file struct is a stream)
+; r0: number of bytes to write
 ; r1: pointer to file struct
 ; r2: pointer to source buffer (always 4 bytes if file struct is a stream)
 ; outputs:
@@ -111,6 +111,20 @@ write:
     pop r3
     ret
 stream_write:
+    push r31
+    push r2
+
+    mov r31, r0 ; number of bytes to write = loop count
+stream_write_loop:
+    call stream_write_char
+    inc r2
+    loop stream_write_loop
+
+    pop r2
+    pop r31
+    ret
+
+stream_write_char:
     push r0
     push r1
 
