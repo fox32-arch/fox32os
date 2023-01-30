@@ -6,6 +6,8 @@ shell_dir_command:
     mov r0, shell_dir_command_list_buffer
     movz.8 r1, [shell_current_disk]
     call ryfs_get_file_list
+    cmp r0, 0
+    ifz ret
 
     mov r31, r0
     mov r3, 0
