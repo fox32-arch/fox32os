@@ -33,6 +33,11 @@ shell_parse_command:
     call compare_string
     ifz jmp shell_help_command
 
+    ; shutdown
+    mov r1, shell_shutdown_command_string
+    call compare_string
+    ifz jmp shell_shutdown_command
+
     ; type
     mov r1, shell_type_command_string
     call compare_string
@@ -57,3 +62,4 @@ shell_invalid_command_string: data.str "invalid command or FXF binary" data.8 10
     #include "commands/exit.asm"
     #include "commands/help.asm"
     #include "commands/type.asm"
+    #include "commands/shutdown.asm"
