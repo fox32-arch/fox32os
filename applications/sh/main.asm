@@ -8,6 +8,7 @@ shell_task_return:
     call shell_clear_buffer
     call shell_print_prompt
 shell_task_loop:
+    mov r0, 1
     mov r1, [shell_terminal_stream_struct_ptr]
     mov r2, shell_char_buffer
     call read
@@ -16,7 +17,6 @@ shell_task_loop:
     cmp.8 r0, 0
     ifnz call shell_task_parse_key
 
-    call yield_task
     rjmp shell_task_loop
 
 shell_task_parse_key:

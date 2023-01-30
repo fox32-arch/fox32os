@@ -53,11 +53,11 @@ tell:
 
 ; read specified number of bytes into the specified buffer
 ; inputs:
-; r0: number of bytes to read (ignored if file struct is a stream)
+; r0: number of bytes to read
 ; r1: pointer to file struct
-; r2: pointer to destination buffer (always 4 bytes if file struct is a stream)
+; r2: pointer to destination buffer
 ; outputs:
-; none
+; r0: number of bytes left to read (streams can read short)
 read:
     push r3
     push r1
@@ -73,6 +73,26 @@ read:
     pop r3
     ret
 stream_read:
+    push r1
+    push r2
+
+stream_read_loop:
+    call stream_read_char
+    call yield_task
+
+    cmp.8 [r2], 0
+    ifz jmp stream_read_out
+
+    inc r2
+    dec r0
+    ifnz jmp stream_read_loop
+
+stream_read_out:
+    pop r2
+    pop r1
+    ret
+
+stream_read_char:
     push r0
     push r1
     push r2
@@ -83,7 +103,7 @@ stream_read:
 
     ; put the result into [r2]
     pop r2
-    mov [r2], r0
+    mov.8 [r2], r0
 
     pop r1
     pop r0
