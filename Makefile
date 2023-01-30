@@ -44,7 +44,11 @@ applications/launcher/icons.inc: applications/launcher/icons.png
 bootloader/bootloader.bin: bootloader/main.asm $(wildcard bootloader/*.asm)
 	$(FOX32ASM) $< $@
 
+base_image/startup.cfg: base_image/startup.cfg.default
+	cp $< $@
+
 FILES = \
+	base_image/startup.cfg \
 	base_image/kernel.fxf \
 	base_image/sh.fxf \
 	base_image/barclock.fxf \
