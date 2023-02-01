@@ -153,14 +153,14 @@ draw_bottom_bar_loop:
     in r31, 0x80001001
     cmp r31, 0
     ifnz jmp boot_disk_1
-
+try_startup:
     ; open startup.cfg
     mov r0, startup_cfg
     mov r1, 0
     mov r2, startup_cfg_struct
     call ryfs_open
     cmp r0, 0
-    ifz jmp boot_disk_1
+    ifz jmp startup_error
 
     ; load a startup task
 load_startup_task:
@@ -242,7 +242,7 @@ no_other_tasks:
     ; this does not return.
     call end_current_task_no_mark_no_free
 
-; if startup.cfg is invalid, try loading the raw contents of disk 1 as an FXF binary
+; try loading the raw contents of disk 1 as an FXF binary
 ; if disk 1 is not inserted, then fail
 boot_disk_1:
     ; check if a disk is inserted as disk 1
@@ -277,6 +277,8 @@ boot_disk_1_loop:
     mov r1, r5
     mov r0, r5
     call parse_fxf_binary
+    cmp r0, 0
+    ifz jmp disk_1_is_not_fxf
     mov r3, r1
     mov r1, r0
     movz.8 r0, [next_task_id]
@@ -285,6 +287,13 @@ boot_disk_1_loop:
     mov r4, 0 ; don't attempt to free any stack block if the task ends
     call new_task
     jmp no_other_tasks
+
+; disk 1 was found to not be a valid FXF binary
+; free the memory allocated for it and instead just keep it mounted as a disk
+disk_1_is_not_fxf:
+    mov r0, r5
+    call free_memory
+    jmp try_startup
 
 startup_error:
     mov r0, BACKGROUND_COLOR
