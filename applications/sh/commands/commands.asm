@@ -61,5 +61,5 @@ shell_invalid_command_string: data.str "invalid command or FXF binary" data.8 10
     #include "commands/diskrm.asm"
     #include "commands/exit.asm"
     #include "commands/help.asm"
-    #include "commands/type.asm"
     #include "commands/shutdown.asm"
+    #include "commands/type.asm"

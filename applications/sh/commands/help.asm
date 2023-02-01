@@ -22,8 +22,8 @@ shell_help_text:
     data.str "diskrm  | remove disk $0" data.8 10
     data.str "exit    | exit the shell" data.8 10
     data.str "help    | show this help text" data.8 10
-    data.str "type    | print file $0 of type $1" data.8 10
     data.str "shutdown| turn the computer off" data.8 10
+    data.str "type    | print file $0 of type $1" data.8 10
     data.8 10
     data.str "type the name of an FXF binary to launch" data.8 10
     data.str "it as a new task; the shell will suspend" data.8 10
