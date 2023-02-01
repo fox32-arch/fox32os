@@ -99,7 +99,7 @@ messagebox_ok_clicked:
     pop r0
     ret
 
-messagebox_window_title: data.str "Messagebox" data.8 0
+messagebox_window_title: data.strz "Messagebox"
 messagebox_window_struct: data.fill 0, 36
 messagebox_ok_button_widget:
     data.32 0                        ; next_ptr
@@ -112,5 +112,5 @@ messagebox_ok_button_widget:
     data.16 0                        ; reserved
     data.16 8                        ; x_pos
     data.16 64                       ; y_pos
-messagebox_ok_button_str: data.str "OK" data.8 0
+messagebox_ok_button_str: data.strz "OK"
 messagebox_old_active_window_offset: data.8 0

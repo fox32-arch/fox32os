@@ -1,6 +1,6 @@
 ; eject command
 
-shell_diskrm_command_string: data.str "diskrm" data.8 0
+shell_diskrm_command_string: data.strz "diskrm"
 
 shell_diskrm_command:
     call shell_parse_arguments

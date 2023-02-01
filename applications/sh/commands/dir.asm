@@ -1,6 +1,6 @@
 ; dir command
 
-shell_dir_command_string: data.str "dir" data.8 0
+shell_dir_command_string: data.strz "dir"
 
 shell_dir_command:
     mov r0, shell_dir_command_list_buffer

@@ -1,6 +1,6 @@
 ; type command
 
-shell_type_command_string: data.str "type" data.8 0
+shell_type_command_string: data.strz "type"
 
 ; FIXME: check string length before blindly copying
 shell_type_command:
@@ -87,4 +87,4 @@ shell_type_command_file: data.fill 0, 12
 shell_type_command_file_empty: data.str "           "
 shell_type_command_file_struct: data.32 0 data.32 0
 shell_type_command_file_character_buffer: data.8 0
-shell_type_command_file_not_found_string: data.str "file not found: " data.8 0
+shell_type_command_file_not_found_string: data.strz "file not found: "
