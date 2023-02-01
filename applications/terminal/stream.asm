@@ -9,6 +9,8 @@ stream_write_to_terminal:
 
 stream_get_input:
     mov r0, [read_buffer]
+    mov [read_buffer_ack], 1
     ret
 
 read_buffer: data.32 0
+read_buffer_ack: data.32 0

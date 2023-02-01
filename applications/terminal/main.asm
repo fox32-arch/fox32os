@@ -40,7 +40,9 @@ event_loop_end:
     call is_task_id_used
     ifz jmp close_window
     call yield_task
-    mov.8 [read_buffer], 0
+    cmp.8 [read_buffer_ack], 1
+    ifz mov.8 [read_buffer], 0
+    ifz mov.8 [read_buffer_ack], 0
     rjmp event_loop
 
 mouse_down:
