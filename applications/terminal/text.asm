@@ -3,13 +3,11 @@
 const TERMINAL_X_SIZE: 40
 const TERMINAL_Y_SIZE: 25
 
-const TEXT_COLOR:       0xFFFFFFFF
-const BACKGROUND_COLOR: 0xFF000000
-
-const FILL_TERM: 0xF0
+const FILL_TERM:   0xF0
 const MOVE_CURSOR: 0xF1
+const SET_COLOR:   0xF2
 const REDRAW_LINE: 0xFE
-const REDRAW: 0xFF
+const REDRAW:      0xFF
 
 ; print a string to the terminal
 ; inputs:
@@ -51,6 +49,7 @@ print_character_to_terminal_allow:
     push r0
     push r1
     push r2
+    push r3
 
     cmp.8 r0, 0     ; null
     ifz jmp print_character_to_terminal_end
@@ -71,15 +70,23 @@ print_character_to_terminal_allow:
     cmp.8 [terminal_y], TERMINAL_Y_SIZE
     ifgteq call scroll_terminal
 
-    ; calculate coords for character...
+    ; calculate coords for character
     movz.8 r1, [terminal_x]
     movz.8 r2, [terminal_y]
     mul r2, TERMINAL_X_SIZE
     add r1, r2
     add r1, terminal_text_buf
 
-    ; ...and print!!
+    ; calculate coords for color
+    movz.8 r2, [terminal_x]
+    movz.8 r3, [terminal_y]
+    mul r3, TERMINAL_X_SIZE
+    add r2, r3
+    add r2, terminal_color_buf
+
+    ; and print!!
     mov.8 [r1], r0
+    mov.8 [r2], [terminal_current_color_attribute]
     inc.8 [terminal_x]
     jmp print_character_to_terminal_end
 print_character_to_terminal_cr:
@@ -101,6 +108,7 @@ print_character_to_terminal_bs:
     cmp.8 [terminal_x], 0
     ifnz dec.8 [terminal_x]
 print_character_to_terminal_end:
+    pop r3
     pop r2
     pop r1
     pop r0
@@ -140,18 +148,27 @@ handle_control_character:
     cmp.8 [terminal_control_char], REDRAW
     ifz jmp handle_control_character_redraw
 
+    ; set color
+    cmp.8 [terminal_control_char], SET_COLOR
+    ifz jmp handle_control_character_set_color
+
     ret
 handle_control_character_fill_term:
     push r0
+    push r1
     push r31
     mov r0, terminal_text_buf
+    mov r1, terminal_color_buf
     mov r31, 1000
 handle_control_character_fill_term_loop:
     mov.8 [r0], [terminal_control_parameter_1]
+    mov.8 [r1], [terminal_current_color_attribute]
     inc r0
+    inc r1
     loop handle_control_character_fill_term_loop
     call redraw_terminal
     pop r31
+    pop r1
     pop r0
     ret
 handle_control_character_set_cursor_pos:
@@ -165,6 +182,9 @@ handle_control_character_redraw_line:
 handle_control_character_redraw:
     call redraw_terminal
     ret
+handle_control_character_set_color:
+    mov.8 [terminal_current_color_attribute], [terminal_control_parameter_1]
+    ret
 
 ; scroll the terminal
 ; inputs:
@@ -176,6 +196,8 @@ scroll_terminal:
     push r1
     push r2
     push r31
+
+    ; copy text buffer
 
     ; source
     mov r0, terminal_text_buf
@@ -191,16 +213,36 @@ scroll_terminal:
 
     call copy_memory_words
 
+    ; copy color buffer
+
+    ; source
+    mov r0, terminal_color_buf
+    add r0, TERMINAL_X_SIZE
+
+    ; destination
+    mov r1, terminal_color_buf
+
+    ; size
+    mov r2, TERMINAL_X_SIZE
+    mul r2, 24
+    div r2, 4
+
+    call copy_memory_words
+
     mov.8 [terminal_x], 0
     mov.8 [terminal_y], 24
 
     ; clear the last line
     mov r0, terminal_text_buf
+    mov r1, terminal_color_buf
     add r0, 960 ; 40 * 24
+    add r1, 960 ; 40 * 24
     mov r31, TERMINAL_X_SIZE
 scroll_terminal_clear_loop:
     mov.8 [r0], 0
+    mov.8 [r1], [terminal_current_color_attribute]
     inc r0
+    inc r1
     loop scroll_terminal_clear_loop
 
     ; redraw the screen
@@ -232,21 +274,18 @@ redraw_terminal:
     mov r5, r0
 
     mov r0, terminal_text_buf
-    mov r1, 0
     mov r2, 16
-    mov r3, TEXT_COLOR
-    mov r4, BACKGROUND_COLOR
     mov r31, TERMINAL_Y_SIZE
 redraw_terminal_loop_y:
     push r31
     mov r1, 0
     mov r31, TERMINAL_X_SIZE
 redraw_terminal_loop_x:
+    call get_color
     push r0
     movz.8 r0, [r0]
     call draw_font_tile_to_overlay
-    movz.8 r0, 8
-    add r1, r0
+    add r1, 8
     pop r0
     inc r0
     loop redraw_terminal_loop_x
@@ -294,17 +333,13 @@ redraw_terminal_line:
     add r2, 16
 
     mov r1, 0
-    mov r3, TEXT_COLOR
-    mov r4, BACKGROUND_COLOR
-
-    mov r1, 0
     mov r31, TERMINAL_X_SIZE
 redraw_terminal_line_loop_x:
+    call get_color
     push r0
     movz.8 r0, [r0]
     call draw_font_tile_to_overlay
-    movz.8 r0, 8
-    add r1, r0
+    add r1, 8
     pop r0
     inc r0
     loop redraw_terminal_line_loop_x
@@ -319,9 +354,62 @@ redraw_terminal_line_loop_x:
     pop r0
     ret
 
+; get the text color at the specified position
+; inputs:
+; r1: X coordinate
+; r2: Y coordinate
+; outputs:
+; r3: foreground color
+; r4: background color
+get_color:
+    push r1
+    push r2
+
+    ; get the character buffer coords from the actual coords
+    sub r2, 16
+    div r1, 8
+    div r2, 16
+
+    ; get the color attribute at the specified position
+    mul r2, TERMINAL_X_SIZE
+    add r2, r1
+    add r2, terminal_color_buf
+    movz.8 r2, [r2]
+
+    ; get the foreground color
+    mov r3, r2
+    srl r3, 4
+    mul r3, 4
+    add r3, colors
+    mov r3, [r3]
+
+    ; get the background color
+    mov r4, r2
+    and r4, 0x0F
+    mul r4, 4
+    add r4, colors
+    mov r4, [r4]
+
+    pop r2
+    pop r1
+    ret
+
+colors:
+    data.32 0xff2e1e1e ; black
+    data.32 0xffa88bf3 ; red
+    data.32 0xffa1e3a6 ; green
+    data.32 0xffafe2f9 ; yellow
+    data.32 0xfffab489 ; blue
+    data.32 0xffaca0eb ; magenta
+    data.32 0xffd5e294 ; cyan
+    data.32 0xfff4d6cd ; white
+    data.32 0x00000000 ; transparent
+
 terminal_x: data.8 0
 terminal_y: data.8 0
 terminal_text_buf: data.fill 0, 1000 ; 40x25 = 1000 bytes
+terminal_color_buf: data.fill 0x70, 1000 ; 40x25 = 1000 bytes
+terminal_current_color_attribute: data.8 0x70
 terminal_state: data.8 0 ; 0: normal, 1: awaiting first control parameter, 2: awaiting second control parameter
 terminal_control_char: data.8 0
 terminal_control_parameter_1: data.8 0

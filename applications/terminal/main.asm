@@ -11,6 +11,11 @@
     mov r7, 0
     call new_window
 
+    ; fill the window with the "black" color
+    mov r0, [colors]
+    mov r1, window_struct
+    call fill_window
+
     ; start an instance of sh.fxf
     call get_unused_task_id
     mov.8 [shell_task_id], r0
