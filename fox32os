@@ -1,0 +1,3 @@
+#!/bin/sh
+FOXBASE="$(dirname "$(realpath "$0")" )"/..
+"$FOXBASE"/fox32/fox32 --disk "$FOXBASE"/fox32os/fox32os.img "$@"

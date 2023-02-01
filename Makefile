@@ -44,7 +44,11 @@ applications/launcher/icons.inc: applications/launcher/icons.png
 bootloader/bootloader.bin: bootloader/main.asm $(wildcard bootloader/*.asm)
 	$(FOX32ASM) $< $@
 
+base_image/startup.cfg: base_image/startup.cfg.default
+	cp $< $@
+
 FILES = \
+	base_image/startup.cfg \
 	base_image/kernel.fxf \
 	base_image/sh.fxf \
 	base_image/barclock.fxf \
@@ -55,6 +59,6 @@ FILES = \
 	base_image/launcher.fxf
 
 fox32os.img: $(BOOTLOADER) $(FILES)
-	$(RYFS) -s $(IMAGE_SIZE) -l fox32os -b $(BOOTLOADER) create fox32os.img.tmp
-	cd base_image; for file in *; do $(RYFS) add ../fox32os.img.tmp $$file; done
-	cp fox32os.img.tmp fox32os.img
+	$(RYFS) -s $(IMAGE_SIZE) -l fox32os -b $(BOOTLOADER) create $@.tmp
+	for file in $(FILES); do $(RYFS) add $@.tmp $$file; done
+	mv $@.tmp $@
