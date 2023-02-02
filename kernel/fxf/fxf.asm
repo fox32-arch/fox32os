@@ -18,7 +18,7 @@ parse_fxf_binary:
 
     ret
 
-fxf_magic: data.str "FXF" data.8 0
+fxf_magic: data.strz "FXF"
 
     #include "fxf/reloc.asm"
 

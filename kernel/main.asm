@@ -338,12 +338,12 @@ get_os_version:
     #include "window/window.asm"
     #include "vfs.asm"
 
-bottom_bar_str_0: data.str "FOX" data.8 0
-bottom_bar_str_1: data.str "32" data.8 0
-bottom_bar_str_2: data.str " OS version %u.%u.%u " data.8 0
-startup_error_str: data.str "fox32 - OS version %u.%u.%u - startup.cfg is invalid!" data.8 0
-memory_error_str: data.str "fox32 - OS version %u.%u.%u - not enough memory to perform operation!" data.8 0
-kernelception_error_str: data.str "Error: kernelception?" data.8 0
+bottom_bar_str_0: data.strz "FOX"
+bottom_bar_str_1: data.strz "32"
+bottom_bar_str_2: data.strz " OS version %u.%u.%u "
+startup_error_str: data.strz "fox32 - OS version %u.%u.%u - startup.cfg is invalid!"
+memory_error_str: data.strz "fox32 - OS version %u.%u.%u - not enough memory to perform operation!"
+kernelception_error_str: data.strz "Error: kernelception?"
 bottom_bar_patterns:
     ; 1x16 tile
     data.32 0xFF674764

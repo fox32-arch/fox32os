@@ -31,8 +31,8 @@ error:
     call [0xF0042004] ; draw_str_to_background
     rjmp 0
 
-kernel_file_name: data.str "kernel  fxf" data.8 0
+kernel_file_name: data.strz "kernel  fxf"
 kernel_file_struct: data.32 0 data.32 0
-error_str: data.str "failed to open kernel.fxf" data.8 0
+error_str: data.strz "failed to open kernel.fxf"
 
     #include "reloc.asm"

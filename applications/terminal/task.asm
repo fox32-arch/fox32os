@@ -64,6 +64,6 @@ sh_fxf_missing:
 
 sh_fxf_name: data.str "sh      fxf"
 sh_fxf_struct: data.fill 0, 8
-sh_fxf_missing_str: data.str "sh could not be launched!" data.8 0
+sh_fxf_missing_str: data.strz "sh could not be launched!"
 sh_fxf_binary_ptr: data.32 0
 sh_fxf_stack_ptr: data.32 0

@@ -1,6 +1,6 @@
 ; disk command
 
-shell_disk_command_string: data.str "disk" data.8 0
+shell_disk_command_string: data.strz "disk"
 
 shell_disk_command:
     call shell_parse_arguments

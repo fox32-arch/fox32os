@@ -81,10 +81,10 @@ close_window:
     call destroy_window
     call end_current_task
 
-window_title: data.str "Launcher" data.8 0
+window_title: data.strz "Launcher"
 window_struct: data.fill 0, 36
 
-terminal_button_fxf: data.str "terminalfxf" data.8 0
+terminal_button_fxf: data.strz "terminalfxf"
 terminal_button_widget:
     data.32 0                  ; next_ptr
     data.32 0                  ; id
@@ -96,7 +96,7 @@ terminal_button_widget:
     data.16 0                  ; reserved
     data.16 72                 ; x_pos
     data.16 0                  ; y_pos
-button_text: data.str "  " data.8 0
+button_text: data.strz "  "
 
 icons:
     #include "icons.inc"

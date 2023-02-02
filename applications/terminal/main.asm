@@ -98,7 +98,7 @@ close_window:
     call end_current_task
     jmp event_loop_end
 
-window_title: data.str "Terminal" data.8 0
+window_title: data.strz "Terminal"
 window_struct: data.fill 0, 36
 
 shell_task_id: data.8 0

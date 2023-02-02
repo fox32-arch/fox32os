@@ -293,13 +293,13 @@ drag_or_close_tools_window:
     pop r0
     ret
 
-canvas_window_title: data.str "FoxPaint canvas" data.8 0
+canvas_window_title: data.strz "FoxPaint canvas"
 canvas_window_struct: data.fill 0, 36
 
-tools_window_title: data.str "FoxPaint tools" data.8 0
+tools_window_title: data.strz "FoxPaint tools"
 tools_window_struct: data.fill 0, 36
 
-color_section_text: data.str "Color " data.8 0
+color_section_text: data.strz "Color "
 color_button_black_widget:
     data.32 color_button_white_widget ; next_ptr
     data.32 0                         ; id
@@ -355,35 +355,35 @@ color_button_blue_widget:
     data.16 0                         ; reserved
     data.16 48                        ; x_pos
     data.16 80                        ; y_pos
-color_button_text: data.str "  " data.8 0
+color_button_text: data.strz "  "
 
 menu_items_root:
     data.8 2                                                      ; number of menus
     data.32 menu_items_canvas_list data.32 menu_items_canvas_name ; pointer to menu list, pointer to menu name
     data.32 menu_items_brush_list data.32 menu_items_brush_name   ; pointer to menu list, pointer to menu name
 menu_items_canvas_name:
-    data.8 6 data.str "Canvas" data.8 0x00 ; text length, text, null-terminator
+    data.8 6 data.strz "Canvas" ; text length, text, null-terminator
 menu_items_brush_name:
     data.8 5 data.str "Brush"  data.8 0x00 ; text length, text, null-terminator
 menu_items_canvas_list:
     data.8 2                                        ; number of items
     data.8 16                                       ; menu width (usually longest item + 2)
-    data.8 14 data.str "Clear to Black" data.8 0x00 ; text length, text, null-terminator
-    data.8 14 data.str "Clear to White" data.8 0x00 ; text length, text, null-terminator
+    data.8 14 data.strz "Clear to Black" ; text length, text, null-terminator
+    data.8 14 data.strz "Clear to White" ; text length, text, null-terminator
 menu_items_brush_list:
     data.8 4                              ; number of items
     data.8 7                              ; menu width (usually longest item + 2)
     data.8 3 data.str "2x2"   data.8 0x00 ; text length, text, null-terminator
     data.8 3 data.str "4x4"   data.8 0x00 ; text length, text, null-terminator
     data.8 3 data.str "8x8"   data.8 0x00 ; text length, text, null-terminator
-    data.8 5 data.str "16x16" data.8 0x00 ; text length, text, null-terminator
+    data.8 5 data.strz "16x16" ; text length, text, null-terminator
 menu_items_color_list:
     data.8 5                              ; number of items
     data.8 7                              ; menu width (usually longest item + 2)
-    data.8 5 data.str "Black" data.8 0x00 ; text length, text, null-terminator
-    data.8 5 data.str "White" data.8 0x00 ; text length, text, null-terminator
+    data.8 5 data.strz "Black" ; text length, text, null-terminator
+    data.8 5 data.strz "White" ; text length, text, null-terminator
     data.8 3 data.str "Red"   data.8 0x00 ; text length, text, null-terminator
-    data.8 5 data.str "Green" data.8 0x00 ; text length, text, null-terminator
+    data.8 5 data.strz "Green" ; text length, text, null-terminator
     data.8 4 data.str "Blue"  data.8 0x00 ; text length, text, null-terminator
 
 is_drawing: data.8 0
