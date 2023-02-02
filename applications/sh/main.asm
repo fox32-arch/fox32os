@@ -21,11 +21,11 @@ shell_task_loop:
 
 shell_task_parse_key:
     ; first, check if enter, delete, or backspace was pressed
-    cmp.8 r0, 0x1C ; enter
+    cmp.8 r0, 0x0a ; enter
     ifz jmp shell_key_down_enter
-    cmp.8 r0, 0x6F ; delete
+    cmp.8 r0, 0x7f ; delete
     ifz jmp shell_key_down_backspace
-    cmp.8 r0, 0x0E ; backspace
+    cmp.8 r0, 0x08 ; backspace
     ifz jmp shell_key_down_backspace
 
     ; then, overwrite the cursor
@@ -35,7 +35,6 @@ shell_task_parse_key:
     mov r0, r1
 
     ; then, add it to the text buffer and print it to the screen
-    call scancode_to_ascii
     call print_character_to_terminal
     call shell_push_character
 
