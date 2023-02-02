@@ -67,6 +67,7 @@ key_down:
     ifz push event_loop_end
     ifz jmp caps_pressed
 
+    call scancode_to_ascii
     mov.8 [read_buffer], r0
 
     jmp event_loop_end

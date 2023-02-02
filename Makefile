@@ -23,6 +23,9 @@ base_image/barclock.fxf: applications/barclock/main.asm
 base_image/terminal.fxf: applications/terminal/main.asm $(wildcard applications/terminal/*.asm)
 	$(FOX32ASM) $< $@
 
+base_image/serial.fxf: applications/serial/main.asm $(wildcard applications/terminal/*.asm)
+	$(FOX32ASM) $< $@
+
 base_image/foxpaint.fxf: applications/foxpaint/main.asm
 	$(FOX32ASM) $< $@
 
@@ -53,6 +56,7 @@ FILES = \
 	base_image/sh.fxf \
 	base_image/barclock.fxf \
 	base_image/terminal.fxf \
+	base_image/serial.fxf \
 	base_image/foxpaint.fxf \
 	base_image/bg.fxf \
 	base_image/bg.raw \
