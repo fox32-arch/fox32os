@@ -27,6 +27,8 @@ new_task:
     ; fall-through
 
 ; switch to the next task in the queue
+; no registers are saved upon task yield
+; if a register must be saved across a yield, push it before the yield and pop it after the yield
 ; inputs:
 ; none
 ; outputs:
