@@ -26,6 +26,7 @@ print_str_to_terminal_loop:
 print_str_to_terminal_out:
     pop r1
     pop r0
+    ret
 
 stream_struct:
     data.8  0x00
