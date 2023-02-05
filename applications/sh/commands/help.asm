@@ -1,5 +1,7 @@
 ; help command
 
+const SET_COLOR: 0xF2
+
 shell_help_command_string: data.strz "help"
 
 shell_help_command:
@@ -9,9 +11,9 @@ shell_help_command:
     ret
 
 shell_help_text:
-    data.8 0xF2 data.8 0x20 data.8 1 ; set the color to green
+    data.8 SET_COLOR data.8 0x20 data.8 1 ; set the color to green
     data.str "fox32os shell" data.8 10
-    data.8 0xF2 data.8 0x70 data.8 1 ; set the color to white
+    data.8 SET_COLOR data.8 0x70 data.8 1 ; set the color to white
     data.8 10
     data.str "(in descriptions, $n is argument n)" data.8 10
     data.str "command | description" data.8 10
