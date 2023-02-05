@@ -46,6 +46,23 @@ shell_dir_command_loop:
     mov r0, shell_dir_command_type_buffer
     call print_str_to_terminal
 
+    ; two spaces
+    mov r0, ' '
+    call print_character_to_terminal
+    call print_character_to_terminal
+
+    ; get and print the file size
+    mov r0, shell_dir_command_list_buffer
+    add r0, r3
+    movz.8 r1, [shell_current_disk]
+    mov r2, shell_dir_command_temp_file_struct
+    call open
+    cmp r0, 0
+    ifz jmp shell_dir_command_failed_to_open_file
+    mov r0, shell_dir_command_temp_file_struct
+    call ryfs_get_size
+    call print_decimal_to_terminal
+shell_dir_command_failed_to_open_file:
     ; new line
     mov r0, 10
     call print_character_to_terminal
@@ -59,8 +76,9 @@ shell_dir_command_loop:
 shell_dir_command_list_buffer: data.fill 0, 341
 shell_dir_command_file_buffer: data.fill 0, 9
 shell_dir_command_type_buffer: data.fill 0, 4
+shell_dir_command_temp_file_struct: data.fill 0, 8
 shell_dir_command_header_string:
     data.8 SET_COLOR data.8 0x20 data.8 1 ; set the color to green
-    data.str "file     type" data.8 10
+    data.str "file     type size" data.8 10
     data.8 SET_COLOR data.8 0x70 data.8 1 ; set the color to white
     data.8 0

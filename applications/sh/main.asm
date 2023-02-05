@@ -272,6 +272,38 @@ print_str_to_terminal_loop:
     pop r0
     ret
 
+print_decimal_to_terminal:
+    push r0
+    push r10
+    push r11
+    push r12
+    push r13
+    mov r10, rsp
+    mov r12, r0
+
+    push.8 0
+print_decimal_to_terminal_loop:
+    push r12
+    div r12, 10
+    pop r13
+    rem r13, 10
+    mov r11, r13
+    add r11, '0'
+    push.8 r11
+    cmp r12, 0
+    ifnz jmp print_decimal_to_terminal_loop
+print_decimal_to_terminal_print:
+    mov r0, rsp
+    call print_str_to_terminal
+
+    mov rsp, r10
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r0
+    ret
+
 shell_text_buf_bottom: data.fill 0, 512
 shell_text_buf_top:
 shell_text_buf_ptr:    data.32 0 ; pointer to the current input character
