@@ -1,6 +1,9 @@
 ; fox32os shell
 
-const CURSOR: 0x8A
+const CURSOR:      0x8A
+const FILL_TERM:   0xF0
+const MOVE_CURSOR: 0xF1
+const SET_COLOR:   0xF2
 const REDRAW_LINE: 0xFE
 
     pop [shell_terminal_stream_struct_ptr]

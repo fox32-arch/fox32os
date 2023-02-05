@@ -1,7 +1,5 @@
 ; help command
 
-const SET_COLOR: 0xF2
-
 shell_help_command_string: data.strz "help"
 
 shell_help_command:
