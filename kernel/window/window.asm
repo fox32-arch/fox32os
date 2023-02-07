@@ -20,7 +20,7 @@ const TITLE_BAR_HEIGHT: 16
 
 ; create a new window and allocate memory as required
 ; inputs:
-; r0: pointer to empty 32 byte window struct
+; r0: pointer to empty 36 byte window struct
 ; r1: pointer to null-terminated title string
 ; r2: window width
 ; r3: window height, not including the title bar
