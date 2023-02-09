@@ -113,7 +113,7 @@ stream_read_char:
 ; inputs:
 ; r0: number of bytes to write
 ; r1: pointer to file struct
-; r2: pointer to source buffer (always 4 bytes if file struct is a stream)
+; r2: pointer to source buffer
 ; outputs:
 ; none
 write:
