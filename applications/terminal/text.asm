@@ -59,6 +59,8 @@ print_character_to_terminal_allow:
     ifz jmp print_character_to_terminal_lf
     cmp.8 r0, 13    ; carriage return
     ifz jmp print_character_to_terminal_cr
+    cmp.8 r0, 127   ; delete
+    ifz jmp print_character_to_terminal_bs
 
     ; check if we are at the end of this line
     cmp.8 [terminal_x], TERMINAL_X_SIZE
