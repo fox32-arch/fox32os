@@ -16,6 +16,8 @@ const TEXT_COLOR:       0xFFFFFFFF
     org.pad 0x00000010
 jump_table:
     data.32 get_os_version
+    data.32 get_current_disk_id
+    data.32 set_current_disk_id
 
     ; FXF jump table
     org.pad 0x00000110
@@ -72,9 +74,9 @@ entry:
     ; we can do this by comparing our load address to the known load address that the bootloader loads us to
     ; only the high 16 bits are checked
     rcall 6
-    pop r0
-    mov.16 r0, 0
-    cmp r0, LOAD_ADDRESS
+    pop r1
+    mov.16 r1, 0
+    cmp r1, LOAD_ADDRESS
     ifz jmp entry_ok
 
     ; if it appears that we're running on top of an existing kernel, then show a messagebox and exit
@@ -90,6 +92,9 @@ entry:
     rjmp 0
 
 entry_ok:
+    ; save the boot disk id that the bootloader passed in r0
+    mov.8 [current_disk_id], r0
+
     ; clear the background
     mov r0, BACKGROUND_COLOR
     call fill_background
@@ -156,8 +161,9 @@ draw_bottom_bar_loop:
     ifnz jmp boot_disk_1
 try_startup:
     ; open startup.cfg
+    call get_current_disk_id
+    mov r1, r0
     mov r0, startup_cfg
-    mov r1, 0
     mov r2, startup_cfg_struct
     call ryfs_open
     cmp r0, 0
@@ -172,8 +178,9 @@ load_startup_task:
     call ryfs_read
 
     ; open the actual startup file
+    call get_current_disk_id
+    mov r1, r0
     mov r0, startup_file
-    mov r1, 0
     mov r2, startup_file_struct
     call ryfs_open
     cmp r0, 0
@@ -326,6 +333,14 @@ memory_error:
     call draw_format_str_to_background
     rjmp 0
 
+get_current_disk_id:
+    movz.8 r0, [current_disk_id]
+    ret
+
+set_current_disk_id:
+    mov.8 [current_disk_id], r0
+    ret
+
 get_os_version:
     mov r0, FOX32OS_VERSION_MAJOR
     mov r1, FOX32OS_VERSION_MINOR
@@ -383,6 +398,7 @@ bottom_bar_patterns:
     data.32 0xFF674764
 
 next_task_id: data.8 0
+current_disk_id: data.8 0
 startup_cfg: data.str "startup cfg"
 startup_cfg_struct: data.32 0 data.32 0
 startup_file: data.str "           "
