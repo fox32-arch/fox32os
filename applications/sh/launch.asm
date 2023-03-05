@@ -35,8 +35,9 @@ launch_fxf_name_loop:
     loop launch_fxf_name_loop
 launch_fxf_name_loop_done:
     ; open the file
+    call get_current_disk_id
+    mov r1, r0
     mov r0, launch_fxf_name
-    movz.8 r1, [shell_current_disk]
     mov r2, launch_fxf_struct
     call open
     cmp r0, 0

@@ -31,8 +31,9 @@ shell_type_command:
     mov.8 [r1], 0
 
     ; open the file
+    call get_current_disk_id
+    mov r1, r0
     mov r0, shell_type_command_file
-    movz.8 r1, [shell_current_disk]
     mov r2, shell_type_command_file_struct
     call open
     cmp r0, 0

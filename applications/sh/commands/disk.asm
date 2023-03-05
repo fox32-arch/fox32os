@@ -10,17 +10,22 @@ shell_disk_command:
     ; r0: disk ID
 
     ; check if it's in range
-    cmp r0, 3
+    cmp r0, 4
     ifgt jmp shell_disk_command_out_of_range
+    ifz jmp shell_disk_command_is_disk
 
+    call is_romdisk_available
+    ifnz ret
+    jmp shell_disk_command_is_romdisk
+shell_disk_command_is_disk:
     ; OR it with the IO port to get the current insert state of a disk
     or r0, 0x80001000
     in r1, r0
     cmp r1, 0
     ifz ret
-
+shell_disk_command_is_romdisk:
     ; set the current disk ID
-    mov.8 [shell_current_disk], r0
+    call set_current_disk_id
 
     ret
 

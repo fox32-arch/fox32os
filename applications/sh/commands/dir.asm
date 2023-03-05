@@ -6,8 +6,9 @@ shell_dir_command:
     mov r0, shell_dir_command_header_string
     call print_str_to_terminal
 
+    call get_current_disk_id
+    mov r1, r0
     mov r0, shell_dir_command_list_buffer
-    movz.8 r1, [shell_current_disk]
     call ryfs_get_file_list
     cmp r0, 0
     ifz ret
@@ -52,9 +53,10 @@ shell_dir_command_loop:
     call print_character_to_terminal
 
     ; get and print the file size
+    call get_current_disk_id
+    mov r1, r0
     mov r0, shell_dir_command_list_buffer
     add r0, r3
-    movz.8 r1, [shell_current_disk]
     mov r2, shell_dir_command_temp_file_struct
     call open
     cmp r0, 0

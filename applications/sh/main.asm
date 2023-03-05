@@ -95,7 +95,7 @@ shell_key_down_backspace:
     ret
 
 shell_print_prompt:
-    movz.8 r0, [shell_current_disk]
+    call get_current_disk_id
     add r0, '0'
     call print_character_to_terminal
     mov r0, shell_prompt
@@ -308,8 +308,6 @@ shell_text_buf_bottom: data.fill 0, 512
 shell_text_buf_top:
 shell_text_buf_ptr:    data.32 0 ; pointer to the current input character
 shell_args_ptr:        data.32 0 ; pointer to the beginning of the command arguments
-
-shell_current_disk: data.8 0
 
 shell_prompt: data.str "> " data.8 CURSOR data.8 0
 
