@@ -4,8 +4,11 @@
 
 const LOAD_ADDRESS: 0x03000000
 
+    ; fox32rom passed the boot disk id in r0, save it
+    mov.8 [boot_disk_id], r0
+
     ; open kernel.fxf
-    mov r1, r0 ; fox32rom passed the boot disk id in r0
+    mov r1, r0
     mov r0, kernel_file_name
     mov r2, kernel_file_struct
     call [0xF0045008] ; ryfs_open
@@ -20,7 +23,9 @@ const LOAD_ADDRESS: 0x03000000
     ; relocate it and off we go!!
     mov r0, LOAD_ADDRESS
     call fxf_reloc
-    jmp r0
+    mov r1, r0
+    movz.8 r0, [boot_disk_id]
+    jmp r1
 
 error:
     mov r0, error_str
@@ -34,6 +39,7 @@ error:
 kernel_file_name: data.strz "kernel  fxf"
 kernel_file_struct: data.32 0 data.32 0
 error_str: data.strz "failed to open kernel file"
+boot_disk_id: data.8 0
 
     #include "reloc.asm"
 
