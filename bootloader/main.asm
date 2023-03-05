@@ -5,8 +5,8 @@
 const LOAD_ADDRESS: 0x03000000
 
     ; open kernel.fxf
+    mov r1, r0 ; fox32rom passed the boot disk id in r0
     mov r0, kernel_file_name
-    movz.8 r1, 0
     mov r2, kernel_file_struct
     call [0xF0045008] ; ryfs_open
     cmp r0, 0
@@ -33,6 +33,10 @@ error:
 
 kernel_file_name: data.strz "kernel  fxf"
 kernel_file_struct: data.32 0 data.32 0
-error_str: data.strz "failed to open kernel.fxf"
+error_str: data.strz "failed to open kernel file"
 
     #include "reloc.asm"
+
+    ; bootable magic bytes
+    org.pad 0x000009FC
+    data.32 0x523C334C
