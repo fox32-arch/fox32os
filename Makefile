@@ -3,9 +3,10 @@ FOX32ASM := ../fox32asm/target/release/fox32asm
 GFX2INC := ../tools/gfx2inc/target/release/gfx2inc
 
 IMAGE_SIZE := 16777216
+ROM_IMAGE_SIZE := 65536
 BOOTLOADER := bootloader/bootloader.bin
 
-all: fox32os.img
+all: fox32os.img romdisk.img
 
 base_image:
 	mkdir -p base_image
@@ -62,7 +63,22 @@ FILES = \
 	base_image/bg.raw \
 	base_image/launcher.fxf
 
+ROM_FILES = \
+	base_image/startup.cfg \
+	base_image/kernel.fxf \
+	base_image/sh.fxf \
+	base_image/barclock.fxf \
+	base_image/terminal.fxf \
+	base_image/serial.fxf \
+	base_image/bg.fxf \
+	base_image/launcher.fxf
+
 fox32os.img: $(BOOTLOADER) $(FILES)
 	$(RYFS) -s $(IMAGE_SIZE) -l fox32os -b $(BOOTLOADER) create $@.tmp
 	for file in $(FILES); do $(RYFS) add $@.tmp $$file; done
+	mv $@.tmp $@
+
+romdisk.img: $(BOOTLOADER) $(ROM_FILES)
+	$(RYFS) -s $(ROM_IMAGE_SIZE) -l romdisk -b $(BOOTLOADER) create $@.tmp
+	for file in $(ROM_FILES); do $(RYFS) add $@.tmp $$file; done
 	mv $@.tmp $@
