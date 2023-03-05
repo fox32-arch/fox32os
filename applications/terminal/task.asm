@@ -11,8 +11,9 @@ new_shell_task:
     push r1
 
     ; open the file
+    call get_current_disk_id
+    mov r1, r0
     mov r0, sh_fxf_name
-    mov r1, 0
     mov r2, sh_fxf_struct
     call open
     cmp r0, 0
