@@ -12,7 +12,7 @@ shell_disk_command:
     ; check if it's in range
     cmp r0, 4
     ifgt jmp shell_disk_command_out_of_range
-    ifz jmp shell_disk_command_is_disk
+    ifnz jmp shell_disk_command_is_disk
 
     call is_romdisk_available
     ifnz ret
