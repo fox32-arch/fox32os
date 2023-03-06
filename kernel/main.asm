@@ -68,8 +68,6 @@ jump_table_end:
 
     ; initialization code
 entry:
-    mov rsp, SYSTEM_STACK
-
     ; before doing anything, check if we are running on top of an existing instance of the kernel
     ; we can do this by comparing our load address to the known load address that the bootloader loads us to
     ; only the high 16 bits are checked
@@ -92,6 +90,8 @@ entry:
     rjmp 0
 
 entry_ok:
+    mov rsp, SYSTEM_STACK
+
     ; save the boot disk id that the bootloader passed in r0
     mov.8 [current_disk_id], r0
 
