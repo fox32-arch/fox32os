@@ -6,6 +6,10 @@ const FOX32OS_VERSION_MAJOR: 0
 const FOX32OS_VERSION_MINOR: 1
 const FOX32OS_VERSION_PATCH: 1
 
+const FOX32OS_API_VERSION: 1
+
+const REQUIRED_FOX32ROM_API_VERSION: 1
+
 const SYSTEM_STACK:     0x01FFF800
 const BACKGROUND_COLOR: 0xFF674764
 const TEXT_COLOR:       0xFFFFFFFF
@@ -16,6 +20,7 @@ const TEXT_COLOR:       0xFFFFFFFF
     org.pad 0x00000010
 jump_table:
     data.32 get_os_version
+    data.32 get_os_api_version
     data.32 get_current_disk_id
     data.32 set_current_disk_id
 
@@ -98,6 +103,16 @@ entry_ok:
     ; clear the background
     mov r0, BACKGROUND_COLOR
     call fill_background
+
+    ; check for the required fox32rom API version
+    mov r0, get_rom_api_version
+    add r0, 2
+    mov r0, [r0]
+    cmp [r0], 0
+    ifz jmp api_version_too_low_error
+    call get_rom_api_version
+    cmp r0, REQUIRED_FOX32ROM_API_VERSION
+    iflt jmp api_version_too_low_error
 
     ; initialize the memory allocator
     call initialize_allocator
@@ -333,6 +348,21 @@ memory_error:
     call draw_format_str_to_background
     rjmp 0
 
+api_version_too_low_error:
+    mov r0, BACKGROUND_COLOR
+    call fill_background
+
+    mov r0, api_error_str
+    mov r1, 16
+    mov r2, 464
+    mov r3, TEXT_COLOR
+    mov r4, 0x00000000
+    mov r10, FOX32OS_VERSION_MAJOR
+    mov r11, FOX32OS_VERSION_MINOR
+    mov r12, FOX32OS_VERSION_PATCH
+    call draw_format_str_to_background
+    rjmp 0
+
 get_current_disk_id:
     movz.8 r0, [current_disk_id]
     ret
@@ -347,6 +377,10 @@ get_os_version:
     mov r2, FOX32OS_VERSION_PATCH
     ret
 
+get_os_api_version:
+    mov r0, FOX32OS_API_VERSION
+    ret
+
     #include "allocator.asm"
     #include "fxf/fxf.asm"
     #include "task.asm"
@@ -359,6 +393,7 @@ bottom_bar_str_1: data.strz "32"
 bottom_bar_str_2: data.strz " OS version %u.%u.%u "
 startup_error_str: data.strz "fox32 - OS version %u.%u.%u - startup.cfg is invalid!"
 memory_error_str: data.strz "fox32 - OS version %u.%u.%u - not enough memory to perform operation!"
+api_error_str: data.strz "fox32 - OS version %u.%u.%u - fox32rom API version too low!"
 kernelception_error_str: data.strz "Error: kernelception?"
 bottom_bar_patterns:
     ; 1x16 tile

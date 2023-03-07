@@ -2,8 +2,9 @@
 
 ; system jump table
 get_os_version:            jmp [0x00000810]
-get_current_disk_id:       jmp [0x00000814]
-set_current_disk_id:       jmp [0x00000818]
+get_os_api_version:        jmp [0x00000814]
+get_current_disk_id:       jmp [0x00000818]
+set_current_disk_id:       jmp [0x0000081C]
 
 ; FXF jump table
 parse_fxf_binary:          jmp [0x00000910]
