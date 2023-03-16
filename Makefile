@@ -82,3 +82,6 @@ romdisk.img: $(BOOTLOADER) $(ROM_FILES)
 	$(RYFS) -s $(ROM_IMAGE_SIZE) -l romdisk -b $(BOOTLOADER) create $@.tmp
 	for file in $(ROM_FILES); do $(RYFS) add $@.tmp $$file; done
 	mv $@.tmp $@
+
+clean:
+	rm -f $(FILES)
