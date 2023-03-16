@@ -84,7 +84,7 @@ close_window:
 window_title: data.strz "Launcher"
 window_struct: data.fill 0, 36
 
-terminal_button_fxf: data.strz "terminalfxf"
+terminal_button_fxf: data.strz "terminal.fxf"
 terminal_button_widget:
     data.32 0                  ; next_ptr
     data.32 0                  ; id

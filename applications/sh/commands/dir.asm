@@ -53,12 +53,13 @@ shell_dir_command_loop:
     call print_character_to_terminal
 
     ; get and print the file size
+    ; call ryfs_open instead of open because this uses the internal filename style
     call get_current_disk_id
     mov r1, r0
     mov r0, shell_dir_command_list_buffer
     add r0, r3
     mov r2, shell_dir_command_temp_file_struct
-    call open
+    call ryfs_open
     cmp r0, 0
     ifz jmp shell_dir_command_failed_to_open_file
     mov r0, shell_dir_command_temp_file_struct
