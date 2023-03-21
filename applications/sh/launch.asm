@@ -39,7 +39,7 @@ launch_fxf_name_loop_done:
     mov r1, r0
     mov r0, launch_fxf_name
     mov r2, launch_fxf_struct
-    call open
+    call ryfs_open
     cmp r0, 0
     ifz ret
 
