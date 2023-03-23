@@ -3,11 +3,12 @@
 ; launch an FXF binary from a file on disk
 ; inputs:
 ; r0: pointer to FXF binary name (8.3 format, for example "testfile.fxf" or "test.fxf")
-; r1: argument 0
-; r2: argument 1
-; r3: argument 2
-; r4: argument 3
-; r5: argument 4
+; r1: disk ID
+; r2: argument 0
+; r3: argument 1
+; r4: argument 2
+; r5: argument 3
+; r6: argument 4
 ; outputs:
 ; none
 launch_fxf_from_disk:
@@ -16,9 +17,16 @@ launch_fxf_from_disk:
     push r2
     push r3
     push r4
+    push r5
+    push r6
+
+    push r2
+    push r3
+    push r4
+    push r5
+    push r6
 
     ; open the file
-    mov r1, 0
     mov r2, launch_fxf_struct
     call open
     cmp r0, 0
@@ -45,17 +53,22 @@ launch_fxf_from_disk:
     mov [launch_fxf_stack_ptr], r0
 
     ; push the arguments to the task's stack
-    mov r4, rsp
+    pop r4
+    pop r3
+    pop r2
+    pop r1
+    pop r0
+    mov r5, rsp
     mov rsp, [launch_fxf_stack_ptr]
     add rsp, 65536 ; point to the end of the stack (stack grows down!!)
-    push r5
     push r4
     push r3
     push r2
     push r1
+    push r0
     sub rsp, 65516
     mov [launch_fxf_stack_ptr], rsp
-    mov rsp, r4
+    mov rsp, r5
 
     ; relocate the binary
     mov r0, [launch_fxf_binary_ptr]
@@ -70,6 +83,8 @@ launch_fxf_from_disk:
     mov r4, [launch_fxf_stack_ptr]
     call new_task
 allocate_error:
+    pop r6
+    pop r5
     pop r4
     pop r3
     pop r2
