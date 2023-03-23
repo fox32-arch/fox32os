@@ -12,7 +12,6 @@
 ; outputs:
 ; r0: task ID of the new task, or 0xFFFFFFFF if error
 launch_fxf_from_disk:
-    push r0
     push r1
     push r2
     push r3
