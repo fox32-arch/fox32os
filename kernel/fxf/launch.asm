@@ -83,6 +83,14 @@ launch_fxf_from_disk:
     mov r4, [launch_fxf_stack_ptr]
     call new_task
 allocate_error:
+    mov r0, launch_fxf_allocate_error_string1
+    mov r1, launch_fxf_allocate_error_string2
+    mov r2, launch_fxf_allocate_error_string3
+    mov r3, 64
+    mov r4, 64
+    mov r5, 336
+    call new_messagebox
+
     pop r6
     pop r5
     pop r4
@@ -95,3 +103,6 @@ allocate_error:
 launch_fxf_struct: data.fill 0, 8
 launch_fxf_binary_ptr: data.32 0
 launch_fxf_stack_ptr: data.32 0
+launch_fxf_allocate_error_string1: data.strz "Failed to allocate memory for a new task"
+launch_fxf_allocate_error_string2: data.strz "The memory allocator seems to be in an"
+launch_fxf_allocate_error_string3: data.strz "invalid state, a reboot is recommended"
