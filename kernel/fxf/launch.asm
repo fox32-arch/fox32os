@@ -10,7 +10,7 @@
 ; r5: argument 3
 ; r6: argument 4
 ; outputs:
-; r0: task ID of the new task
+; r0: task ID of the new task, or 0xFFFFFFFF if error
 launch_fxf_from_disk:
     push r0
     push r1
@@ -83,7 +83,15 @@ launch_fxf_from_disk:
     mov r3, [launch_fxf_binary_ptr]
     mov r4, [launch_fxf_stack_ptr]
     call new_task
-    jmp launch_fxf_from_disk_end
+
+    pop r6
+    pop r5
+    pop r4
+    pop r3
+    pop r2
+    pop r1
+    movz.8 r0, [launch_fxf_task_id]
+    ret
 launch_fxf_from_disk_allocate_error:
     mov r0, launch_fxf_allocate_error_string1
     mov r1, launch_fxf_allocate_error_string2
@@ -92,23 +100,14 @@ launch_fxf_from_disk_allocate_error:
     mov r4, 64
     mov r5, 336
     call new_messagebox
-    jmp launch_fxf_from_disk_end
 launch_fxf_from_disk_file_error:
-    mov r0, 0
-    mov r1, launch_fxf_file_error_string
-    mov r2, 0
-    mov r3, 64
-    mov r4, 64
-    mov r5, 280
-    call new_messagebox
-launch_fxf_from_disk_end:
     pop r6
     pop r5
     pop r4
     pop r3
     pop r2
     pop r1
-    movz.8 r0, [launch_fxf_task_id]
+    mov r0, 0xFFFFFFFF
     ret
 
 launch_fxf_struct: data.fill 0, 8
@@ -118,4 +117,3 @@ launch_fxf_stack_ptr: data.32 0
 launch_fxf_allocate_error_string1: data.strz "Failed to allocate memory for a new task"
 launch_fxf_allocate_error_string2: data.strz "The memory allocator seems to be in an"
 launch_fxf_allocate_error_string3: data.strz "invalid state, a reboot is recommended"
-launch_fxf_file_error_string: data.strz "Failed to open file for a new task"
