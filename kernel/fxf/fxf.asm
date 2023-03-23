@@ -20,6 +20,7 @@ parse_fxf_binary:
 
 fxf_magic: data.strz "FXF"
 
+    #include "fxf/launch.asm"
     #include "fxf/reloc.asm"
 
 const FXF_CODE_SIZE:   0x00000004

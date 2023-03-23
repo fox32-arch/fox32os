@@ -8,6 +8,7 @@ set_current_disk_id:       jmp [0x0000081C]
 
 ; FXF jump table
 parse_fxf_binary:          jmp [0x00000910]
+launch_fxf_from_disk:      jmp [0x00000914]
 
 ; task jump table
 new_task:                  jmp [0x00000A10]

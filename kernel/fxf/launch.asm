@@ -1,11 +1,16 @@
-; FXF launcher helper routines
+; FXF launching routines
 
-; launch an FXF binary from a file name
+; launch an FXF binary from a file on disk
 ; inputs:
-; r0: pointer to FXF binary name
+; r0: pointer to FXF binary name (8.3 format, for example "testfile.fxf" or "test.fxf")
+; r1: argument 0
+; r2: argument 1
+; r3: argument 2
+; r4: argument 3
+; r5: argument 4
 ; outputs:
 ; none
-launch_fxf:
+launch_fxf_from_disk:
     push r0
     push r1
     push r2
@@ -38,6 +43,19 @@ launch_fxf:
     cmp r0, 0
     ifz jmp allocate_error
     mov [launch_fxf_stack_ptr], r0
+
+    ; push the arguments to the task's stack
+    mov r4, rsp
+    mov rsp, [launch_fxf_stack_ptr]
+    add rsp, 65536 ; point to the end of the stack (stack grows down!!)
+    push r5
+    push r4
+    push r3
+    push r2
+    push r1
+    sub rsp, 65516
+    mov [launch_fxf_stack_ptr], rsp
+    mov rsp, r4
 
     ; relocate the binary
     mov r0, [launch_fxf_binary_ptr]

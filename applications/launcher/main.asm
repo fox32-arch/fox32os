@@ -65,7 +65,12 @@ button_click_event:
     ; terminal
     cmp r1, 0
     ifz mov r0, terminal_button_fxf
-    ifz call launch_fxf
+    ifz mov r1, 0
+    ifz mov r2, 0
+    ifz mov r3, 0
+    ifz mov r4, 0
+    ifz mov r5, 0
+    ifz call launch_fxf_from_disk
 
     ret
 
@@ -100,8 +105,6 @@ button_text: data.strz "  "
 
 icons:
     #include "icons.inc"
-
-    #include "launch.asm"
 
     #include "../../../fox32rom/fox32rom.def"
     #include "../../fox32os.def"

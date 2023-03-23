@@ -27,6 +27,7 @@ jump_table:
     ; FXF jump table
     org.pad 0x00000110
     data.32 parse_fxf_binary
+    data.32 launch_fxf_from_disk
 
     ; task jump table
     org.pad 0x00000210
