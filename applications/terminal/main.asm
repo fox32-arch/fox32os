@@ -17,10 +17,18 @@
     call fill_window
 
     ; start an instance of sh.fxf
-    call get_unused_task_id
+    call get_current_disk_id
+    mov r1, r0
+    mov r0, sh_fxf_name
+    mov r2, stream_struct
+    mov r3, 0
+    mov r4, 0
+    mov r5, 0
+    mov r6, 0
+    call launch_fxf_from_disk
+    cmp r0, 0xFFFFFFFF
+    ifz jmp sh_fxf_missing
     mov.8 [shell_task_id], r0
-    mov r1, stream_struct
-    call new_shell_task
 
 event_loop:
     mov r0, window_struct
@@ -99,8 +107,18 @@ close_window:
     call end_current_task
     jmp event_loop_end
 
+sh_fxf_missing:
+    mov r0, sh_fxf_missing_str
+    call print_str_to_terminal
+sh_fxf_missing_yield_loop:
+    call yield_task
+    rjmp sh_fxf_missing_yield_loop
+
 window_title: data.strz "Terminal"
 window_struct: data.fill 0, 36
+
+sh_fxf_name: data.strz "sh.fxf"
+sh_fxf_missing_str: data.str "sh could not be launched! hanging here" data.8 10 data.8 0
 
 shell_task_id: data.8 0
 
@@ -113,7 +131,6 @@ stream_struct:
     data.32 stream_write_to_terminal
 
     #include "stream.asm"
-    #include "task.asm"
     #include "text.asm"
 
     ; include system defs
