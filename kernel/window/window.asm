@@ -17,6 +17,8 @@
 
 const WINDOW_STRUCT_SIZE: 36 ; 9 words = 36 bytes
 const TITLE_BAR_HEIGHT: 16
+const TITLE_BAR_TEXT_FOREGROUND: 0xFF000000
+const TITLE_BAR_TEXT_BACKGROUND: 0xFFFFFFFF
 
 ; create a new window and allocate memory as required
 ; inputs:
@@ -436,8 +438,8 @@ draw_title_bar_to_window_loop:
     mov r0, r12
     mov r1, 8
     mov r2, 0
-    mov r3, 0xFF000000
-    mov r4, 0xFFFFFFFF
+    mov r3, TITLE_BAR_TEXT_FOREGROUND
+    mov r4, TITLE_BAR_TEXT_BACKGROUND
     mov r5, r10
     call draw_str_to_overlay
 
@@ -662,38 +664,38 @@ get_active_window_struct:
 window_title_bar_patterns:
     ; 1x16 tile
     data.32 0x00000000
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
     data.32 0x00000000
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
     data.32 0x00000000
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
     data.32 0x00000000
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
     data.32 0x00000000
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
     data.32 0x00000000
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
     data.32 0x00000000
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
     data.32 0x00000000
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
 
     ; 1x16 tile
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
     data.32 0x00000000
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
     data.32 0x00000000
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
     data.32 0x00000000
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
     data.32 0x00000000
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
     data.32 0x00000000
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
     data.32 0x00000000
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
     data.32 0x00000000
-    data.32 0xFFFFFFFF
+    data.32 TITLE_BAR_TEXT_BACKGROUND
     data.32 0x00000000
 
 active_window_offset: data.8 0xFF
