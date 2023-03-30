@@ -1,6 +1,6 @@
 ; messagebox routines
 
-; create a messagebox in the center of the screen
+; create a messagebox at the specified coordinates
 ; the calling task will not regain control until the user clicks the OK button
 ; inputs:
 ; r0: pointer to null-terminated first line string
