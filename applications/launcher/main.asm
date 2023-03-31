@@ -64,8 +64,10 @@ button_click_event:
 
     ; terminal
     cmp r1, 0
+    ifz call get_current_disk_id
+    cmp r1, 0
+    ifz mov r1, r0
     ifz mov r0, terminal_button_fxf
-    ifz mov r1, 0
     ifz mov r2, 0
     ifz mov r3, 0
     ifz mov r4, 0
