@@ -9,7 +9,7 @@
 ; file struct for stream:
 ;   file_reserved_1:  1 byte
 ;   file_reserved_2:  2 bytes
-;   file_reserved_4:  4 bytes
+;   file_seek_offset: 4 bytes
 ;   file_system_type: 1 byte (0x01 for stream)
 ;   file_read_call:   4 bytes
 ;   file_write_call:  4 bytes
@@ -34,12 +34,7 @@ open:
 ; outputs:
 ; none
 seek:
-    push r1
-    add r1, 7
-    cmp.8 [r1], 0x00
-    pop r1
-    ifz jmp ryfs_seek
-    ret
+    jmp ryfs_seek
 
 ; get the seek offset of the specified file
 ; inputs:
@@ -47,12 +42,7 @@ seek:
 ; outputs:
 ; r0: byte offset
 tell:
-    push r0
-    add r0, 7
-    cmp.8 [r0], 0x00
-    pop r0
-    ifz jmp ryfs_tell
-    ret
+    jmp ryfs_tell
 
 ; read specified number of bytes into the specified buffer
 ; inputs:
@@ -100,8 +90,10 @@ stream_read_char:
     push r1
     push r2
 
-    ; call [file_read_call]
-    add r1, 8
+    ; call [file_read_call] with seek offset in r0
+    add r1, 2
+    mov r0, [r1]
+    add r1, 6
     call [r1]
 
     ; put the result into [r2]
@@ -150,12 +142,17 @@ stream_write_loop:
 stream_write_char:
     push r0
     push r1
+    push r3
 
-    ; call [file_write_call] with pointer to src buf in r0
-    add r1, 12
+    ; call [file_write_call] with pointer to src buf in r0 and seek offset in r1
+    mov r3, r1
+    add r3, 2
     mov r0, r2
-    call [r1]
+    mov r1, [r3]
+    add r3, 10
+    call [r3]
 
+    pop r3
     pop r1
     pop r0
     ret
