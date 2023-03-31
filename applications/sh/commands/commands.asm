@@ -1,6 +1,9 @@
 ; command parser
 
 shell_parse_command:
+    cmp.8 [shell_redirect_next], 0
+    ifnz mov [shell_stream_struct_ptr], shell_redirect_stream_struct
+
     mov r0, shell_text_buf_bottom
 
     ; clear
@@ -33,6 +36,11 @@ shell_parse_command:
     call compare_string
     ifz jmp shell_help_command
 
+    ; rdnext
+    mov r1, shell_rdnext_command_string
+    call compare_string
+    ifz jmp shell_rdnext_command
+
     ; shutdown
     mov r1, shell_shutdown_command_string
     call compare_string
@@ -61,5 +69,6 @@ shell_invalid_command_string: data.str "invalid command or FXF binary" data.8 10
     #include "commands/diskrm.asm"
     #include "commands/exit.asm"
     #include "commands/help.asm"
+    #include "commands/rdnext.asm"
     #include "commands/shutdown.asm"
     #include "commands/type.asm"

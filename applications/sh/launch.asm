@@ -72,7 +72,7 @@ launch_fxf_name_loop_done:
     push r2
     push r1
     push r0
-    push [shell_terminal_stream_struct_ptr]
+    push [shell_stream_struct_ptr]
     sub rsp, 65516
     mov [launch_fxf_stack_ptr], rsp
     mov rsp, r4

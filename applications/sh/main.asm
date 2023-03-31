@@ -6,19 +6,24 @@ const MOVE_CURSOR: 0xF1
 const SET_COLOR:   0xF2
 const REDRAW_LINE: 0xFE
 
-    pop [shell_terminal_stream_struct_ptr]
+    pop [shell_stream_struct_ptr]
+
 shell_task_return:
+    cmp.8 [shell_redirect_next], 0
+    ifnz mov [shell_stream_struct_ptr], [shell_old_stream_struct_ptr]
+    ifnz dec.8 [shell_redirect_next]
+
     call shell_clear_buffer
     call shell_print_prompt
 shell_task_loop:
     mov r0, 1
-    mov r1, [shell_terminal_stream_struct_ptr]
+    mov r1, [shell_stream_struct_ptr]
     mov r2, shell_char_buffer
     call read
 
     movz.8 r0, [shell_char_buffer]
     cmp.8 r0, 0
-    ifnz call shell_task_parse_key
+    ifnz jmp shell_task_parse_key
 
     rjmp shell_task_loop
 
@@ -51,7 +56,7 @@ shell_task_parse_key:
     call print_character_to_terminal
     call print_character_to_terminal
     call print_character_to_terminal
-    ret
+    jmp shell_task_loop
 shell_key_down_enter:
     ; clear the cursor from the screen
     mov r0, 8 ; backspace character
@@ -68,15 +73,13 @@ shell_key_down_enter:
     call shell_push_character
 
     call shell_parse_line
-    call shell_clear_buffer
 
-    call shell_print_prompt
-    ret
+    jmp shell_task_return
 shell_key_down_backspace:
     ; check if we are already at the start of the prompt
     mov r1, [shell_text_buf_ptr]
     cmp r1, shell_text_buf_bottom
-    iflteq ret
+    iflteq jmp shell_task_loop
     ; delete the last character from the screen, draw the cursor, and pop the last character from the buffer
     mov r0, 8 ; backspace character
     call print_character_to_terminal
@@ -92,7 +95,7 @@ shell_key_down_backspace:
     call print_character_to_terminal
     call print_character_to_terminal
     call print_character_to_terminal
-    ret
+    jmp shell_task_loop
 
 shell_print_prompt:
     call get_current_disk_id
@@ -241,7 +244,7 @@ print_character_to_terminal:
 
     mov.8 [shell_char_buffer], r0
     mov r0, 1
-    mov r1, [shell_terminal_stream_struct_ptr]
+    mov r1, [shell_stream_struct_ptr]
     mov r2, shell_char_buffer
     call write
 
@@ -259,7 +262,7 @@ print_str_to_terminal:
     push r0
     push r2
 
-    mov r1, [shell_terminal_stream_struct_ptr]
+    mov r1, [shell_stream_struct_ptr]
     mov r2, r0
 print_str_to_terminal_loop:
     mov r0, 1
@@ -311,7 +314,10 @@ shell_args_ptr:        data.32 0 ; pointer to the beginning of the command argum
 
 shell_prompt: data.str "> " data.8 CURSOR data.8 0
 
-shell_terminal_stream_struct_ptr: data.32 0
+shell_stream_struct_ptr: data.32 0
+shell_old_stream_struct_ptr: data.32 0
+shell_redirect_next: data.8 0
+shell_redirect_stream_struct: data.fill 0, 32
 shell_char_buffer: data.32 0
 
     #include "commands/commands.asm"
