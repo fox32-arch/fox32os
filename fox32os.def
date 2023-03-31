@@ -42,6 +42,7 @@ seek:                      jmp [0x00000D14]
 tell:                      jmp [0x00000D18]
 read:                      jmp [0x00000D1C]
 write:                     jmp [0x00000D20]
+get_size:                  jmp [0x00000D24]
 
 ; widget jump table
 draw_widgets_to_window:    jmp [0x00000E10]

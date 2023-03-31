@@ -5,6 +5,12 @@
 ;   file_first_sector: 2 bytes
 ;   file_seek_offset:  4 bytes
 ;   file_system_type:  1 byte (0x00 for RYFS)
+;   file_reserved_1:   4 bytes
+;   file_reserved_2:   4 bytes
+;   file_reserved_3:   4 bytes
+;   file_reserved_4:   4 bytes
+;   file_reserved_5:   4 bytes
+;   file_reserved_6:   4 bytes
 
 ; file struct for stream:
 ;   file_reserved_1:  1 byte
@@ -13,19 +19,40 @@
 ;   file_system_type: 1 byte (0x01 for stream)
 ;   file_read_call:   4 bytes
 ;   file_write_call:  4 bytes
+;   file_size:        4 bytes
+;   file_reserved_3:  4 bytes
+;   file_reserved_4:  4 bytes
+;   file_reserved_5:  4 bytes
 
-; open a file from a RYFS-formatted disk
+; open a file from a RYFS-formatted disk, or a named stream
 ; inputs:
-; r0: pointer to file name string (8.3 format, for example "testfile.txt" or "test.txt")
-; r1: disk ID
-; r2: file struct: pointer to a blank file struct
+; r0: pointer to file name string (8.3 format if file, for example "testfile.txt" or "test.txt")
+; r1: disk ID (ignored if stream)
+; r2: file struct: pointer to a blank file struct (8 bytes if file, 16 bytes if stream)
 ; outputs:
-; r0: first file sector, or zero if file wasn't found
+; r0: if file: first file sector, or zero if file wasn't found
+;     if stream: non-zero if stream opened, or zero if not
 open:
+    cmp.8 [r0], ':'
+    ifz jmp open_stream
     call convert_filename
     cmp r0, 0
     ifz ret
     jmp ryfs_open
+open_stream:
+    push r1
+
+    inc r0
+
+    ; fb
+    mov r1, framebuffer_vfs_stream_name
+    call compare_string
+    ifz pop r1
+    ifz jmp open_stream_fb
+
+    pop r1
+    mov r0, 0
+    ret
 
 ; seek specified file to the specified offset
 ; inputs:
@@ -44,13 +71,38 @@ seek:
 tell:
     jmp ryfs_tell
 
+; get the exact size of the specified file
+; inputs:
+; r0: pointer to file struct
+; outputs:
+; r0: size in bytes
+get_size:
+    push r1
+    push r0
+    add r0, 7
+    movz.8 r1, [r0]
+    pop r0
+    cmp.8 r1, 0x00
+    ifz pop r1
+    ifz jmp ryfs_get_size
+    cmp.8 r1, 0x01
+    ifz pop r1
+    ifz jmp stream_get_size
+    pop r1
+    ret
+stream_get_size:
+    add r0, 16
+    mov r0, [r0]
+
+    ret
+
 ; read specified number of bytes into the specified buffer
 ; inputs:
 ; r0: number of bytes to read
 ; r1: pointer to file struct
 ; r2: pointer to destination buffer
 ; outputs:
-; r0: number of bytes left to read (streams can read short)
+; none
 read:
     push r3
     push r1
@@ -66,25 +118,26 @@ read:
     pop r3
     ret
 stream_read:
+    push r0
     push r1
     push r2
-
 stream_read_loop:
     call stream_read_char
-    call yield_task
 
-    cmp.8 [r2], 0
-    ifz jmp stream_read_out
+    push r0
+    push r2
+    call yield_task
+    pop r2
+    pop r0
 
     inc r2
     dec r0
     ifnz jmp stream_read_loop
 
-stream_read_out:
     pop r2
     pop r1
+    pop r0
     ret
-
 stream_read_char:
     push r0
     push r1
@@ -99,6 +152,10 @@ stream_read_char:
     ; put the result into [r2]
     pop r2
     mov.8 [r2], r0
+
+    ; increment the seek offset
+    sub r1, 6
+    inc [r1]
 
     pop r1
     pop r0
@@ -138,7 +195,6 @@ stream_write_loop:
     pop r2
     pop r31
     ret
-
 stream_write_char:
     push r0
     push r1
@@ -151,6 +207,10 @@ stream_write_char:
     mov r1, [r3]
     add r3, 10
     call [r3]
+
+    ; increment the seek offset
+    sub r3, 10
+    inc [r3]
 
     pop r3
     pop r1
@@ -239,3 +299,6 @@ convert_filename_fail:
     pop r1
     ret
 convert_filename_output_string: data.fill 0, 12
+
+    ; named streams
+    #include "vfs/fb.asm"

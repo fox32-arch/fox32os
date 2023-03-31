@@ -33,7 +33,7 @@ launch_fxf_from_disk:
 
     ; allocate memory for the binary
     mov r0, launch_fxf_struct
-    call ryfs_get_size
+    call get_size
     call allocate_memory
     cmp r0, 0
     ifz jmp launch_fxf_from_disk_allocate_error

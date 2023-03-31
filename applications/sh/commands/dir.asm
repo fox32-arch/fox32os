@@ -63,7 +63,7 @@ shell_dir_command_loop:
     cmp r0, 0
     ifz jmp shell_dir_command_failed_to_open_file
     mov r0, shell_dir_command_temp_file_struct
-    call ryfs_get_size
+    call get_size
     call print_decimal_to_terminal
 shell_dir_command_failed_to_open_file:
     ; new line

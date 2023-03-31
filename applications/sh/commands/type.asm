@@ -16,7 +16,7 @@ shell_type_command:
     ifz jmp shell_type_command_file_not_found
 
     mov r0, shell_type_command_file_struct
-    call ryfs_get_size
+    call get_size
     mov r31, r0
 shell_type_command_loop:
     mov r0, 1

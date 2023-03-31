@@ -65,6 +65,7 @@ jump_table:
     data.32 tell
     data.32 read
     data.32 write
+    data.32 get_size
 
     ; widget jump table
     org.pad 0x00000610
@@ -204,7 +205,7 @@ load_startup_task:
 
     ; allocate memory for the startup file
     mov r0, startup_file_struct
-    call ryfs_get_size
+    call get_size
     call allocate_memory
     cmp r0, 0
     ifz jmp memory_error
@@ -239,7 +240,7 @@ load_startup_task:
     ; we do this by checking to see if the size of startup.cfg is less than or equal to 12 * next_task_id bytes
     inc.8 [next_task_id]
     mov r0, startup_cfg_struct
-    call ryfs_get_size
+    call get_size
     movz.8 r1, [next_task_id]
     mul r1, 12
     cmp r0, r1
@@ -385,9 +386,9 @@ get_os_api_version:
     #include "allocator.asm"
     #include "fxf/fxf.asm"
     #include "task.asm"
+    #include "vfs/vfs.asm"
     #include "widget/widget.asm"
     #include "window/window.asm"
-    #include "vfs.asm"
 
 bottom_bar_str_0: data.strz "FOX"
 bottom_bar_str_1: data.strz "32"

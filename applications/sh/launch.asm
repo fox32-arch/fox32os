@@ -45,7 +45,7 @@ launch_fxf_name_loop_done:
 
     ; allocate memory for the binary
     mov r0, launch_fxf_struct
-    call ryfs_get_size
+    call get_size
     call allocate_memory
     cmp r0, 0
     ifz jmp allocate_error
