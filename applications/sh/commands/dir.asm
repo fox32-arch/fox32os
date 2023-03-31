@@ -79,7 +79,7 @@ shell_dir_command_failed_to_open_file:
 shell_dir_command_list_buffer: data.fill 0, 341
 shell_dir_command_file_buffer: data.fill 0, 9
 shell_dir_command_type_buffer: data.fill 0, 4
-shell_dir_command_temp_file_struct: data.fill 0, 8
+shell_dir_command_temp_file_struct: data.fill 0, 32
 shell_dir_command_header_string:
     data.8 SET_COLOR data.8 0x20 data.8 1 ; set the color to green
     data.str "file     type size" data.8 10

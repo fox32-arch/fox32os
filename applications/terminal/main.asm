@@ -124,11 +124,15 @@ shell_task_id: data.8 0
 
 stream_struct:
     data.8  0x00
-    data.16 0x00
-    data.32 0x00
+    data.16 0x0000
+    data.32 0x00000000
     data.8  0x01
     data.32 stream_get_input
     data.32 stream_write_to_terminal
+    data.32 0x00000000
+    data.32 0x00000000
+    data.32 0x00000000
+    data.32 0x00000000
 
     #include "stream.asm"
     #include "text.asm"

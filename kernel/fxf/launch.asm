@@ -109,7 +109,7 @@ launch_fxf_from_disk_file_error:
     mov r0, 0xFFFFFFFF
     ret
 
-launch_fxf_struct: data.fill 0, 8
+launch_fxf_struct: data.fill 0, 32
 launch_fxf_task_id: data.8 0
 launch_fxf_binary_ptr: data.32 0
 launch_fxf_stack_ptr: data.32 0
