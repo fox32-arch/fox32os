@@ -26,6 +26,11 @@ shell_parse_command:
     call compare_string
     ifz jmp shell_diskrm_command
 
+    ; echo
+    mov r1, shell_echo_command_string
+    call compare_string
+    ifz jmp shell_echo_command
+
     ; exit
     mov r1, shell_exit_command_string
     call compare_string
@@ -72,6 +77,7 @@ shell_invalid_command_string: data.str "invalid command or FXF binary" data.8 10
     #include "commands/dir.asm"
     #include "commands/disk.asm"
     #include "commands/diskrm.asm"
+    #include "commands/echo.asm"
     #include "commands/exit.asm"
     #include "commands/help.asm"
     #include "commands/rdall.asm"

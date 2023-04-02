@@ -20,6 +20,7 @@ shell_help_text:
     data.str "dir     | show contents of selected disk" data.8 10
     data.str "disk    | select disk $0" data.8 10
     data.str "diskrm  | remove disk $0" data.8 10
+    data.str "echo    | print the specified text" data.8 10
     data.str "exit    | exit the shell" data.8 10
     data.str "help    | show this help text" data.8 10
     data.str "rdall   | redirect all IO to $0" data.8 10
