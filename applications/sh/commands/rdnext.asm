@@ -26,4 +26,4 @@ shell_rdnext_command_failed_to_open:
     call print_str_to_terminal
     ret
 
-shell_rdnext_command_failed_to_open_string: data.str "failed to open file for redirect" data.8 10 data.8 0
+shell_rdnext_command_failed_to_open_string: data.str "failed to open file/stream for redirect" data.8 10 data.8 0

@@ -36,6 +36,11 @@ shell_parse_command:
     call compare_string
     ifz jmp shell_help_command
 
+    ; rdall
+    mov r1, shell_rdall_command_string
+    call compare_string
+    ifz jmp shell_rdall_command
+
     ; rdnext
     mov r1, shell_rdnext_command_string
     call compare_string
@@ -69,6 +74,7 @@ shell_invalid_command_string: data.str "invalid command or FXF binary" data.8 10
     #include "commands/diskrm.asm"
     #include "commands/exit.asm"
     #include "commands/help.asm"
+    #include "commands/rdall.asm"
     #include "commands/rdnext.asm"
     #include "commands/shutdown.asm"
     #include "commands/type.asm"

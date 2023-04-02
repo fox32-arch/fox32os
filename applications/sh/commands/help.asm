@@ -22,6 +22,7 @@ shell_help_text:
     data.str "diskrm  | remove disk $0" data.8 10
     data.str "exit    | exit the shell" data.8 10
     data.str "help    | show this help text" data.8 10
+    data.str "rdall   | redirect all IO to $0" data.8 10
     data.str "rdnext  | redirect the next command's IO" data.8 10
     data.str "shutdown| turn the computer off" data.8 10
     data.str "type    | print contents of file $0" data.8 10
