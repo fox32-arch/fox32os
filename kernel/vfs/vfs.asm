@@ -50,6 +50,12 @@ open_stream:
     ifz pop r1
     ifz jmp open_stream_fb
 
+    ; serial
+    mov r1, serial_vfs_stream_name
+    call compare_string
+    ifz pop r1
+    ifz jmp open_stream_serial
+
     pop r1
     mov r0, 0
     ret
@@ -302,3 +308,4 @@ convert_filename_output_string: data.fill 0, 12
 
     ; named streams
     #include "vfs/fb.asm"
+    #include "vfs/serial.asm"
