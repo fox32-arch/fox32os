@@ -1,6 +1,8 @@
-RYFS := $(CURDIR)/meta/ryfs/ryfs.py
+OKAMERON := ../okameron/okameron.lua
 FOX32ASM := ../fox32asm/target/release/fox32asm
+RYFS := $(CURDIR)/meta/ryfs/ryfs.py
 GFX2INC := ../tools/gfx2inc/target/release/gfx2inc
+FOX32ROMDEF := ../fox32rom/fox32rom.def.okm
 
 IMAGE_SIZE := 16777216
 ROM_IMAGE_SIZE := 65536
@@ -8,80 +10,34 @@ BOOTLOADER := bootloader/bootloader.bin
 
 all: fox32os.img romdisk.img
 
-base_image:
-	mkdir -p base_image
-
-base_image/kernel.fxf: kernel/main.asm $(wildcard kernel/*.asm kernel/*/*.asm)
-	$(FOX32ASM) $< $@
-
-base_image/sh.fxf: applications/sh/main.asm $(wildcard applications/sh/*.asm applications/sh/*/*.asm)
-	echo $(wildcard applications/sh/**/*.asm)
-	$(FOX32ASM) $< $@
-
-base_image/barclock.fxf: applications/barclock/main.asm
-	$(FOX32ASM) $< $@
-
-base_image/terminal.fxf: applications/terminal/main.asm $(wildcard applications/terminal/*.asm)
-	$(FOX32ASM) $< $@
-
-base_image/serial.fxf: applications/serial/main.asm $(wildcard applications/terminal/*.asm)
-	$(FOX32ASM) $< $@
-
-base_image/foxpaint.fxf: applications/foxpaint/main.asm
-	$(FOX32ASM) $< $@
-
-base_image/bg.fxf: applications/bg/main.asm
-	$(FOX32ASM) $< $@
-
-base_image/bg.raw: applications/bg/bg.inc
-	$(FOX32ASM) $< $@
-
-applications/bg/bg.inc: applications/bg/bg.png
-	$(GFX2INC) 640 480 $< $@
-
-base_image/launcher.fxf: applications/launcher/main.asm $(wildcard applications/launcher/*.asm) applications/launcher/icons.inc
-	$(FOX32ASM) $< $@
-
-applications/launcher/icons.inc: applications/launcher/icons.png
-	$(GFX2INC) 16 16 $< $@
+KENREL_INPUT_FILES = \
+	kernel/Main.okm \
+	kernel/Allocator.okm \
+	kernel/Process.okm
 
 bootloader/bootloader.bin: bootloader/main.asm $(wildcard bootloader/*.asm)
 	$(FOX32ASM) $< $@
 
-base_image/startup.cfg: base_image/startup.cfg.default
-	cp $< $@
+base_image/kernel.fxf: $(KENREL_INPUT_FILES) $(wildcard kernel/*.okm kernel/*/*.okm)
+	lua $(OKAMERON) -arch=fox32 -startup=kernel/start.asm $(KENREL_INPUT_FILES) $(FOX32ROMDEF) > kernel/kernel.asm
+	$(FOX32ASM) kernel/kernel.asm $@
+	rm kernel/kernel.asm
 
-FILES = \
-	base_image/startup.cfg \
-	base_image/kernel.fxf \
-	base_image/sh.fxf \
-	base_image/barclock.fxf \
-	base_image/terminal.fxf \
-	base_image/serial.fxf \
-	base_image/foxpaint.fxf \
-	base_image/bg.fxf \
-	base_image/bg.raw \
-	base_image/launcher.fxf
+OUTPUT_FILES = \
+	base_image/kernel.fxf
 
-ROM_FILES = \
-	base_image/startup.cfg \
-	base_image/kernel.fxf \
-	base_image/sh.fxf \
-	base_image/barclock.fxf \
-	base_image/terminal.fxf \
-	base_image/serial.fxf \
-	base_image/bg.fxf \
-	base_image/launcher.fxf
+OUTPUT_ROM_FILES = \
+	base_image/kernel.fxf
 
-fox32os.img: $(BOOTLOADER) $(FILES)
+fox32os.img: $(BOOTLOADER) $(OUTPUT_FILES)
 	$(RYFS) -s $(IMAGE_SIZE) -l fox32os -b $(BOOTLOADER) create $@.tmp
-	for file in $(FILES); do $(RYFS) add $@.tmp $$file; done
+	for file in $(OUTPUT_FILES); do $(RYFS) add $@.tmp $$file; done
 	mv $@.tmp $@
 
-romdisk.img: $(BOOTLOADER) $(ROM_FILES)
+romdisk.img: $(BOOTLOADER) $(OUTPUT_ROM_FILES)
 	$(RYFS) -s $(ROM_IMAGE_SIZE) -l romdisk -b $(BOOTLOADER) create $@.tmp
-	for file in $(ROM_FILES); do $(RYFS) add $@.tmp $$file; done
+	for file in $(OUTPUT_ROM_FILES); do $(RYFS) add $@.tmp $$file; done
 	mv $@.tmp $@
 
 clean:
-	rm -f $(FILES)
+	rm -f $(OUTPUT_FILES)

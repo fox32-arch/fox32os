@@ -1,0 +1,39 @@
+MODULE Process;
+    CONST MAX_PROCESSES = 128;
+    CONST PROCESS_SIZE = 20;
+    TYPE Process = RECORD
+        id: INT;
+        instructionPtr: PTR;
+        stackPtr: PTR;
+        codeBlockPtr: PTR;
+        stackBlockPtr: PTR;
+    END;
+
+    VAR currentProcess: POINTER TO Process;
+        processes: ARRAY MAX_PROCESSES OF POINTER TO Process;
+
+    PROCEDURE FindUnusedProcess(): INT;
+    VAR i: INT;
+    BEGIN
+        i := 0;
+        WHILE i <| MAX_PROCESSES DO
+            IF processes[i] THEN
+                RETURN(i);
+            END;
+            i := i + 1;
+        END;
+        RETURN(0FFFFFFFFH);
+    END;
+
+    PROCEDURE NewProcess(path: POINTER TO CHAR;): INT;
+    VAR id: INT;
+    BEGIN
+        (* find an unused ID, or fail if none found *)
+        id := FindUnusedProcess();
+        IF id = 0FFFFFFFFH THEN
+            RETURN(0);
+        END;
+
+        (* TODO: the rest of the fucking owl *)
+    END;
+END.

@@ -11,3 +11,5 @@
 **/romdisk.img
 **/romdisk.img.tmp
 **/startup.cfg
+
+kernel/kernel.asm

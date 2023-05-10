@@ -1,0 +1,99 @@
+MODULE Allocator;
+    CONST BLOCK_HEADER_SIZE = 12;
+    CONST MEMORY_TOP = 001FEF800H; (* 64KB below the stack *)
+    TYPE BlockHeader = RECORD
+        size: INT;
+        prev: POINTER TO BlockHeader;
+        next: POINTER TO BlockHeader;
+    END;
+
+    VAR freeListHead: POINTER TO BlockHeader;
+
+    PROCEDURE InitializeAllocator();
+    BEGIN
+        freeListHead := 00000FFFFH;
+
+        (* set the free block size to MEMORY_TOP - freeListHead *)
+        freeListHead^.size := MEMORY_TOP - freeListHead;
+
+        (* mark this as the only free block *)
+        freeListHead^.next := 0;
+        freeListHead^.prev := 0;
+    END;
+
+    PROCEDURE Allocate(size: INT;): INT;
+    VAR block: POINTER TO BlockHeader;
+        realSize: INT;
+        next: POINTER TO BlockHeader;
+        prev: POINTER TO BlockHeader;
+    BEGIN
+        block := freeListHead;
+
+        (* calculate the real size of block that we need *)
+        realSize := size + BLOCK_HEADER_SIZE;
+
+        WHILE block DO
+            IF block^.size >|= realSize THEN
+                (* this block can satisfy the allocation *)
+
+                IF block^.size <|= realSize + BLOCK_HEADER_SIZE + 16 THEN
+                    (* unlink from the free list and return the whole thing *)
+
+                    next := block^.next;
+                    prev := block^.prev;
+
+                    IF next THEN
+                        (* we had a next block, set its prev to our prev *)
+                        next^.prev := prev;
+                    END;
+
+                    IF prev THEN
+                        (* we had a prev block, set its next to our next *)
+                        prev^.next := next;
+                    ELSE
+                        (* no previous block means we were the head, so set the head to our next *)
+                        freeListHead := next;
+                    END;
+
+                    (* done! return it *)
+                    RETURN(block + BLOCK_HEADER_SIZE);
+                END;
+
+                (* we need to carve up the block *)
+
+                (* first shrink it by the length of the allocation *)
+                block^.size := block^.size - realSize;
+
+                (* now get the pointer to the new block we're going to return, by skipping over the length of the block we just shrunk *)
+                block := block + block^.size;
+
+                (* initialize the new block by setting its size *)
+                block^.size := realSize;
+
+                (* done! return it *)
+                RETURN(block + BLOCK_HEADER_SIZE);
+            END;
+
+            block := block^.next;
+        END;
+
+        RETURN(0);
+    END;
+
+    PROCEDURE Free(ptr: POINTER TO BlockHeader;);
+    BEGIN
+        (* get the pointer to the block header *)
+        ptr := ptr - BLOCK_HEADER_SIZE;
+
+        (* add it to the free list *)
+
+        ptr^.prev := 0;
+        ptr^.next := freeListHead;
+
+        IF freeListHead THEN
+            freeListHead^.prev := ptr;
+        END;
+
+        freeListHead := ptr;
+    END;
+END.
