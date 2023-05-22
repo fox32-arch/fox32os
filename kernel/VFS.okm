@@ -1,3 +1,121 @@
 MODULE VFS;
-    //
+    IMPORT Fox32ROM, RYFS, String;
+
+    TYPE FileOrStream = RECORD
+        disk: CHAR;           (* file *)
+        firstSector: SHORT;   (* file *)
+        seekOffset: INT;      (* file and stream *)
+        fileSystemType: CHAR; (* 0x00 for RYFS, 0x01 for stream *)
+        readCall: INT;        (* stream *)
+        writeCall: INT;       (* stream *)
+        size: INT;            (* stream *)
+        reserved1: INT;       (* N/A *)
+        reserved2: INT;       (* N/A *)
+        reserved3: INT;       (* N/A *)
+    END;
+
+    VAR convertFileNameTemp: ARRAY 12 OF CHAR;
+
+    PROCEDURE Open(fileName: POINTER TO CHAR; diskId: CHAR; struct: POINTER TO FileOrStream;): INT;
+    VAR convertedFileName: POINTER TO CHAR;
+    BEGIN
+        IF fileName^ = 58 THEN
+            (* this is a named stream *)
+            RETURN(OpenStream(fileName, struct));
+        END;
+
+        (* convert the filename to RYFS's internal 8.3 format *)
+        convertedFileName := ConvertFileName(fileName);
+        IF convertedFileName = 0 THEN RETURN(0); END;
+
+        (* open the file *)
+        RETURN(RYFSOpen(convertedFileName, diskId, struct));
+    END;
+
+    PROCEDURE OpenStream(fileName: POINTER TO CHAR; struct: POINTER TO FileOrStream;): INT;
+    BEGIN
+        (* TODO: streams *)
+        RETURN(0);
+    END;
+
+    PROCEDURE Seek(offset: INT; struct: POINTER TO FileOrStream;);
+    BEGIN
+        RYFSSeek(offset, struct);
+    END;
+
+    PROCEDURE Tell(struct: POINTER TO FileOrStream;): INT;
+    BEGIN
+        RETURN(RYFSTell(struct));
+    END;
+
+    PROCEDURE GetSize(struct: POINTER TO FileOrStream;): INT;
+    BEGIN
+        IF struct^.fileSystemType = 0 THEN
+            RETURN(RYFSGetSize(struct));
+        ELSIF struct^.fileSystemType = 1 THEN
+            RETURN(struct^.size);
+        END;
+    END;
+
+    PROCEDURE Read(size: INT; struct: POINTER TO FileOrStream; destination: POINTER TO CHAR;);
+    BEGIN
+        IF struct^.fileSystemType = 0 THEN
+            RYFSRead(size, struct, destination);
+        ELSIF struct^.fileSystemType = 1 THEN
+            (* TODO: stream reads *)
+        END;
+    END;
+
+    PROCEDURE Write(size: INT; struct: POINTER TO FileOrStream; source: POINTER TO CHAR;);
+    BEGIN
+        IF struct^.fileSystemType = 0 THEN
+            RYFSWrite(size, struct, source);
+        ELSIF struct^.fileSystemType = 1 THEN
+            (* TODO: stream writes *)
+        END;
+    END;
+
+    PROCEDURE ConvertFileName(fileName: POINTER TO CHAR;): POINTER TO CHAR;
+    VAR i, fileNameLength: INT;
+        tempChar: CHAR;
+    BEGIN
+        (* ensure the input filename isn't too long *)
+        fileNameLength := StringLength(fileName);
+        IF (fileNameLength >| 12) OR (fileNameLength = 0) THEN
+            DrawFormatStrToBackground("length: %u", 16, 128, 0FFFFFFFFH, 000000000H, fileNameLength);
+            RETURN(0);
+        END;
+
+        (* fill the output string buffer with spaces *)
+        i := 0;
+        WHILE i <| 12 DO
+            convertFileNameTemp[i] := 32;
+            i := i + 1;
+        END;
+
+        (* iterate over the filename and look for '.' *)
+        i := 0;
+        WHILE i <| fileNameLength DO
+            (* read the character into a temporary variable *)
+            tempChar := GETCHAR(fileName + i);
+            IF tempChar = 46 THEN
+                (* we reached the file extension *)
+                (* return 0 if the filename was invalid *)
+                IF i = 0 OR i >| 8 THEN RETURN(0); END;
+
+                (* write the extension characters *)
+                PUTCHAR(PTROF(convertFileNameTemp) + 8, GETCHAR(fileName + i + 1));
+                PUTCHAR(PTROF(convertFileNameTemp) + 9, GETCHAR(fileName + i + 2));
+                PUTCHAR(PTROF(convertFileNameTemp) + 10, GETCHAR(fileName + i + 3));
+
+                (* return a pointer to the output buffer *)
+                RETURN(PTROF(convertFileNameTemp));
+            ELSE
+                (* copy this character of the filename to the output buffer *)
+                PUTCHAR(PTROF(convertFileNameTemp) + i, tempChar);
+            END;
+
+            i := i + 1;
+        END;
+    END;
 END.

@@ -13,7 +13,10 @@ all: fox32os.img romdisk.img
 KENREL_INPUT_FILES = \
 	kernel/Main.okm \
 	kernel/Allocator.okm \
-	kernel/Process.okm
+	kernel/Process.okm \
+	kernel/RYFS.okm \
+	kernel/String.okm \
+	kernel/VFS.okm
 
 bootloader/bootloader.bin: bootloader/main.asm $(wildcard bootloader/*.asm)
 	$(FOX32ASM) $< $@

@@ -1,0 +1,12 @@
+MODULE String;
+    IMPORT Fox32ROM;
+
+    (* the Fox32ROM module provides string/memory copy/compare procedures directly *)
+    EXTERN PROCEDURE CopyMemoryChar: INT;
+    EXTERN PROCEDURE CopyMemoryInt: INT;
+    EXTERN PROCEDURE CopyString: INT;
+    EXTERN PROCEDURE CompareMemoryChar: INT;
+    EXTERN PROCEDURE CompareMemoryInt: INT;
+    EXTERN PROCEDURE CompareString: INT;
+    EXTERN PROCEDURE StringLength: INT;
+END.

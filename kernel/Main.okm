@@ -1,18 +1,19 @@
 MODULE Kernel;
-    IMPORT Fox32ROM, Allocator, Process;
+    IMPORT Fox32ROM, VFS;
 
     CONST BACKGROUND_COLOR = 0FF674764H;
     CONST TEXT_COLOR = 0FFFFFFFFH;
+
+    VAR testFile: FileOrStream;
+    VAR testBuffer: ARRAY 4 OF CHAR;
 
     PROCEDURE Main();
     BEGIN
         FillBackground(BACKGROUND_COLOR);
         DrawStrToBackground("test", 16, 16, TEXT_COLOR, BACKGROUND_COLOR);
 
-        InitializeAllocator();
-
-        DrawFormatStrToBackground("%x", 16, 32, TEXT_COLOR, BACKGROUND_COLOR, Allocate(4));
-        DrawFormatStrToBackground("%x", 16, 48, TEXT_COLOR, BACKGROUND_COLOR, Allocate(4));
-        DrawFormatStrToBackground("%x", 16, 64, TEXT_COLOR, BACKGROUND_COLOR, Allocate(4));
+        Open("kernel.fxf", 0, PTROF(testFile));
+        Read(3, PTROF(testFile), PTROF(testBuffer));
+        DrawStrToBackground(PTROF(testBuffer), 16, 32, TEXT_COLOR, BACKGROUND_COLOR);
     END;
 END.
