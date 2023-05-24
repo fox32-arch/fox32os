@@ -36,6 +36,7 @@ MODULE Process;
     VAR id: INT;
         fileStruct: FileOrStream;
         fileSize: INT;
+        instructionPtr: PTR;
         codeBlockPtr: PTR;
         stackPtr: PTR;
         stackBlockPtr: PTR;
@@ -51,7 +52,7 @@ MODULE Process;
         IF Open(fileName, diskId, PTROF(fileStruct)) = 0 THEN
             RETURN(0);
         END;
-        fileSize := GetSize(fileStruct);
+        fileSize := GetSize(PTROF(fileStruct));
 
         (* allocate a block of memory for the process code *)
         codeBlockPtr := Allocate(fileSize);
@@ -75,8 +76,19 @@ MODULE Process;
             RETURN(0);
         END;
 
-        (* TODO: the rest of the owl *)
-        (*       remember to return 1 when complete!! *)
+        (* relocate the binary *)
+        instructionPtr := RelocateFXF(codeBlockPtr);
+
+        (* finally, set all of the values in the process record *)
+        processPtr^.id := id;
+        processPtr^.instructionPtr := instructionPtr;
+        processPtr^.stackPtr := stackPtr;
+        processPtr^.codeBlockPtr := codeBlockPtr;
+        processPtr^.stackBlockPtr := stackBlockPtr;
+        processPtr^.state := STATE_RUNNABLE;
+        processes[id] := processPtr;
+
+        RETURN(1);
     END;
 
     EXTERN PROCEDURE YieldProcess: INT;
