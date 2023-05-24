@@ -1,32 +1,45 @@
 MODULE Process;
+    IMPORT Allocator, FXF, VFS;
+
+    ASM "Process.asm";
+
     CONST MAX_PROCESSES = 128;
-    CONST PROCESS_SIZE = 20;
+          PROCESS_SIZE = 24;
+
+    CONST STATE_UNUSED = 0;
+          STATE_DEAD = 1;
+          STATE_RUNNABLE = 2;
+          STATE_RUNNING = 3;
+          STATE_SLEEPING = 4;
+
     TYPE Process = RECORD
         id: INT;
         instructionPtr: PTR;
         stackPtr: PTR;
         codeBlockPtr: PTR;
         stackBlockPtr: PTR;
+        state: INT;
     END;
 
     VAR currentProcess: POINTER TO Process;
         processes: ARRAY MAX_PROCESSES OF POINTER TO Process;
+        schedulerProcess: Process;
 
-    PROCEDURE FindUnusedProcess(): INT;
-    VAR i: INT;
+    PROCEDURE InitializeScheduler();
     BEGIN
-        i := 0;
-        WHILE i <| MAX_PROCESSES DO
-            IF processes[i] THEN
-                RETURN(i);
-            END;
-            i := i + 1;
-        END;
-        RETURN(0FFFFFFFFH);
+        schedulerProcess.instructionPtr := PTROF(Scheduler);
+        schedulerProcess.stackPtr := Allocate(0FFFFH);
+        processes[0] := PTROF(schedulerProcess);
     END;
 
-    PROCEDURE NewProcess(path: POINTER TO CHAR;): INT;
+    PROCEDURE NewProcess(fileName: POINTER TO CHAR; diskId: INT;): INT;
     VAR id: INT;
+        fileStruct: FileOrStream;
+        fileSize: INT;
+        codeBlockPtr: PTR;
+        stackPtr: PTR;
+        stackBlockPtr: PTR;
+        processPtr: POINTER TO Process;
     BEGIN
         (* find an unused ID, or fail if none found *)
         id := FindUnusedProcess();
@@ -34,6 +47,82 @@ MODULE Process;
             RETURN(0);
         END;
 
-        (* TODO: the rest of the fucking owl *)
+        (* open the file and get its size *)
+        IF Open(fileName, diskId, PTROF(fileStruct)) = 0 THEN
+            RETURN(0);
+        END;
+        fileSize := GetSize(fileStruct);
+
+        (* allocate a block of memory for the process code *)
+        codeBlockPtr := Allocate(fileSize);
+        IF codeBlockPtr = 0 THEN
+            RETURN(0);
+        END;
+
+        (* allocate a 64KB block of memory for the process stack *)
+        stackBlockPtr := Allocate(0FFFFH);
+        IF stackBlockPtr = 0 THEN
+            Free(codeBlockPtr);
+            RETURN(0);
+        END;
+        stackPtr := stackBlockPtr + 0FFFFH;
+
+        (* allocate a block of memory for the process record *)
+        processPtr := Allocate(PROCESS_SIZE);
+        IF processPtr = 0 THEN
+            Free(codeBlockPtr);
+            Free(stackBlockPtr);
+            RETURN(0);
+        END;
+
+        (* TODO: the rest of the owl *)
+    END;
+
+    EXTERN PROCEDURE YieldProcess: INT;
+    EXTERN PROCEDURE SwitchProcess: INT;
+
+    PROCEDURE Scheduler();
+    VAR i: INT;
+        tempProcess: POINTER TO Process;
+    BEGIN
+        WHILE 1 DO
+            i := 0;
+            WHILE i <| MAX_PROCESSES DO
+                tempProcess := processes[i];
+                IF tempProcess = 0 THEN
+                    i := i + 1;
+                    CONTINUE();
+                END;
+                IF tempProcess^.state # STATE_RUNNABLE THEN
+                    i := i + 1;
+                    CONTINUE();
+                END;
+
+                (* mark the process as running and switch to it *)
+                currentProcess := tempProcess;
+                currentProcess^.state := STATE_RUNNING;
+                SwitchProcess(currentProcess);
+
+                (* once we reach this point, the process has switched back here *)
+                (* mark it as runnable *)
+                currentProcess^.state := STATE_RUNNABLE;
+
+                currentProcess := 0;
+                i := i + 1;
+            END;
+        END;
+    END;
+
+    PROCEDURE FindUnusedProcess(): INT;
+    VAR i: INT;
+    BEGIN
+        i := 0;
+        WHILE i <| MAX_PROCESSES DO
+            IF processes[i] = 0 THEN
+                RETURN(i);
+            END;
+            i := i + 1;
+        END;
+        RETURN(0FFFFFFFFH);
     END;
 END.

@@ -13,6 +13,7 @@ all: fox32os.img romdisk.img
 KENREL_INPUT_FILES = \
 	kernel/Main.okm \
 	kernel/Allocator.okm \
+	kernel/FXF.okm \
 	kernel/Process.okm \
 	kernel/RYFS.okm \
 	kernel/String.okm \
