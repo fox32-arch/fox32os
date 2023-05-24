@@ -76,6 +76,7 @@ MODULE Process;
         END;
 
         (* TODO: the rest of the owl *)
+        (*       remember to return 1 when complete!! *)
     END;
 
     EXTERN PROCEDURE YieldProcess: INT;

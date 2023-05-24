@@ -1,5 +1,5 @@
 MODULE VFS;
-    IMPORT Fox32ROM, RYFS, String;
+    IMPORT RYFS, String;
 
     TYPE FileOrStream = RECORD
         disk: CHAR;           (* file *)
@@ -82,7 +82,6 @@ MODULE VFS;
         (* ensure the input filename isn't too long *)
         fileNameLength := StringLength(fileName);
         IF (fileNameLength >| 12) OR (fileNameLength = 0) THEN
-            DrawFormatStrToBackground("length: %u", 16, 128, 0FFFFFFFFH, 000000000H, fileNameLength);
             RETURN(0);
         END;
 

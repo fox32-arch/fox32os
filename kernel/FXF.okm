@@ -19,7 +19,7 @@ MODULE FXF;
         codePtr := codeBlockPtr[FXF_CODE_PTR_OFFSET] + codeBlockPtr;
 
         IF relocationEntries = 0 THEN RETURN(relocationAddress); END;
-        WHILE i <| relocationEntries THEN
+        WHILE i <| relocationEntries DO
             tempPtr := codePtr + relocationTablePtr[i];
             tempPtr^ := tempPtr^ + relocationAddress;
             i := i + 1;
