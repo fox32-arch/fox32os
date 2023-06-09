@@ -1,7 +1,7 @@
 ; PROCEDURE YieldProcess();
 YieldProcess:
-    ; switch context to processes[0], which is the scheduler's context
-    mov r0, processes
+    ; switch context to the scheduler
+    mov r0, schedulerProcess
 
     ; fall-through
 
@@ -45,7 +45,8 @@ SwitchProcess:
 
     ; get the current process
     mov r1, [currentProcess]
-    mov r1, [r1]
+    cmp r1, 0
+    ifz jmp SwitchProcess_no_current
 
     ; point to currentProcess.instructionPtr and store return address
     add r1, 4
@@ -54,7 +55,7 @@ SwitchProcess:
     ; point to currentProcess.stackPtr and store rsp
     add r1, 4
     mov [r1], rsp
-
+SwitchProcess_no_current:
     ; get the target instruction pointer
     add r0, 4
     mov r1, [r0]
@@ -62,6 +63,10 @@ SwitchProcess:
     ; get the target stack pointer
     add r0, 4
     mov rsp, [r0]
+
+    ; set currentProcess
+    sub r0, 8
+    mov [currentProcess], r0
 
     ; jump to the target
     ; in most cases, this will just jump to SwitchProcess_ret

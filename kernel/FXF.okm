@@ -9,18 +9,16 @@ MODULE FXF;
         relocationAddress: PTR;
         relocationEntries: INT;
         relocationTablePtr: POINTER TO INT;
-        codePtr: POINTER TO INT;
         tempPtr: POINTER TO INT;
     BEGIN
         i := 0;
-        relocationAddress := codeBlockPtr[FXF_CODE_PTR_OFFSET];
-        relocationEntries := codeBlockPtr[FXF_RELOC_SIZE_OFFSET];
+        relocationAddress := codeBlockPtr[FXF_CODE_PTR_OFFSET] + codeBlockPtr;
+        relocationEntries := codeBlockPtr[FXF_RELOC_SIZE_OFFSET] / 4;
         relocationTablePtr := codeBlockPtr[FXF_RELOC_PTR_OFFSET] + codeBlockPtr;
-        codePtr := codeBlockPtr[FXF_CODE_PTR_OFFSET] + codeBlockPtr;
 
         IF relocationEntries = 0 THEN RETURN(relocationAddress); END;
         WHILE i <| relocationEntries DO
-            tempPtr := codePtr + relocationTablePtr[i];
+            tempPtr := relocationAddress + relocationTablePtr[i];
             tempPtr^ := tempPtr^ + relocationAddress;
             i := i + 1;
         END;

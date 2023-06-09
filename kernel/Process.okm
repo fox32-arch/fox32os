@@ -1,5 +1,5 @@
 MODULE Process;
-    IMPORT Allocator, FXF, VFS;
+    IMPORT Fox32ROM, Allocator, FXF, VFS;
 
     ASM "Process.asm";
 
@@ -28,8 +28,8 @@ MODULE Process;
     PROCEDURE InitializeScheduler();
     BEGIN
         schedulerProcess.instructionPtr := PTROF(Scheduler);
-        schedulerProcess.stackPtr := Allocate(0FFFFH);
-        processes[0] := PTROF(schedulerProcess);
+        schedulerProcess.stackPtr := Allocate(0FFFFH) + 0FFFFH;
+        currentProcess := 0;
     END;
 
     PROCEDURE NewProcess(fileName: POINTER TO CHAR; diskId: INT;): INT;
@@ -60,6 +60,9 @@ MODULE Process;
             RETURN(0);
         END;
 
+        (* read the file into the allocated block of memory *)
+        Read(fileSize, PTROF(fileStruct), codeBlockPtr);
+
         (* allocate a 64KB block of memory for the process stack *)
         stackBlockPtr := Allocate(0FFFFH);
         IF stackBlockPtr = 0 THEN
@@ -78,6 +81,12 @@ MODULE Process;
 
         (* relocate the binary *)
         instructionPtr := RelocateFXF(codeBlockPtr);
+        IF instructionPtr = 0 THEN
+            Free(codeBlockPtr);
+            Free(stackBlockPtr);
+            Free(processPtr);
+            RETURN(0);
+        END;
 
         (* finally, set all of the values in the process record *)
         processPtr^.id := id;
@@ -111,16 +120,13 @@ MODULE Process;
                     CONTINUE();
                 END;
 
-                (* mark the process as running and switch to it *)
-                currentProcess := tempProcess;
-                currentProcess^.state := STATE_RUNNING;
-                SwitchProcess(currentProcess);
+                (* mark the process as running and switch to it, setting it as the current process *)
+                tempProcess^.state := STATE_RUNNING;
+                SwitchProcess(tempProcess);
 
                 (* once we reach this point, the process has switched back here *)
                 (* mark it as runnable *)
-                currentProcess^.state := STATE_RUNNABLE;
-
-                currentProcess := 0;
+                tempProcess^.state := STATE_RUNNABLE;
                 i := i + 1;
             END;
         END;

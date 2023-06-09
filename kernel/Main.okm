@@ -1,19 +1,18 @@
 MODULE Kernel;
-    IMPORT Fox32ROM, VFS;
+    IMPORT Fox32ROM, Allocator, Process, Syscall, VFS;
 
     CONST BACKGROUND_COLOR = 0FF674764H;
-    CONST TEXT_COLOR = 0FFFFFFFFH;
-
-    VAR testFile: FileOrStream;
-    VAR testBuffer: ARRAY 4 OF CHAR;
+          TEXT_COLOR = 0FFFFFFFFH;
 
     PROCEDURE Main();
     BEGIN
         FillBackground(BACKGROUND_COLOR);
-        DrawStrToBackground("test", 16, 16, TEXT_COLOR, BACKGROUND_COLOR);
+        DrawStrToBackground("fox32os - Okameron rewrite", 16, 464, TEXT_COLOR, BACKGROUND_COLOR);
 
-        Open("kernel.fxf", 0, PTROF(testFile));
-        Read(3, PTROF(testFile), PTROF(testBuffer));
-        DrawStrToBackground(PTROF(testBuffer), 16, 32, TEXT_COLOR, BACKGROUND_COLOR);
+        InitializeAllocator();
+        InstallSyscallHandler();
+        InitializeScheduler();
+
+        Scheduler();
     END;
 END.

@@ -17,12 +17,13 @@ KENREL_INPUT_FILES = \
 	kernel/Process.okm \
 	kernel/RYFS.okm \
 	kernel/String.okm \
+	kernel/Syscall.okm \
 	kernel/VFS.okm
 
 bootloader/bootloader.bin: bootloader/main.asm $(wildcard bootloader/*.asm)
 	$(FOX32ASM) $< $@
 
-base_image/kernel.fxf: $(KENREL_INPUT_FILES) $(wildcard kernel/*.okm kernel/*/*.okm)
+base_image/kernel.fxf: $(KENREL_INPUT_FILES) $(wildcard kernel/*.okm kernel/*/*.okm kernel/*.asm kernel/*/*.asm)
 	lua $(OKAMERON) -arch=fox32 -startup=kernel/start.asm $(KENREL_INPUT_FILES) $(FOX32ROMDEF) > kernel/kernel.asm
 	$(FOX32ASM) kernel/kernel.asm $@
 	rm kernel/kernel.asm
