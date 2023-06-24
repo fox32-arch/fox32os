@@ -364,27 +364,27 @@ menu_items_root:
 menu_items_canvas_name:
     data.8 6 data.strz "Canvas" ; text length, text, null-terminator
 menu_items_brush_name:
-    data.8 5 data.str "Brush"  data.8 0x00 ; text length, text, null-terminator
+    data.8 5 data.strz "Brush" ; text length, text, null-terminator
 menu_items_canvas_list:
-    data.8 2                                        ; number of items
-    data.8 16                                       ; menu width (usually longest item + 2)
+    data.8 2                             ; number of items
+    data.8 16                            ; menu width (usually longest item + 2)
     data.8 14 data.strz "Clear to Black" ; text length, text, null-terminator
     data.8 14 data.strz "Clear to White" ; text length, text, null-terminator
 menu_items_brush_list:
-    data.8 4                              ; number of items
-    data.8 7                              ; menu width (usually longest item + 2)
-    data.8 3 data.str "2x2"   data.8 0x00 ; text length, text, null-terminator
-    data.8 3 data.str "4x4"   data.8 0x00 ; text length, text, null-terminator
-    data.8 3 data.str "8x8"   data.8 0x00 ; text length, text, null-terminator
+    data.8 4                   ; number of items
+    data.8 7                   ; menu width (usually longest item + 2)
+    data.8 3 data.strz "2x2"   ; text length, text, null-terminator
+    data.8 3 data.strz "4x4"   ; text length, text, null-terminator
+    data.8 3 data.strz "8x8"   ; text length, text, null-terminator
     data.8 5 data.strz "16x16" ; text length, text, null-terminator
 menu_items_color_list:
-    data.8 5                              ; number of items
-    data.8 7                              ; menu width (usually longest item + 2)
+    data.8 5                   ; number of items
+    data.8 7                   ; menu width (usually longest item + 2)
     data.8 5 data.strz "Black" ; text length, text, null-terminator
     data.8 5 data.strz "White" ; text length, text, null-terminator
-    data.8 3 data.str "Red"   data.8 0x00 ; text length, text, null-terminator
+    data.8 3 data.strz "Red"   ; text length, text, null-terminator
     data.8 5 data.strz "Green" ; text length, text, null-terminator
-    data.8 4 data.str "Blue"  data.8 0x00 ; text length, text, null-terminator
+    data.8 4 data.strz "Blue"  ; text length, text, null-terminator
 
 is_drawing: data.8 0
 brush_size: data.8 4

@@ -1,3 +1,6 @@
 [submodule "meta/ryfs"]
 	path = meta/ryfs
 	url = https://github.com/ry755/ryfs
+[submodule "meta/okameron"]
+	path = meta/okameron
+	url = https://github.com/talonfox/okameron
