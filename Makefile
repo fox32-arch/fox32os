@@ -1,5 +1,6 @@
 RYFS := $(CURDIR)/meta/ryfs/ryfs.py
 FOX32ASM := ../fox32asm/target/release/fox32asm
+OKAMERON := $(CURDIR)/meta/okameron/okameron.lua
 GFX2INC := ../tools/gfx2inc/target/release/gfx2inc
 
 IMAGE_SIZE := 16777216
@@ -15,7 +16,6 @@ base_image/kernel.fxf: kernel/main.asm $(wildcard kernel/*.asm kernel/*/*.asm)
 	$(FOX32ASM) $< $@
 
 base_image/sh.fxf: applications/sh/main.asm $(wildcard applications/sh/*.asm applications/sh/*/*.asm)
-	echo $(wildcard applications/sh/**/*.asm)
 	$(FOX32ASM) $< $@
 
 base_image/barclock.fxf: applications/barclock/main.asm
@@ -29,6 +29,11 @@ base_image/serial.fxf: applications/serial/main.asm $(wildcard applications/term
 
 base_image/foxpaint.fxf: applications/foxpaint/main.asm
 	$(FOX32ASM) $< $@
+
+base_image/okmpaint.fxf: applications/okmpaint/OkmPaint.okm $(wildcard applications/okmpaint/*.okm)
+	lua $(OKAMERON) -arch=fox32 -startup=applications/okmpaint/start.asm $< > applications/okmpaint/okmpaint.asm
+	$(FOX32ASM) applications/okmpaint/okmpaint.asm $@
+	rm applications/okmpaint/okmpaint.asm
 
 base_image/bg.fxf: applications/bg/main.asm
 	$(FOX32ASM) $< $@
@@ -59,6 +64,7 @@ FILES = \
 	base_image/terminal.fxf \
 	base_image/serial.fxf \
 	base_image/foxpaint.fxf \
+	base_image/okmpaint.fxf \
 	base_image/bg.fxf \
 	base_image/bg.raw \
 	base_image/launcher.fxf
