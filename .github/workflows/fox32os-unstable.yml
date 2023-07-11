@@ -36,6 +36,11 @@ jobs:
           workflow: tools-unstable-linux.yml
           workflow_conclusion: success
 
+      - name: Install lua5.4
+        run: |
+          sudo apt update
+          sudo apt install -y lua5.4
+
       - name: Build
         run: |
           mkdir ../fox32rom
