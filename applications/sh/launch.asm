@@ -110,7 +110,7 @@ allocate_error:
 
 launch_fxf_name: data.str "        fxf"
 launch_fxf_spaces: data.str "        "
-launch_fxf_struct: data.32 0 data.32 0
+launch_fxf_struct: data.fill 0, 32
 launch_fxf_task_id: data.8 0
 launch_fxf_binary_ptr: data.32 0
 launch_fxf_stack_ptr: data.32 0

@@ -37,7 +37,7 @@ error:
     rjmp 0
 
 kernel_file_name: data.strz "kernel  fxf"
-kernel_file_struct: data.32 0 data.32 0
+kernel_file_struct: data.fill 0, 32
 error_str: data.strz "failed to open kernel file"
 boot_disk_id: data.8 0
 

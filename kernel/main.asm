@@ -416,11 +416,9 @@ bottom_bar_patterns:
 next_task: data.8 0
 current_disk_id: data.8 0
 startup_cfg: data.str "startup cfg"
-startup_cfg_struct: data.32 0 data.32 0
+startup_cfg_struct: data.fill 0, 32
 startup_file: data.str "           "
-startup_file_struct: data.32 0 data.32 0
-startup_file_binary_ptr: data.32 0
-startup_file_stack_ptr: data.32 0
+startup_file_struct: data.fill 0, 32
 
     #include "../../fox32rom/fox32rom.def"
 
