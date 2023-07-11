@@ -1,5 +1,33 @@
 ; FXF launching routines
 
+; launch an FXF binary from an already opened file
+; inputs:
+; r0: pointer to file struct
+; r1: reserved
+; r2: argument 0
+; r3: argument 1
+; r4: argument 2
+; r5: argument 3
+; r6: argument 4
+; outputs:
+; r0: task ID of the new task, or 0xFFFFFFFF if error
+launch_fxf_from_open_file:
+    push r1
+    push r2
+    push r3
+    push r4
+    push r5
+    push r6
+
+    push r2
+    push r3
+    push r4
+    push r5
+    push r6
+
+    mov [launch_fxf_struct_ptr], r0
+    jmp launch_fxf_from_open_file_1
+
 ; launch an FXF binary from a file on disk
 ; inputs:
 ; r0: pointer to FXF binary name (8.3 format, for example "testfile.fxf" or "test.fxf")
@@ -26,13 +54,14 @@ launch_fxf_from_disk:
     push r6
 
     ; open the file
-    mov r2, launch_fxf_struct
+    mov [launch_fxf_struct_ptr], launch_fxf_struct
+    mov r2, [launch_fxf_struct_ptr]
     call open
     cmp r0, 0
     ifz jmp launch_fxf_from_disk_file_error
-
+launch_fxf_from_open_file_1:
     ; allocate memory for the binary
-    mov r0, launch_fxf_struct
+    mov r0, [launch_fxf_struct_ptr]
     call get_size
     call allocate_memory
     cmp r0, 0
@@ -40,7 +69,7 @@ launch_fxf_from_disk:
     mov [launch_fxf_binary_ptr], r0
 
     ; read the file into memory
-    mov r0, launch_fxf_struct
+    mov r0, [launch_fxf_struct_ptr]
     mov r1, [launch_fxf_binary_ptr]
     call ryfs_read_whole_file
 
@@ -109,6 +138,7 @@ launch_fxf_from_disk_file_error:
     mov r0, 0xFFFFFFFF
     ret
 
+launch_fxf_struct_ptr: data.32 0
 launch_fxf_struct: data.fill 0, 32
 launch_fxf_task_id: data.8 0
 launch_fxf_binary_ptr: data.32 0

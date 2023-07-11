@@ -28,6 +28,7 @@ jump_table:
     org.pad 0x00000110
     data.32 parse_fxf_binary
     data.32 launch_fxf_from_disk
+    data.32 launch_fxf_from_open_file
 
     ; task jump table
     org.pad 0x00000210
@@ -201,47 +202,25 @@ load_startup_task:
     mov r2, startup_file_struct
     call ryfs_open
     cmp r0, 0
-    ifz jmp boot_disk_1
+    ifz jmp startup_error
 
-    ; allocate memory for the startup file
+    ; create a new task and yield to it
     mov r0, startup_file_struct
-    call get_size
-    call allocate_memory
-    cmp r0, 0
-    ifz jmp memory_error
-    mov [startup_file_binary_ptr], r0
-
-    ; allocate 64KiB for the startup file's stack
-    mov r0, 65536
-    call allocate_memory
-    cmp r0, 0
-    ifz jmp memory_error
-    mov [startup_file_stack_ptr], r0
-
-    ; read the startup file into memory
-    mov r0, startup_file_struct
-    mov r1, [startup_file_binary_ptr]
-    call ryfs_read_whole_file
-
-    ; relocate and execute it as a new task
-    mov r0, r1
-    call parse_fxf_binary
-    mov r3, r1
-    mov r1, r0
-    movz.8 r0, [next_task_id]
-    mov r2, [startup_file_stack_ptr]
-    add r2, 65536
-    sub r2, 4
-    mov r4, [startup_file_stack_ptr]
-    call new_task
+    mov r1, 0
+    mov r2, 0
+    mov r3, 0
+    mov r4, 0
+    mov r5, 0
+    mov r6, 0
+    call launch_fxf_from_open_file
 
     ; when the startup file yields for the first time, we'll end up back here
     ; now, check to see if startup.cfg has any other entries
-    ; we do this by checking to see if the size of startup.cfg is less than or equal to 12 * next_task_id bytes
-    inc.8 [next_task_id]
+    ; we do this by checking to see if the size of startup.cfg is less than or equal to 12 * next_task bytes
+    inc.8 [next_task]
     mov r0, startup_cfg_struct
     call get_size
-    movz.8 r1, [next_task_id]
+    movz.8 r1, [next_task]
     mul r1, 12
     cmp r0, r1
     iflteq jmp no_other_tasks
@@ -306,7 +285,7 @@ boot_disk_1_loop:
     ifz jmp disk_1_is_not_fxf
     mov r3, r1
     mov r1, r0
-    movz.8 r0, [next_task_id]
+    movz.8 r0, 0
     mov r2, rsp
     sub r2, 4
     mov r4, 0 ; don't attempt to free any stack block if the task ends
@@ -434,7 +413,7 @@ bottom_bar_patterns:
     data.32 0xFFFFFFFF
     data.32 0xFF674764
 
-next_task_id: data.8 0
+next_task: data.8 0
 current_disk_id: data.8 0
 startup_cfg: data.str "startup cfg"
 startup_cfg_struct: data.32 0 data.32 0
