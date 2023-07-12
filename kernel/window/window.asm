@@ -11,7 +11,7 @@
 ; data.16 y_pos              - Y coordinate of this window (top left corner of title bar)
 ; data.8  overlay            - overlay number of this window
 ; data.8  reserved_1
-; data.16 reserved_2
+; data.16 flags              - flags for this window
 ; data.32 menu_bar_ptr       - pointer to this window's menu bar root struct, or 0 for none
 ; data.32 first_widget_ptr   - pointer to this window's first widget
 
@@ -19,6 +19,7 @@ const WINDOW_STRUCT_SIZE: 36 ; 9 words = 36 bytes
 const TITLE_BAR_HEIGHT: 16
 const TITLE_BAR_TEXT_FOREGROUND: 0xFF000000
 const TITLE_BAR_TEXT_BACKGROUND: 0xFFFFFFFF
+const WINDOW_FLAG_ALWAYS_BACKGROUND: 1
 
 ; create a new window and allocate memory as required
 ; inputs:
@@ -216,6 +217,21 @@ destroy_window:
 destroy_window_no_more_windows:
     pop r1
     pop r0
+    ret
+
+; call this if the user clicks on a window's title bar
+; inputs:
+; r0: 16-bit flags value
+; r1: pointer to window struct
+; outputs:
+; none
+set_window_flags:
+    push r1
+
+    add r1, 25
+    mov.16 [r1], r0
+
+    pop r1
     ret
 
 ; call this if the user clicks on a window's title bar
@@ -529,6 +545,52 @@ add_mouse_event_to_active_window_end:
     pop r0
     ret
 
+; add a mouse event to an inactive window if the mouse was clicked inside the window
+; if so, automatically convert the X and Y coords to be relative to the window
+; inputs:
+; r0-r7: event
+; r8: pointer to window struct
+; outputs:
+; none
+add_mouse_event_to_inactive_window:
+    push r0
+    push r2
+    push r10
+    push r11
+    push r12
+
+    ; save X and Y coords of the click and the event type
+    mov r10, r1
+    mov r11, r2
+    mov r12, r0
+
+    ; get the window's overlay number
+    mov r0, r8
+    call get_window_overlay_number
+
+    ; check if the window's overlay covers the clicked position
+    mov r2, r0
+    mov r0, r10
+    mov r1, r11
+    call check_if_overlay_covers_position
+    ; if it doesn't, then end here
+    ifnz jmp add_mouse_event_to_inactive_window_end
+    ; if it does, then make the X and Y coords relative to the overlay
+    call make_coordinates_relative_to_overlay
+
+    ; add the event
+    mov r2, r1
+    mov r1, r0
+    mov r0, r12
+    call new_window_event
+add_mouse_event_to_inactive_window_end:
+    pop r12
+    pop r11
+    pop r10
+    pop r2
+    pop r0
+    ret
+
 ; search for an entry in the window list
 ; inputs:
 ; r0: entry (pointer to window struct)
@@ -565,6 +627,7 @@ search_for_window_list_entry_found:
     ret
 
 ; search for the first non-empty entry in the window list
+; this skips over items that have the "always background" flag set
 ; inputs:
 ; none
 ; outputs:
@@ -572,6 +635,7 @@ search_for_window_list_entry_found:
 search_for_nonempty_window_list_entry:
     push r1
     push r2
+    push r3
     push r31
 
     mov r1, window_list
@@ -579,7 +643,14 @@ search_for_nonempty_window_list_entry:
     mov r31, 31
 search_for_nonempty_window_list_entry_loop:
     cmp [r1], 0
-    ifnz jmp search_for_nonempty_window_list_entry_found
+    ifz jmp search_for_nonempty_window_list_entry_loop_skip
+    mov r3, [r1]
+    add r3, 25
+    movz.16 r3, [r3]
+    and r3, WINDOW_FLAG_ALWAYS_BACKGROUND
+    cmp r3, 0
+    ifz jmp search_for_nonempty_window_list_entry_found
+search_for_nonempty_window_list_entry_loop_skip:
     inc r2
     add r1, 4
     loop search_for_nonempty_window_list_entry_loop
@@ -587,6 +658,7 @@ search_for_nonempty_window_list_entry_loop:
     mov r0, 0xFFFFFFFF
 
     pop r31
+    pop r3
     pop r2
     pop r1
     ret
@@ -595,6 +667,7 @@ search_for_nonempty_window_list_entry_found:
     mov r0, r2
 
     pop r31
+    pop r3
     pop r2
     pop r1
     ret

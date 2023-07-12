@@ -27,6 +27,12 @@ start_event_manager_task:
 event_manager_task_loop:
     call get_next_event
 
+    ; mouse
+    cmp r0, EVENT_TYPE_MOUSE_CLICK
+    ifz call event_manager_task_mouse_event
+    cmp r0, EVENT_TYPE_MOUSE_RELEASE
+    ifz call event_manager_task_mouse_event
+
     cmp.8 [active_window_offset], 0xFF
     ifz rjmp event_manager_task_loop_end
 
@@ -39,12 +45,6 @@ event_manager_task_loop:
     ifz call add_event_to_active_window
     cmp r0, EVENT_TYPE_MENU_UPDATE
     ifz call add_event_to_active_window
-
-    ; mouse
-    cmp r0, EVENT_TYPE_MOUSE_CLICK
-    ifz call event_manager_task_mouse_event
-    cmp r0, EVENT_TYPE_MOUSE_RELEASE
-    ifz call event_manager_task_mouse_event
 
     ; keyboard
     cmp r0, EVENT_TYPE_KEY_DOWN
@@ -85,6 +85,9 @@ event_manager_task_mouse_event:
 
     ; get the overlay number of the active window
     movz.8 r0, [active_window_offset]
+    cmp.8 r0, 0xFF
+    ifz pop r1
+    ifz jmp event_manager_task_mouse_event_inactive_window_was_clicked
     call window_list_offset_to_struct
     call get_window_overlay_number
 
@@ -114,19 +117,30 @@ event_manager_task_mouse_event_inactive_window_was_clicked:
     call get_window_with_overlay
     mov r1, r2
 
-    ; give up if a window was not found for this overlay
-    cmp r0, 0x00000000
-    ifz pop r2
-    ifz pop r1
-    ifz pop r0
-    ifz ret
+    ; r0: currently active window struct
+    ; r1: clicked window struct
+
+    ; give up if a window was not found for the clicked overlay
     cmp r1, 0x00000000
     ifz pop r2
     ifz pop r1
     ifz pop r0
     ifz ret
 
-    ; swap the two
+    ; if there is no active window, but we reached this point,
+    ; then assume the click was on an inactive window marked as "always background"
+    ; it's probably bad to assume this, more checks would be good
+    cmp r0, 0x00000000
+    ifz jmp event_manager_task_mouse_event_inactive_window_was_clicked_no_change
+
+    ; swap the two, if the "always background" flag is not set for the clicked window
+    push r1
+    add r1, 25
+    movz.16 r1, [r1]
+    and r1, WINDOW_FLAG_ALWAYS_BACKGROUND
+    cmp r1, 0
+    pop r1
+    ifnz jmp event_manager_task_mouse_event_inactive_window_was_clicked_no_change
     call swap_windows
 
     ; mark the clicked window as the active window
@@ -146,4 +160,15 @@ event_manager_task_mouse_event_inactive_window_was_clicked:
     pop r2
     pop r1
     pop r0
+    call add_mouse_event_to_active_window
     ret
+event_manager_task_mouse_event_inactive_window_was_clicked_no_change:
+    mov [old_r8], r8
+    mov r8, r1
+    pop r2
+    pop r1
+    pop r0
+    call add_mouse_event_to_inactive_window
+    mov r8, [old_r8]
+    ret
+old_r8: data.32 0

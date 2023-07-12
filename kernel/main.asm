@@ -23,6 +23,7 @@ jump_table:
     data.32 get_os_api_version
     data.32 get_current_disk_id
     data.32 set_current_disk_id
+    data.32 get_boot_disk_id
 
     ; FXF jump table
     org.pad 0x00000110
@@ -58,6 +59,7 @@ jump_table:
     data.32 start_dragging_window
     data.32 new_messagebox
     data.32 get_active_window_struct
+    data.32 set_window_flags
 
     ; VFS jump table
     org.pad 0x00000510
@@ -101,6 +103,7 @@ entry_ok:
     mov rsp, SYSTEM_STACK
 
     ; save the boot disk id that the bootloader passed in r0
+    mov.8 [boot_disk_id], r0
     mov.8 [current_disk_id], r0
 
     ; clear the background
@@ -344,6 +347,10 @@ api_version_too_low_error:
     call draw_format_str_to_background
     rjmp 0
 
+get_boot_disk_id:
+    movz.8 r0, [boot_disk_id]
+    ret
+
 get_current_disk_id:
     movz.8 r0, [current_disk_id]
     ret
@@ -415,6 +422,7 @@ bottom_bar_patterns:
 
 next_task: data.8 0
 current_disk_id: data.8 0
+boot_disk_id: data.8 0
 startup_cfg: data.str "startup cfg"
 startup_cfg_struct: data.fill 0, 32
 startup_file: data.str "           "

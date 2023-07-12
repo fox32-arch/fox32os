@@ -24,6 +24,15 @@ base_image/barclock.fxf: applications/barclock/main.asm
 base_image/terminal.fxf: applications/terminal/main.asm $(wildcard applications/terminal/*.asm)
 	$(FOX32ASM) $< $@
 
+base_image/fetcher.fxf: applications/fetcher/Fetcher.okm $(wildcard applications/fetcher/*.okm)
+	lua $(OKAMERON) -arch=fox32 -startup=applications/fetcher/start.asm $< \
+		applications/fetcher/Browser.okm \
+		applications/fetcher/Desktop.okm \
+		applications/fetcher/OS.okm \
+		> applications/fetcher/fetcher.asm
+	$(FOX32ASM) applications/fetcher/fetcher.asm $@
+	rm applications/fetcher/fetcher.asm
+
 base_image/serial.fxf: applications/serial/main.asm $(wildcard applications/terminal/*.asm)
 	$(FOX32ASM) $< $@
 
@@ -62,6 +71,7 @@ FILES = \
 	base_image/sh.fxf \
 	base_image/barclock.fxf \
 	base_image/terminal.fxf \
+	base_image/fetcher.fxf \
 	base_image/serial.fxf \
 	base_image/foxpaint.fxf \
 	base_image/okmpaint.fxf \
@@ -75,6 +85,7 @@ ROM_FILES = \
 	base_image/sh.fxf \
 	base_image/barclock.fxf \
 	base_image/terminal.fxf \
+	base_image/fetcher.fxf \
 	base_image/serial.fxf \
 	base_image/bg.fxf \
 	base_image/launcher.fxf

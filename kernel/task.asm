@@ -24,7 +24,7 @@ new_task:
     call task_store
     mov [task_queue_ptr], r0
 
-    ; fall-through
+    jmp save_state_and_yield_task
 
 ; switch to the next task in the queue
 ; no registers are saved upon task yield

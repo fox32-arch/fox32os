@@ -81,7 +81,7 @@ messagebox_event_loop:
     cmp r0, EVENT_TYPE_BUTTON_CLICK
     ifz jmp messagebox_ok_clicked
 
-    call yield_task
+    call save_state_and_yield_task
     jmp messagebox_event_loop
 
 messagebox_ok_clicked:

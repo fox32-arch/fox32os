@@ -1,0 +1,20 @@
+MODULE Fetcher;
+    IMPORT OS, Browser, Desktop;
+
+    EXTERN terminalStreamPtr: POINTER TO CHAR;
+    EXTERN arg0Ptr: POINTER TO CHAR;
+
+    PROCEDURE Main();
+    BEGIN
+        IF (terminalStreamPtr = 0) & (arg0Ptr = 0) THEN
+            (* probably launched from startup.cfg *)
+            DesktopMain();
+        ELSIF arg0Ptr <|= 5 THEN
+            (* launched from an existing instance of fetcher *)
+            BrowserMain(arg0Ptr);
+        ELSE
+            (* probably launched from the terminal *)
+            BrowserMain(string_to_int(arg0Ptr, 10));
+        END;
+    END;
+END.

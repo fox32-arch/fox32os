@@ -1,0 +1,43 @@
+MODULE Browser;
+    IMPORT OS;
+
+    VAR browserRunning: CHAR;
+        browserWindow: ARRAY 36 OF CHAR;
+        browserIcons: ARRAY 31 OF Fox32OSButtonWidget;
+
+    PROCEDURE BrowserMain(diskId: INT;);
+    BEGIN
+        browserRunning := 1;
+
+        (* create the window and fill it with white *)
+        new_window(PTROF(browserWindow), "Fetcher", 384, 192, 64, 64, 0, PTROF(browserIcons));
+        fill_window(0FFFFFFFFH, PTROF(browserWindow));
+        (*draw_widgets_to_window(PTROF(browserWindow));*)
+
+        WHILE browserRunning DO
+            GetNextWindowEvent(PTROF(browserWindow));
+
+            (* mouse click event *)
+            IF eventArgs[0] = PTROF(EVENT_TYPE_MOUSE_CLICK) THEN
+                IF (eventArgs[1] <| 8) & (eventArgs[2] <| 16) THEN
+                    destroy_window(PTROF(browserWindow));
+                    browserRunning := 0;
+                ELSIF eventArgs[2] <| 16 THEN
+                    start_dragging_window(PTROF(browserWindow));
+                END;
+                handle_widget_click(PTROF(browserWindow), eventArgs[1], eventArgs[2]);
+
+            (* mouse click event *)
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_BUTTON_CLICK) THEN
+                HandleIconClick(eventArgs[1]);
+            END;
+
+            save_state_and_yield_task();
+        END;
+    END;
+
+    PROCEDURE HandleIconClick(buttonId: INT;);
+    BEGIN
+        (* TODO *)
+    END;
+END.

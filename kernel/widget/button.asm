@@ -8,7 +8,7 @@
 ; data.32 foreground_color - text foreground color
 ; data.32 background_color - button background color
 ; data.16 width            - width of this button
-; data.16 reserved
+; data.16 height           - height of this button
 ; data.16 x_pos            - X coordinate of this widget
 ; data.16 y_pos            - Y coordinate of this widget
 
@@ -24,6 +24,7 @@ const BUTTON_WIDGET_STRUCT_SIZE: 32 ; 8 words = 32 bytes
 ; r4: button width
 ; r5: X coordinate
 ; r6: Y coordinate
+; r7: button height
 draw_button_widget:
     push r0
     push r1
@@ -31,6 +32,7 @@ draw_button_widget:
     push r3
     push r4
     push r5
+    push r7
     push r10
     push r20
     push r30
@@ -64,7 +66,9 @@ draw_button_widget_strlen_loop:
     mov r5, r0
     mov r2, r31
     mov r4, r3
-    mov r3, 16
+    cmp r7, 16
+    iflt mov r7, 16
+    mov r3, r7
     mov r0, r30
     mov r1, r6
     call draw_filled_rectangle_to_overlay
@@ -79,6 +83,8 @@ draw_button_widget_strlen_loop:
     mov r3, r2
     mov r1, r5
     mov r2, r6
+    add r2, r7
+    sub r2, 16
     mov r5, r10
     call draw_str_to_overlay
 
@@ -86,6 +92,7 @@ draw_button_widget_strlen_loop:
     pop r30
     pop r20
     pop r10
+    pop r7
     pop r5
     pop r4
     pop r3

@@ -43,6 +43,7 @@ draw_widgets_to_window_button:
     push r4
     push r5
     push r6
+    push r7
     push r10
 
     ; put button parameters in registers for the drawing routine
@@ -54,13 +55,16 @@ draw_widgets_to_window_button:
     mov r3, [r10] ; background_color
     add r10, 4
     movz.16 r4, [r10] ; width
-    add r10, 4
+    add r10, 2
+    movz.16 r7, [r10] ; height
+    add r10, 2
     movz.16 r5, [r10] ; x_pos
     add r10, 2
     movz.16 r6, [r10] ; y_pos
     call draw_button_widget
 
     pop r10
+    pop r7
     pop r6
     pop r5
     pop r4
@@ -115,6 +119,7 @@ handle_widget_click_button:
     push r10
     push r11
     push r12
+    push r13
     push r21
     push r22
 
@@ -122,8 +127,14 @@ handle_widget_click_button:
     add r0, 16
     movz.16 r10, [r0]
 
+    ; get button height
+    add r0, 2
+    movz.16 r13, [r0]
+    cmp r13, 16
+    iflt mov r13, 16
+
     ; get button X coordinate
-    add r0, 4
+    add r0, 2
     movz.16 r11, [r0]
 
     ; get button Y coordinate
@@ -136,7 +147,7 @@ handle_widget_click_button:
 
     ; calculate button's bottom right corner coordinate
     mov r22, r12
-    add r22, 16
+    add r22, r13
 
     ; check if r1 is between r11 and r21
     ; and if r2 is between r12 and r22
@@ -152,6 +163,7 @@ handle_widget_click_button:
     ; if we reach this point then the button was clicked!!
     pop r22
     pop r21
+    pop r13
     pop r12
     pop r11
     pop r10
@@ -174,6 +186,7 @@ handle_widget_click_button:
 handle_widget_click_button_no_click:
     pop r22
     pop r21
+    pop r13
     pop r12
     pop r11
     pop r10
