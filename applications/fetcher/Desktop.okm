@@ -25,7 +25,7 @@ MODULE Desktop;
             IF eventArgs[0] = PTROF(EVENT_TYPE_MOUSE_CLICK) THEN
                 handle_widget_click(PTROF(desktopWindow), eventArgs[1], eventArgs[2]);
 
-            (* mouse click event *)
+            (* button click event *)
             ELSIF eventArgs[0] = PTROF(EVENT_TYPE_BUTTON_CLICK) THEN
                 HandleDesktopIconClick(eventArgs[1]);
             END;

@@ -27,7 +27,7 @@ MODULE Browser;
                 END;
                 handle_widget_click(PTROF(browserWindow), eventArgs[1], eventArgs[2]);
 
-            (* mouse click event *)
+            (* button click event *)
             ELSIF eventArgs[0] = PTROF(EVENT_TYPE_BUTTON_CLICK) THEN
                 HandleIconClick(eventArgs[1]);
             END;
