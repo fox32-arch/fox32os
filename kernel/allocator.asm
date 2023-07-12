@@ -41,6 +41,8 @@ allocate_memory:
     push r11
 
     mov [block], [free_list_head]
+    cmp [block], 0
+    ifz jmp allocate_memory_bad
 
     ; r10: real_size = requested size + header size
     mov r10, r0
@@ -58,6 +60,7 @@ allocate_memory_while_block:
 
     cmp [block], 0
     ifnz jmp allocate_memory_while_block
+allocate_memory_bad:
     ; if we reach this point, no good blocks were found
     mov r0, 0
 
@@ -177,7 +180,7 @@ free_memory:
     call block_set_next
 
     cmp [free_list_head], 0
-    ifnz mov r1, r0
+    ifnz mov r1, r2
     ifnz mov r0, [free_list_head]
     ifnz call block_set_prev
 
