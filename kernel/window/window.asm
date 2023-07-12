@@ -244,22 +244,31 @@ start_dragging_window:
     push r1
     push r2
     push r4
+    push r5
 
     mov r2, r0
     mov r4, r0
-    add r4, 16
+    mov r5, r0
+    add r4, 20
+    add r5, 22
     movz.16 r4, [r4]
-    div r4, 2
+    movz.16 r5, [r5]
+    call get_mouse_position
+    sub r0, r4
+    sub r1, r5
+    mov r4, r0
+    mov r5, r1
 start_dragging_window_loop:
     call get_mouse_position
     sub r0, r4
-    sub r1, 8
+    sub r1, r5
     call move_window
 
     call get_mouse_button
     bts r0, 2
     ifnz jmp start_dragging_window_loop
 
+    pop r5
     pop r4
     pop r2
     pop r1

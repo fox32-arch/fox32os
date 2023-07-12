@@ -3,6 +3,9 @@ MODULE Fetcher;
 
     EXTERN terminalStreamPtr: POINTER TO CHAR;
     EXTERN arg0Ptr: POINTER TO CHAR;
+    EXTERN arg1Ptr: POINTER TO CHAR;
+    EXTERN arg2Ptr: POINTER TO CHAR;
+    EXTERN arg3Ptr: POINTER TO CHAR;
 
     PROCEDURE Main();
     BEGIN
@@ -11,10 +14,10 @@ MODULE Fetcher;
             DesktopMain();
         ELSIF arg0Ptr <|= 5 THEN
             (* launched from an existing instance of fetcher *)
-            BrowserMain(arg0Ptr);
+            BrowserMain(arg0Ptr,arg1Ptr,arg2Ptr,arg3Ptr);
         ELSE
             (* probably launched from the terminal *)
-            BrowserMain(string_to_int(arg0Ptr, 10));
+            BrowserMain(string_to_int(arg0Ptr, 10),0,0,0);
         END;
     END;
 END.

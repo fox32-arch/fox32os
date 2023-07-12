@@ -1,11 +1,12 @@
 MODULE Browser;
-    IMPORT OS;
+    IMPORT OS, Desktop;
 
     VAR browserRunning: CHAR;
         browserWindow: ARRAY 36 OF CHAR;
         browserIcons: ARRAY 31 OF Fox32OSButtonWidget;
 
-    PROCEDURE BrowserMain(diskId: INT;);
+    PROCEDURE BrowserMain(diskId, iconX, iconY: INT; desktopWin: PTR;);
+    VAR i, x, y, w, h: INT;
     BEGIN
         browserRunning := 1;
 
@@ -22,6 +23,21 @@ MODULE Browser;
                 IF (eventArgs[1] <| 8) & (eventArgs[2] <| 16) THEN
                     destroy_window(PTROF(browserWindow));
                     browserRunning := 0;
+                    IF desktopWin # 0 THEN
+                        (* Draw the retracting box animation *)
+                        i := 0;
+                        WHILE i < 16 DO
+                            x := RSH(GETSHORT(PTROF(browserWindow) + 20) *| (16 - i) + iconX *| i,4);
+                            y := RSH(GETSHORT(PTROF(browserWindow) + 22) *| (16 - i) + iconY *| i,4);
+                            w := RSH(384 *| (16 - i) + 32 *| i,4);
+                            h := RSH(192 *| (16 - i) + 32 *| i,4);
+                            DrawWireframeBox(get_window_overlay_number(desktopWin),x,y,w,h,20F0F0F0H);
+                            Eep(5);
+                            draw_filled_rectangle_to_overlay(x,y,w,h,0,get_window_overlay_number(desktopWin));
+                            i := i + 1;
+                        END;
+                        draw_widgets_to_window(desktopWin);
+                    END;
                 ELSIF eventArgs[2] <| 16 THEN
                     start_dragging_window(PTROF(browserWindow));
                 END;

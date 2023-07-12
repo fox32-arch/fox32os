@@ -6,6 +6,8 @@ MODULE OS;
         launch_fxf_from_disk, get_boot_disk_id, string_to_int: INT;
 
     EXTERN PROCEDURE brk: INT;
+    
+    EXTERN PROCEDURE PortIn: INT;
 
     EXTERN EVENT_TYPE_MOUSE_CLICK,
         EVENT_TYPE_MOUSE_RELEASE,
