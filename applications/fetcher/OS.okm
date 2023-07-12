@@ -6,7 +6,7 @@ MODULE OS;
         launch_fxf_from_disk, get_boot_disk_id, string_to_int: INT;
 
     EXTERN PROCEDURE brk: INT;
-    
+
     EXTERN PROCEDURE PortIn: INT;
 
     EXTERN EVENT_TYPE_MOUSE_CLICK,
@@ -23,5 +23,22 @@ MODULE OS;
     TYPE Fox32OSButtonWidget = RECORD
         next, id, type, text, fgColor, bgColor: INT;
         width, height, x, y: SHORT;
+    END;
+
+    PROCEDURE Eep(ms: INT;); (* the furry version of sleep :3 *)
+    VAR deadline: INT;
+    BEGIN
+        deadline := ms + PortIn(80000706H);
+        WHILE PortIn(80000706H) <| deadline DO
+            save_state_and_yield_task();
+        END;
+    END;
+
+    PROCEDURE DrawWireframeBox(overlay, x, y, w, h, color: INT;);
+    BEGIN
+        draw_filled_rectangle_to_overlay(x, y, w, 1, color, overlay);
+        draw_filled_rectangle_to_overlay(x, y, 1, h, color, overlay);
+        draw_filled_rectangle_to_overlay(x + w - 1, y, 1, h, color, overlay);
+        draw_filled_rectangle_to_overlay(x, y + h - 1, w, 1, color, overlay);
     END;
 END.
