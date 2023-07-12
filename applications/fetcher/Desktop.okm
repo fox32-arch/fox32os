@@ -34,9 +34,42 @@ MODULE Desktop;
         END;
     END;
 
-    PROCEDURE HandleDesktopIconClick(buttonId: INT;);
+    PROCEDURE Eep(ms: INT;); (* the furry version of sleep :3 *)
+    VAR deadline: INT;
     BEGIN
-        IF launch_fxf_from_disk("fetcher.fxf", get_boot_disk_id(), 0FFFFFFFFH, buttonId, 0, 0, 0) = 0FFFFFFFFH THEN
+        deadline := ms + PortIn(80000706H);
+        WHILE PortIn(80000706H) <| deadline DO
+            save_state_and_yield_task();
+        END;
+    END;
+
+    PROCEDURE DrawWireframeBox(overlay, x, y, w, h, color: INT;);
+    BEGIN
+        draw_filled_rectangle_to_overlay(x,y,w,1,color,overlay);
+        draw_filled_rectangle_to_overlay(x,y,1,h,color,overlay);
+        draw_filled_rectangle_to_overlay(x+w-1,y,1,h,color,overlay);
+        draw_filled_rectangle_to_overlay(x,y+h-1,w,1,color,overlay);
+    END;
+
+    PROCEDURE HandleDesktopIconClick(buttonId: INT;);
+    VAR i, x, y, w, h: INT;
+        icon: POINTER TO Fox32OSButtonWidget;
+    BEGIN
+        (* Draw the expanding box animation *)
+        i := 0;
+        icon := PTROF(desktopIcons[buttonId]);
+        WHILE i < 16 DO
+            x := RSH(icon^.x *| (16 - i) + 64 *| i,4);
+            y := RSH(icon^.y *| (16 - i) + 64 *| i,4);
+            w := RSH(32 *| (16 - i) + 384 *| i,4);
+            h := RSH(32 *| (16 - i) + 192 *| i,4);
+            DrawWireframeBox(get_window_overlay_number(PTROF(desktopWindow)),x,y,w,h,20F0F0F0H);
+            Eep(5);
+            draw_filled_rectangle_to_overlay(x,y,w,h,0,get_window_overlay_number(PTROF(desktopWindow)));
+            i := i + 1;
+        END;
+        draw_widgets_to_window(PTROF(desktopWindow));
+        IF launch_fxf_from_disk("fetcher.fxf", get_boot_disk_id(), 0FFFFFFFFH, buttonId, icon^.x, icon^.y, PTROF(desktopWindow)) = 0FFFFFFFFH THEN
             new_messagebox("Failed to start new", "instance of fetcher.fxf", 0, 64, 64, 200);
         END;
     END;
@@ -74,7 +107,7 @@ MODULE Desktop;
         desktopIcon := PTROF(desktopIcons[2]);
         desktopIcon^.type := WIDGET_TYPE_BUTTON;
         desktopIcon^.next := PTROF(desktopIcons[3]);
-        desktopIcon^.id := 1;
+        desktopIcon^.id := 2;
         desktopIcon^.text := "Disk 2";
         desktopIcon^.fgColor := 0FF000000H;
         desktopIcon^.bgColor := 0FFFFFFFFH;
@@ -87,7 +120,7 @@ MODULE Desktop;
         desktopIcon := PTROF(desktopIcons[3]);
         desktopIcon^.type := WIDGET_TYPE_BUTTON;
         desktopIcon^.next := PTROF(desktopIcons[4]);
-        desktopIcon^.id := 1;
+        desktopIcon^.id := 3;
         desktopIcon^.text := "Disk 3";
         desktopIcon^.fgColor := 0FF000000H;
         desktopIcon^.bgColor := 0FFFFFFFFH;
@@ -100,7 +133,7 @@ MODULE Desktop;
         desktopIcon := PTROF(desktopIcons[4]);
         desktopIcon^.type := WIDGET_TYPE_BUTTON;
         desktopIcon^.next := 0;
-        desktopIcon^.id := 1;
+        desktopIcon^.id := 4;
         desktopIcon^.text := "Disk 4";
         desktopIcon^.fgColor := 0FF000000H;
         desktopIcon^.bgColor := 0FFFFFFFFH;
