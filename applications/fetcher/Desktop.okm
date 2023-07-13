@@ -5,6 +5,8 @@ MODULE Desktop;
         desktopWindow: ARRAY 36 OF CHAR;
         desktopIcons: ARRAY 5 OF Fox32OSButtonWidget;
 
+    EXTERN diskIcon: ARRAY 1024 OF INT;
+
     PROCEDURE DesktopMain();
     BEGIN
         desktopRunning := 1;
@@ -12,11 +14,11 @@ MODULE Desktop;
         (* set up the desktop icon widgets *)
         SetupDesktopIconStructs();
 
-        (* create the window and make it fully transparent, draw the button widgets to it, and mark it as "always background *)
+        (* create the window and make it fully transparent, mark it as "always background", and draw the icons to it *)
         new_window(PTROF(desktopWindow), "Desktop", 640, 448, 0, 16, 0, PTROF(desktopIcons));
         fill_overlay(000000000H, get_window_overlay_number(PTROF(desktopWindow)));
-        draw_widgets_to_window(PTROF(desktopWindow));
         set_window_flags(000000001H, PTROF(desktopWindow));
+        DrawDesktopIcons(PTROF(desktopWindow));
 
         WHILE desktopRunning DO
             GetNextWindowEvent(PTROF(desktopWindow));
@@ -53,11 +55,31 @@ MODULE Desktop;
         END;
 
         (* redraw the icons *)
-        draw_widgets_to_window(PTROF(desktopWindow));
+        DrawDesktopIcons(PTROF(desktopWindow));
 
         (* launch a new instance of Fetcher *)
         IF launch_fxf_from_disk("fetcher.fxf", get_boot_disk_id(), 0FFFFFFFFH, buttonId, icon^.x, icon^.y, PTROF(desktopWindow)) = 0FFFFFFFFH THEN
             new_messagebox("Failed to start new", "instance of fetcher.fxf", 0, 64, 64, 200);
+        END;
+    END;
+
+    PROCEDURE DrawDesktopIcons(desktopWin: PTR;);
+    VAR i, y, overlay: INT;
+    BEGIN
+        IF desktopWin = 0 THEN RETURN(); END;
+
+        (* draw the buttons themselves *)
+        draw_widgets_to_window(desktopWin);
+
+        (* set the tilemap and draw the icons! *)
+        set_tilemap(PTROF(diskIcon), 32, 32);
+        overlay := get_window_overlay_number(desktopWin);
+        i := 5;
+        y := 16;
+        WHILE i DO
+            draw_tile_to_overlay(0, 592, y, overlay);
+            y := y + 64;
+            i := i - 1;
         END;
     END;
 

@@ -3,7 +3,7 @@ MODULE OS;
         draw_widgets_to_window, draw_filled_rectangle_to_overlay, GetNextWindowEvent, DrawPixel,
         save_state_and_yield_task, start_dragging_window, handle_widget_click, fill_window, fill_overlay,
         set_window_flags, menu_update_event, menu_bar_click_event, close_menu, new_messagebox,
-        launch_fxf_from_disk, get_boot_disk_id, string_to_int: INT;
+        launch_fxf_from_disk, get_boot_disk_id, string_to_int, set_tilemap, draw_tile_to_overlay: INT;
 
     EXTERN PROCEDURE brk: INT;
 

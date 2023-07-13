@@ -1,5 +1,5 @@
 MODULE Browser;
-    IMPORT OS;
+    IMPORT OS, Desktop;
 
     VAR browserRunning: CHAR;
         browserWindow: ARRAY 36 OF CHAR;
@@ -36,7 +36,7 @@ MODULE Browser;
                             draw_filled_rectangle_to_overlay(x, y, w, h, 0, get_window_overlay_number(desktopWin));
                             i := i + 1;
                         END;
-                        draw_widgets_to_window(desktopWin);
+                        DrawDesktopIcons(desktopWin);
                     END;
                 ELSIF eventArgs[2] <| 16 THEN
                     start_dragging_window(PTROF(browserWindow));
