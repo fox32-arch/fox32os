@@ -101,6 +101,8 @@ launch_fxf_from_open_file_1:
     ; relocate the binary
     mov r0, [launch_fxf_binary_ptr]
     call parse_fxf_binary
+    cmp r0, 0
+    ifz jmp launch_fxf_from_disk_file_error
 
     ; create a new task
     mov r1, r0
