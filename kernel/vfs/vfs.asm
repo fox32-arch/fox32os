@@ -1,5 +1,7 @@
 ; virtual filesystem routines
 
+const TEMP_SECTOR_BUF: 0x01FFF808
+
 ; file struct for file:
 ;   file_disk:         1 byte
 ;   file_first_sector: 2 bytes
@@ -44,11 +46,50 @@ open_stream:
 
     inc r0
 
+    ; disk0
+    mov r1, disk0_vfs_stream_name
+    call compare_string
+    ifz pop r1
+    ifz jmp open_stream_disk0
+
+    ; disk1
+    mov r1, disk1_vfs_stream_name
+    call compare_string
+    ifz pop r1
+    ifz jmp open_stream_disk1
+
+    ; disk2
+    mov r1, disk2_vfs_stream_name
+    call compare_string
+    ifz pop r1
+    ifz jmp open_stream_disk2
+
+    ; disk3
+    mov r1, disk3_vfs_stream_name
+    call compare_string
+    ifz pop r1
+    ifz jmp open_stream_disk3
+
     ; fb
     mov r1, framebuffer_vfs_stream_name
     call compare_string
     ifz pop r1
     ifz jmp open_stream_fb
+
+    ; ofb0 - ofb31
+    push r2
+    mov r1, overlay_vfs_stream_name
+    mov r2, 3
+    call compare_memory_bytes
+    pop r2
+    ifz pop r1
+    ifz jmp open_stream_ofb
+
+    ; romdisk
+    mov r1, romdisk_vfs_stream_name
+    call compare_string
+    ifz pop r1
+    ifz jmp open_stream_romdisk
 
     ; serial
     mov r1, serial_vfs_stream_name
@@ -130,11 +171,7 @@ stream_read:
 stream_read_loop:
     call stream_read_char
 
-    push r0
-    push r2
-    call yield_task
-    pop r2
-    pop r0
+    call save_state_and_yield_task
 
     inc r2
     dec r0
@@ -150,9 +187,9 @@ stream_read_char:
     push r2
 
     ; call [file_read_call] with seek offset in r0
-    add r1, 2
+    add r1, 3
     mov r0, [r1]
-    add r1, 6
+    add r1, 5
     call [r1]
 
     ; put the result into [r2]
@@ -160,7 +197,7 @@ stream_read_char:
     mov.8 [r2], r0
 
     ; increment the seek offset
-    sub r1, 6
+    sub r1, 5
     inc [r1]
 
     pop r1
@@ -208,14 +245,14 @@ stream_write_char:
 
     ; call [file_write_call] with pointer to src buf in r0 and seek offset in r1
     mov r3, r1
-    add r3, 2
+    add r3, 3
     mov r0, r2
     mov r1, [r3]
-    add r3, 10
+    add r3, 9
     call [r3]
 
     ; increment the seek offset
-    sub r3, 10
+    sub r3, 9
     inc [r3]
 
     pop r3
@@ -307,5 +344,11 @@ convert_filename_fail:
 convert_filename_output_string: data.fill 0, 12
 
     ; named streams
+    #include "vfs/disk0.asm"
+    #include "vfs/disk1.asm"
+    #include "vfs/disk2.asm"
+    #include "vfs/disk3.asm"
     #include "vfs/fb.asm"
+    #include "vfs/ofb.asm"
+    #include "vfs/romdisk.asm"
     #include "vfs/serial.asm"
