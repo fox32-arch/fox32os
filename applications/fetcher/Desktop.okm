@@ -43,13 +43,13 @@ MODULE Desktop;
         (* draw the expanding box animation *)
         i := 0;
         icon := PTROF(desktopIcons[buttonId]);
-        WHILE i < 16 DO
+        WHILE i <| 16 DO
             x := RSH(icon^.x *| (16 - i) + 64 *| i, 4);
             y := RSH(icon^.y *| (16 - i) + 64 *| i, 4);
             w := RSH(32 *| (16 - i) + 384 *| i, 4);
             h := RSH(32 *| (16 - i) + 192 *| i, 4);
             DrawWireframeBox(get_window_overlay_number(PTROF(desktopWindow)), x, y, w, h, 020F0F0F0H);
-            Eep(5);
+            Eep(10);
             draw_filled_rectangle_to_overlay(x, y, w, h, 0, get_window_overlay_number(PTROF(desktopWindow)));
             i := i + 1;
         END;

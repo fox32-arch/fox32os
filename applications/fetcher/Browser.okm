@@ -3,17 +3,41 @@ MODULE Browser;
 
     VAR browserRunning: CHAR;
         browserWindow: ARRAY 36 OF CHAR;
-        browserIcons: ARRAY 31 OF Fox32OSButtonWidget;
+        browserIcons: ARRAY 12 OF Fox32OSButtonWidget;
+        browserPage: INT;
+        browserNumberOfPages: INT;
+        browserNextPageButton: Fox32OSButtonWidget;
+        browserPrevPageButton: Fox32OSButtonWidget;
+        browserDiskId: INT;
+        browserFileList: ARRAY 341 OF CHAR;
+
+    EXTERN browserFileListFriendly: ARRAY 12 OF POINTER TO CHAR;
 
     PROCEDURE BrowserMain(diskId, iconX, iconY: INT; desktopWin: PTR;);
-    VAR i, x, y, w, h: INT;
     BEGIN
-        browserRunning := 1;
+        (* first, before we do anything, check to make sure the selected disk is available *)
+        IF diskId >| 4 THEN
+            new_messagebox(0, "Invalid disk ID!", 0, 128, 128, 144);
+            end_current_task();
+        ELSIF diskId = 4 THEN
+            IF IsRomDiskAvailable() = 0 THEN
+                new_messagebox(0, "ROM disk not available!", 0, 128, 128, 200);
+                end_current_task();
+            END;
+        ELSE
+            IF PortIn(080001000H OR diskId) = 0 THEN
+                new_messagebox(0, "Disk not inserted!", 0, 128, 128, 160);
+                end_current_task();
+            END;
+        END;
 
-        (* create the window and fill it with white *)
+        browserRunning := 1;
+        browserPage := 0;
+        browserDiskId := diskId;
+
+        (* create the window and draw its initial contents *)
         new_window(PTROF(browserWindow), "Fetcher", 384, 192, 64, 64, 0, PTROF(browserIcons));
-        fill_window(0FFFFFFFFH, PTROF(browserWindow));
-        (*draw_widgets_to_window(PTROF(browserWindow));*)
+        DrawBrowserWindow();
 
         WHILE browserRunning DO
             GetNextWindowEvent(PTROF(browserWindow));
@@ -23,21 +47,7 @@ MODULE Browser;
                 IF (eventArgs[1] <| 8) & (eventArgs[2] <| 16) THEN
                     destroy_window(PTROF(browserWindow));
                     browserRunning := 0;
-                    IF desktopWin # 0 THEN
-                        (* draw the retracting box animation *)
-                        i := 0;
-                        WHILE i < 16 DO
-                            x := RSH(GETSHORT(PTROF(browserWindow) + 20) *| (16 - i) + iconX *| i, 4);
-                            y := RSH(GETSHORT(PTROF(browserWindow) + 22) *| (16 - i) + iconY *| i, 4);
-                            w := RSH(384 *| (16 - i) + 32 *| i,4);
-                            h := RSH(192 *| (16 - i) + 32 *| i,4);
-                            DrawWireframeBox(get_window_overlay_number(desktopWin), x, y, w, h, 020F0F0F0H);
-                            Eep(5);
-                            draw_filled_rectangle_to_overlay(x, y, w, h, 0, get_window_overlay_number(desktopWin));
-                            i := i + 1;
-                        END;
-                        DrawDesktopIcons(desktopWin);
-                    END;
+                    QuitAnimation(iconX, iconY, desktopWin);
                 ELSIF eventArgs[2] <| 16 THEN
                     start_dragging_window(PTROF(browserWindow));
                 END;
@@ -54,6 +64,155 @@ MODULE Browser;
 
     PROCEDURE HandleIconClick(buttonId: INT;);
     BEGIN
-        (* TODO *)
+        IF buttonId = 128 THEN
+            (* next page button *)
+            IncrementBrowserPage();
+        ELSIF buttonId = 129 THEN
+            (* previous page button *)
+            DecrementBrowserPage();
+        ELSE
+            LaunchFromIcon(buttonId);
+        END;
+    END;
+
+    PROCEDURE DrawBrowserWindow();
+    BEGIN
+        fill_window(0FFFFFFFFH, PTROF(browserWindow));
+        SetupBrowserIconStructs();
+        draw_widgets_to_window(PTROF(browserWindow));
+    END;
+
+    PROCEDURE SetupBrowserIconStructs();
+    VAR i, x, y, numberOfFiles: INT;
+        icon: POINTER TO Fox32OSButtonWidget;
+    BEGIN
+        (* get a list of files *)
+        numberOfFiles := ryfs_get_file_list(PTROF(browserFileList), browserDiskId);
+        browserNumberOfPages := numberOfFiles / 12;
+        ConvertFileNames(numberOfFiles);
+
+        i := 0;
+        WHILE i <| 12 DO
+            x := ((i MOD 4) * 96) + 32;
+            y := ((i / 4) * 64) + 24;
+            icon := PTROF(browserIcons[i]);
+
+            icon^.type := WIDGET_TYPE_BUTTON;
+            IF i = 11 THEN icon^.next := PTROF(browserNextPageButton);
+            ELSE icon^.next := PTROF(browserIcons[i + 1]); END;
+            icon^.id := i;
+            icon^.text := browserFileListFriendly[i];
+            icon^.fgColor := 0FF000000H;
+            icon^.bgColor := 0FFDDDDDDH;
+            icon^.width := 32;
+            icon^.height := 32 + 16;
+            icon^.x := x;
+            icon^.y := y;
+
+            i := i + 1;
+        END;
+
+        browserNextPageButton.type := WIDGET_TYPE_BUTTON;
+        browserNextPageButton.next := PTROF(browserPrevPageButton);
+        browserNextPageButton.id := 128;
+        browserNextPageButton.text := ">";
+        browserNextPageButton.fgColor := 0FF000000H;
+        browserNextPageButton.bgColor := 0FFDDDDDDH;
+        browserNextPageButton.width := 16;
+        browserNextPageButton.height := 16;
+        browserNextPageButton.x := 368;
+        browserNextPageButton.y := 16;
+
+        browserPrevPageButton.type := WIDGET_TYPE_BUTTON;
+        browserPrevPageButton.next := 0;
+        browserPrevPageButton.id := 129;
+        browserPrevPageButton.text := "<";
+        browserPrevPageButton.fgColor := 0FF000000H;
+        browserPrevPageButton.bgColor := 0FFDDDDDDH;
+        browserPrevPageButton.width := 16;
+        browserPrevPageButton.height := 16;
+        browserPrevPageButton.x := 0;
+        browserPrevPageButton.y := 16;
+    END;
+
+    PROCEDURE IncrementBrowserPage();
+    BEGIN
+        IF browserPage <| browserNumberOfPages THEN
+            browserPage := browserPage + 1;
+        END;
+        DrawBrowserWindow();
+    END;
+
+    PROCEDURE DecrementBrowserPage();
+    BEGIN
+        IF browserPage >| 0 THEN
+            browserPage := browserPage - 1;
+        END;
+        DrawBrowserWindow();
+    END;
+
+    PROCEDURE LaunchFromIcon(buttonId: INT;);
+    VAR icon: POINTER TO Fox32OSButtonWidget;
+    BEGIN
+        icon := PTROF(browserIcons[buttonId]);
+        launch_fxf_from_disk(icon^.text, browserDiskId, 0, 0, 0, 0, 0);
+    END;
+
+    PROCEDURE ConvertFileNames(numberOfFiles: INT;);
+    VAR i, j, numberOfFilesLeft: INT;
+    BEGIN
+        (* fill all filenames with "<empty>", 0, 0, 0, 0, 0 *)
+        i := 12;
+        WHILE i DO
+            copy_memory_bytes("<empty>\0\0\0\0\0", browserFileListFriendly[i - 1], 12);
+            i := i - 1;
+        END;
+
+        i := 0;
+        numberOfFilesLeft := numberOfFiles - (browserPage * 12);
+        IF numberOfFilesLeft >| 12 THEN
+            numberOfFilesLeft := 12;
+        END;
+        WHILE i <| numberOfFilesLeft DO
+            (* copy the first 8 characters (the actual name of the file) *)
+            copy_memory_bytes(PTROF(browserFileList) + (browserPage * 11 * 12) + (i * 11), browserFileListFriendly[i], 8);
+
+            (* find the first space in the name *)
+            j := 7;
+            WHILE j DO
+                IF GETCHAR(PTROF(browserFileList) + (i * 11) + j) # 32 THEN
+                    BREAK();
+                END;
+                j := j - 1;
+            END;
+            j := j + 1;
+
+            (* j now equals the index of where the file name ends and the extension begins *)
+            PUTCHAR(browserFileListFriendly[i] + j, 46);
+            copy_memory_bytes(PTROF(browserFileList) + (i * 11) + 8, browserFileListFriendly[i] + j + 1, 3);
+            PUTCHAR(browserFileListFriendly[i] + j + 4, 0);
+
+            i := i + 1;
+        END;
+    END;
+
+    PROCEDURE QuitAnimation(iconX, iconY: INT; desktopWin: PTR;);
+    VAR i, x, y, w, h: INT;
+    BEGIN
+        IF desktopWin # 0 THEN
+            (* draw the retracting box animation *)
+            i := 0;
+            WHILE i < 16 DO
+                x := RSH(GETSHORT(PTROF(browserWindow) + 20) *| (16 - i) + iconX *| i, 4);
+                y := RSH(GETSHORT(PTROF(browserWindow) + 22) *| (16 - i) + iconY *| i, 4);
+                w := RSH(384 *| (16 - i) + 32 *| i, 4);
+                h := RSH(192 *| (16 - i) + 32 *| i, 4);
+                DrawWireframeBox(get_window_overlay_number(desktopWin), x, y, w, h, 020F0F0F0H);
+                Eep(10);
+                draw_filled_rectangle_to_overlay(x, y, w, h, 0, get_window_overlay_number(desktopWin));
+                i := i + 1;
+            END;
+            DrawDesktopIcons(desktopWin);
+        END;
     END;
 END.

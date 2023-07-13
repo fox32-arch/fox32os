@@ -29,6 +29,12 @@ GetNextWindowEvent:
     pop r8
     ret
 
+IsRomDiskAvailable:
+    call is_romdisk_available
+    ifz mov r0, 1
+    ifnz mov r0, 0
+    ret
+
 brk:
     brk
     ret
@@ -43,6 +49,33 @@ arg0Ptr: data.32 0
 arg1Ptr: data.32 0
 arg2Ptr: data.32 0
 arg3Ptr: data.32 0
+
+browserFileListFriendly:
+    data.32 browserFile0
+    data.32 browserFile1
+    data.32 browserFile2
+    data.32 browserFile3
+    data.32 browserFile4
+    data.32 browserFile5
+    data.32 browserFile6
+    data.32 browserFile7
+    data.32 browserFile8
+    data.32 browserFile9
+    data.32 browserFile10
+    data.32 browserFile11
+
+browserFile0: data.fill 0, 13
+browserFile1: data.fill 0, 13
+browserFile2: data.fill 0, 13
+browserFile3: data.fill 0, 13
+browserFile4: data.fill 0, 13
+browserFile5: data.fill 0, 13
+browserFile6: data.fill 0, 13
+browserFile7: data.fill 0, 13
+browserFile8: data.fill 0, 13
+browserFile9: data.fill 0, 13
+browserFile10: data.fill 0, 13
+browserFile11: data.fill 0, 13
 
 diskIcon:
     #include "icons/disk.inc"
