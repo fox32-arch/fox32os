@@ -102,7 +102,7 @@ launch_fxf_from_open_file_1:
     mov r0, [launch_fxf_binary_ptr]
     call parse_fxf_binary
     cmp r0, 0
-    ifz jmp launch_fxf_from_disk_file_error
+    ifz jmp launch_fxf_from_disk_reloc_error
 
     ; create a new task
     mov r1, r0
@@ -131,6 +131,20 @@ launch_fxf_from_disk_allocate_error:
     mov r5, 336
     call new_messagebox
 launch_fxf_from_disk_file_error:
+    pop r6
+    pop r5
+    pop r4
+    pop r3
+    pop r2
+    pop r1
+    mov r0, 0xFFFFFFFF
+    ret
+launch_fxf_from_disk_reloc_error:
+    mov r0, [launch_fxf_binary_ptr]
+    call free_memory
+    mov r0, [launch_fxf_stack_ptr]
+    call free_memory
+
     pop r6
     pop r5
     pop r4
