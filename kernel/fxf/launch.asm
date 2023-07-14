@@ -131,6 +131,12 @@ launch_fxf_from_disk_allocate_error:
     mov r5, 336
     call new_messagebox
 launch_fxf_from_disk_file_error:
+    pop r6 ; remove extra copies of arguments from stack
+    pop r5
+    pop r4
+    pop r3
+    pop r2
+
     pop r6
     pop r5
     pop r4
