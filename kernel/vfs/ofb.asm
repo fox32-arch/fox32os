@@ -7,7 +7,7 @@ overlay_vfs_stream_name: data.strz "ofb"
 ; r0: pointer to null-terminated string "ofbXX" where XX is 0 - 31
 ; r2: file struct: pointer to a blank file struct (stream)
 ; outputs:
-; r0: non-zero
+; r0: non-zero if valid overlay
 open_stream_ofb:
     push r1
     push r2
@@ -15,6 +15,11 @@ open_stream_ofb:
     add r0, 3
     mov r1, 10
     call string_to_int
+    cmp r0, 31
+    ifgt mov r0, 0
+    ifgt pop r2
+    ifgt pop r1
+    ifgt ret
 
     mov.8 [r2], r0             ; write file_overlay
     inc r2
