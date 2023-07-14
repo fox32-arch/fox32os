@@ -7,6 +7,8 @@ const SET_COLOR:   0xF2
 const REDRAW_LINE: 0xFE
 
     pop [shell_stream_struct_ptr]
+    cmp [shell_stream_struct_ptr], 0
+    ifz call end_current_task
 
 shell_task_return:
     cmp.8 [shell_redirect_next], 0
