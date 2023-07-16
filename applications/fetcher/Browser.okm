@@ -1,5 +1,5 @@
 MODULE Browser;
-    IMPORT OS, Desktop;
+    IMPORT OS, About, Desktop;
 
     VAR browserRunning: CHAR;
         browserWindow: ARRAY 36 OF CHAR;
@@ -11,6 +11,7 @@ MODULE Browser;
         browserDiskId: INT;
         browserFileList: ARRAY 341 OF CHAR;
 
+    EXTERN browserMenuItemsRoot: POINTER TO CHAR;
     EXTERN browserFileListFriendly: ARRAY 12 OF POINTER TO CHAR;
 
     PROCEDURE BrowserMain(diskId, iconX, iconY: INT; desktopWin: PTR;);
@@ -36,7 +37,7 @@ MODULE Browser;
         browserDiskId := diskId;
 
         (* create the window and draw its initial contents *)
-        new_window(PTROF(browserWindow), "Fetcher", 384, 192, 64, 64, 0, PTROF(browserIcons));
+        new_window(PTROF(browserWindow), "Fetcher", 384, 192, 64, 64, PTROF(browserMenuItemsRoot), PTROF(browserIcons));
         DrawBrowserWindow();
 
         WHILE browserRunning DO
@@ -52,6 +53,22 @@ MODULE Browser;
                     start_dragging_window(PTROF(browserWindow));
                 END;
                 handle_widget_click(PTROF(browserWindow), eventArgs[1], eventArgs[2]);
+
+            (* menu bar click event *)
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_MENU_BAR_CLICK) THEN
+                menu_bar_click_event(PTROF(browserMenuItemsRoot));
+
+            (* menu update event *)
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_MENU_UPDATE) THEN
+                menu_update_event();
+
+            (* menu click event *)
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_MENU_CLICK) THEN
+                MenuClickEvent(eventArgs[2], eventArgs[3]);
+
+            (* menu ack event *)
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_MENU_ACK) THEN
+                close_menu(PTROF(browserMenuItemsRoot));
 
             (* button click event *)
             ELSIF eventArgs[0] = PTROF(EVENT_TYPE_BUTTON_CLICK) THEN
@@ -71,7 +88,23 @@ MODULE Browser;
             (* previous page button *)
             DecrementBrowserPage();
         ELSE
+            (* an icon was clicked! *)
             LaunchFromIcon(buttonId);
+        END;
+    END;
+
+    PROCEDURE MenuClickEvent(rootIndex, itemIndex: INT;);
+    BEGIN
+        IF rootIndex = 0 THEN
+            (* System menu *)
+            IF itemIndex = 0 THEN
+                (* About fox32os *)
+
+                (* DIRTY HACK WARNING!!! *)
+                close_menu(PTROF(browserMenuItemsRoot));
+
+                AboutMain();
+            END;
         END;
     END;
 

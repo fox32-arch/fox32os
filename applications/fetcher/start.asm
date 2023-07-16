@@ -77,6 +77,16 @@ browserFile9: data.fill 0, 13
 browserFile10: data.fill 0, 13
 browserFile11: data.fill 0, 13
 
+browserMenuItemsRoot:
+    data.8 1                                                      ; number of menus
+    data.32 menu_items_system_list data.32 menu_items_system_name ; pointer to menu list, pointer to menu name
+menu_items_system_name:
+    data.8 6 data.strz "System" ; text length, text, null-terminator
+menu_items_system_list:
+    data.8 1                   ; number of items
+    data.8 7                   ; menu width (usually longest item + 2)
+    data.8 5 data.strz "About" ; text length, text, null-terminator
+
 diskIcon:
     #include "icons/disk.inc"
 

@@ -27,6 +27,7 @@ base_image/terminal.fxf: applications/terminal/main.asm $(wildcard applications/
 base_image/fetcher.fxf: applications/fetcher/Fetcher.okm $(wildcard applications/fetcher/*.okm)
 	$(GFX2INC) 32 32 applications/fetcher/icons/disk.png applications/fetcher/icons/disk.inc
 	lua $(OKAMERON) -arch=fox32 -startup=applications/fetcher/start.asm $< \
+		applications/fetcher/About.okm \
 		applications/fetcher/Browser.okm \
 		applications/fetcher/Desktop.okm \
 		applications/fetcher/OS.okm \
