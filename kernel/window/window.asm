@@ -145,6 +145,21 @@ new_window:
     ifnz call draw_menu_bar_root_items
     pop r0
 
+    ; if the current active window is on a higher overlay, swap
+    push r0
+    call get_window_overlay_number ; get the overlay number of the new window
+    mov r10, r0
+    mov.8 r0, [active_window_offset] ; get the active window's overlay number
+    mul r0, 4
+    add r0, window_list
+    mov r1, [r0]
+    mov r0, r1
+    call get_window_overlay_number
+    mov r11, r0
+    pop r0
+    cmp r11, r10 ; if the active window is on a higher overlay, swap
+    ifnc call swap_windows
+
     ; finally, add this window to the window list
     push r0
     mov r0, 0x00000000
