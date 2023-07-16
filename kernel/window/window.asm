@@ -179,6 +179,12 @@ destroy_window:
 
     mov r2, r0
 
+    ; remove the window from the window list
+    call search_for_window_list_entry
+    mul r0, 4
+    add r0, window_list
+    mov [r0], 0
+
     ; set the active window to whatever entry is found first
     call search_for_nonempty_window_list_entry
     mov.8 [active_window_offset], r0
@@ -191,6 +197,7 @@ destroy_window:
     call swap_windows
 
     ; set the menu bar for the newly active window
+    mov r0, r2
     call get_window_menu_bar_root_struct
     call enable_menu_bar
     call clear_menu_bar
@@ -211,14 +218,6 @@ destroy_window_no_more_windows:
     add r2, 16
     movz.8 r0, [r2]
     call disable_overlay
-
-    ; remove the window from the window list
-    sub r2, 24
-    mov r0, r2
-    call search_for_window_list_entry
-    mul r0, 4
-    add r0, window_list
-    mov [r0], 0
 
     pop r2
     pop r1
