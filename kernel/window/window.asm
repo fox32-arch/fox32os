@@ -150,6 +150,11 @@ new_window:
     call get_window_overlay_number ; get the overlay number of the new window
     mov r10, r0
     mov.8 r0, [active_window_offset] ; get the active window's overlay number
+    cmp r0, 0xFF ; is there no active window?
+    ifnz jmp new_window_active_window
+    pop r0
+    jmp new_window_skip_swap
+new_window_active_window:
     mul r0, 4
     add r0, window_list
     mov r1, [r0]
@@ -159,6 +164,7 @@ new_window:
     pop r0
     cmp r11, r10 ; if the active window is on a higher overlay, swap
     ifnc call swap_windows
+new_window_skip_swap:
 
     ; finally, add this window to the window list
     push r0
