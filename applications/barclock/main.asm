@@ -1,5 +1,7 @@
 ; menu bar clock
 
+    opton
+
 loop:
     ; redraw the window title if the active window has changed
     call get_active_window_struct

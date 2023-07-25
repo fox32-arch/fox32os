@@ -1,5 +1,7 @@
 ; background image utility
 
+    opton
+
     ; open the background file and draw it
     ; if the file can't be opened, then just exit
     call get_current_disk_id

@@ -1,5 +1,7 @@
 ; serial terminal - spawn sh.fxf on the serial port
 
+    opton
+
     ; start an instance of sh.fxf
     call get_current_disk_id
     mov r1, r0

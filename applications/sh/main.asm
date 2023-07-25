@@ -1,5 +1,7 @@
 ; fox32os shell
 
+    opton
+
 const CURSOR:      0x8A
 const FILL_TERM:   0xF0
 const MOVE_CURSOR: 0xF1

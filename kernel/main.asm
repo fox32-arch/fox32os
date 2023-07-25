@@ -1,5 +1,7 @@
 ; fox32os kernel
 
+    opton
+
 const LOAD_ADDRESS: 0x03000000
 
 const FOX32OS_VERSION_MAJOR: 0

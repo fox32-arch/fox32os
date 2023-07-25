@@ -1,5 +1,7 @@
 ; simple paint application
 
+    opton
+
     mov r0, canvas_window_struct
     mov r1, canvas_window_title
     mov r2, 512

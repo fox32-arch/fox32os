@@ -1,5 +1,7 @@
 ; simple application launcher
 
+    opton
+
     ; create the window
     mov r0, window_struct
     mov r1, window_title

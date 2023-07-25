@@ -1,3 +1,5 @@
+(* FIXME: this module should probably be moved somewhere global so all applications can use it *)
+
 MODULE OS;
     EXTERN PROCEDURE new_window, destroy_window, draw_str_to_overlay, get_window_overlay_number,
         draw_widgets_to_window, draw_filled_rectangle_to_overlay, GetNextWindowEvent, DrawPixel,
