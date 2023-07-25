@@ -213,7 +213,7 @@ MODULE Browser;
             (* find the first space in the name *)
             j := 7;
             WHILE j DO
-                IF GETCHAR(PTROF(browserFileList) + (i * 11) + j) # 32 THEN
+                IF GETCHAR(PTROF(browserFileList) + (browserPage * 11 * 12) + (i * 11) + j) # 32 THEN
                     BREAK();
                 END;
                 j := j - 1;
@@ -222,7 +222,7 @@ MODULE Browser;
 
             (* j now equals the index of where the file name ends and the extension begins *)
             PUTCHAR(browserFileListFriendly[i] + j, 46);
-            copy_memory_bytes(PTROF(browserFileList) + (i * 11) + 8, browserFileListFriendly[i] + j + 1, 3);
+            copy_memory_bytes(PTROF(browserFileList) + (browserPage * 11 * 12) + (i * 11) + 8, browserFileListFriendly[i] + j + 1, 3);
             PUTCHAR(browserFileListFriendly[i] + j + 4, 0);
 
             i := i + 1;
