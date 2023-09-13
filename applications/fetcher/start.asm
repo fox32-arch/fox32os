@@ -13,21 +13,14 @@ GetNextWindowEvent:
     push r8
     call get_next_window_event
     mov r8, eventArgs
-    mov [r8], r0
-    add r8, 4
-    mov [r8], r1
-    add r8, 4
-    mov [r8], r2
-    add r8, 4
-    mov [r8], r3
-    add r8, 4
-    mov [r8], r4
-    add r8, 4
-    mov [r8], r5
-    add r8, 4
-    mov [r8], r6
-    add r8, 4
-    mov [r8], r7
+    mov [r8+0], r0
+    mov [r8+4], r1
+    mov [r8+8], r2
+    mov [r8+12], r3
+    mov [r8+16], r4
+    mov [r8+20], r5
+    mov [r8+24], r6
+    mov [r8+28], r7
     pop r8
     ret
 
