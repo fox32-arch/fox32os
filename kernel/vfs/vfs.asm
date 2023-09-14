@@ -151,6 +151,12 @@ stream_get_size:
 ; outputs:
 ; none
 read:
+    cmp r0, 0
+    ifz ret
+    cmp r1, 0
+    ifz ret
+    cmp r2, 0
+    ifz ret
     push r3
     push r1
     add r1, 7
@@ -212,6 +218,10 @@ stream_read_char:
 ; outputs:
 ; none
 write:
+    cmp r0, 0
+    ifz ret
+    cmp r1, 0
+    ifz ret
     push r3
     push r1
     add r1, 7
