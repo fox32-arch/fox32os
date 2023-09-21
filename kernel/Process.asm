@@ -49,23 +49,18 @@ SwitchProcess:
     ifz jmp SwitchProcess_no_current
 
     ; point to currentProcess.instructionPtr and store return address
-    add r1, 4
-    mov [r1], SwitchProcess_ret
+    mov [r1+4], SwitchProcess_ret
 
     ; point to currentProcess.stackPtr and store rsp
-    add r1, 4
-    mov [r1], rsp
+    mov [r1+8], rsp
 SwitchProcess_no_current:
     ; get the target instruction pointer
-    add r0, 4
-    mov r1, [r0]
+    mov r1, [r0+4]
 
     ; get the target stack pointer
-    add r0, 4
-    mov rsp, [r0]
+    mov rsp, [r0+8]
 
     ; set currentProcess
-    sub r0, 8
     mov [currentProcess], r0
 
     ; jump to the target
@@ -110,4 +105,8 @@ SwitchProcess_ret:
     pop r30
     pop r31
     pop rfp
+    ret
+
+BreakPoint:
+    brk
     ret

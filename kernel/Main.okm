@@ -13,6 +13,8 @@ MODULE Kernel;
         InstallSyscallHandler();
         InitializeScheduler();
 
+        NewProcess("test.fxf", 0);
+
         Scheduler();
     END;
 END.

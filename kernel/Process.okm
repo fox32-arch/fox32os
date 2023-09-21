@@ -102,11 +102,13 @@ MODULE Process;
 
     EXTERN PROCEDURE YieldProcess: INT;
     EXTERN PROCEDURE SwitchProcess: INT;
+    EXTERN PROCEDURE BreakPoint: INT;
 
     PROCEDURE Scheduler();
     VAR i: INT;
         tempProcess: POINTER TO Process;
     BEGIN
+        currentProcess := PTROF(schedulerProcess);
         WHILE 1 DO
             i := 0;
             WHILE i <| MAX_PROCESSES DO

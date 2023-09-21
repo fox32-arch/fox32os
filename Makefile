@@ -1,4 +1,4 @@
-OKAMERON := ../okameron/okameron.lua
+OKAMERON := $(CURDIR)/meta/okameron/okameron.lua
 FOX32ASM := ../fox32asm/target/release/fox32asm
 RYFS := $(CURDIR)/meta/ryfs/ryfs.py
 GFX2INC := ../tools/gfx2inc/target/release/gfx2inc
