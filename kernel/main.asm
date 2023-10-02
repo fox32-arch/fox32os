@@ -290,7 +290,7 @@ boot_disk_1_loop:
     ifz jmp disk_1_is_not_fxf
     mov r3, r1
     mov r1, r0
-    movz.8 r0, 0
+    mov r0, 0
     mov r2, rsp
     sub r2, 4
     mov r4, 0 ; don't attempt to free any stack block if the task ends
