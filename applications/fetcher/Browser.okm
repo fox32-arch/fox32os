@@ -2,7 +2,7 @@ MODULE Browser;
     IMPORT OS, About, Desktop;
 
     VAR browserRunning: CHAR;
-        browserWindow: ARRAY 36 OF CHAR;
+        browserWindow: ARRAY WINDOW_STRUCT_SIZE OF CHAR;
         browserIcons: ARRAY 12 OF Fox32OSButtonWidget;
         browserPage: INT;
         browserNumberOfPages: INT;

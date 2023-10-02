@@ -2,7 +2,7 @@ MODULE Desktop;
     IMPORT OS;
 
     VAR desktopRunning: CHAR;
-        desktopWindow: ARRAY 36 OF CHAR;
+        desktopWindow: ARRAY WINDOW_STRUCT_SIZE OF CHAR;
         desktopIcons: ARRAY 5 OF Fox32OSButtonWidget;
 
     EXTERN diskIcon: ARRAY 1024 OF INT;

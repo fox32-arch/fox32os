@@ -2,7 +2,7 @@ MODULE About;
     IMPORT OS;
 
     VAR aboutRunning: CHAR;
-        aboutWindow: ARRAY 36 OF CHAR;
+        aboutWindow: ARRAY WINDOW_STRUCT_SIZE OF CHAR;
 
     PROCEDURE AboutMain();
     BEGIN
