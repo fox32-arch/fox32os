@@ -241,7 +241,7 @@ MODULE Browser;
                 w := RSH(384 *| (16 - i) + 32 *| i, 4);
                 h := RSH(192 *| (16 - i) + 32 *| i, 4);
                 DrawWireframeBox(get_window_overlay_number(desktopWin), x, y, w, h, 020F0F0F0H);
-                Eep(10);
+                sleep_task(10);
                 draw_filled_rectangle_to_overlay(x, y, w, h, 0, get_window_overlay_number(desktopWin));
                 i := i + 1;
             END;

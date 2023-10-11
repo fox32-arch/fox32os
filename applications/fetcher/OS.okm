@@ -8,7 +8,7 @@ MODULE OS;
         save_state_and_yield_task, start_dragging_window, handle_widget_click, fill_window, fill_overlay,
         set_window_flags, menu_update_event, menu_bar_click_event, close_menu, new_messagebox,
         launch_fxf_from_disk, get_boot_disk_id, string_to_int, set_tilemap, draw_tile_to_overlay,
-        ryfs_get_file_list, copy_memory_bytes, IsRomDiskAvailable, end_current_task: INT;
+        ryfs_get_file_list, copy_memory_bytes, IsRomDiskAvailable, end_current_task, sleep_task: INT;
 
     EXTERN PROCEDURE brk: INT;
 
@@ -28,15 +28,6 @@ MODULE OS;
     TYPE Fox32OSButtonWidget = RECORD
         next, id, type, text, fgColor, bgColor: INT;
         width, height, x, y: SHORT;
-    END;
-
-    PROCEDURE Eep(ms: INT;); (* the furry version of sleep :3 *)
-    VAR deadline: INT;
-    BEGIN
-        deadline := ms + PortIn(80000706H);
-        WHILE PortIn(80000706H) <| deadline DO
-            save_state_and_yield_task();
-        END;
     END;
 
     PROCEDURE DrawWireframeBox(overlay, x, y, w, h, color: INT;);
