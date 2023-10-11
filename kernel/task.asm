@@ -122,6 +122,27 @@ save_state_and_yield_task:
     pop rfp
     ret
 
+; yield for at least the specified number of ms
+; inputs:
+; r0: minimum ms to yield for
+; outputs:
+; none
+sleep_task:
+    push r0
+    push r1
+
+    in r1, 0x80000706
+    add r0, r1
+sleep_task_loop:
+    call save_state_and_yield_task
+    in r1, 0x80000706
+    cmp r1, r0
+    iflt jmp sleep_task_loop
+
+    pop r1
+    pop r0
+    ret
+
 ; switch to the next task without adding the current task back into the queue
 ; this will automatically free the task's code and stack blocks
 ; inputs:
