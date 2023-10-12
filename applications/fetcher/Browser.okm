@@ -14,7 +14,8 @@ MODULE Browser;
     EXTERN browserMenuItemsRoot: POINTER TO CHAR;
     EXTERN browserFileListFriendly: ARRAY 12 OF POINTER TO CHAR;
 
-    PROCEDURE BrowserMain(diskId, iconX, iconY: INT; desktopWin: PTR;);
+    PROCEDURE BrowserMain(diskId, iconX, iconY: INT; desktopWin: PTR; hasIcons: CHAR; iconsResPtr: PTR;);
+    VAR tempDskIconResPtr: PTR;
     BEGIN
         (* first, before we do anything, check to make sure the selected disk is available *)
         IF diskId >| 4 THEN
@@ -35,6 +36,15 @@ MODULE Browser;
         browserRunning := 1;
         browserPage := 0;
         browserDiskId := diskId;
+
+        (* if icons.res was loaded, then pull the `dsk` resource from it *)
+        IF hasIcons THEN
+            tempDskIconResPtr := get_resource(iconsResPtr, "dsk", 4096);
+            IF tempDskIconResPtr THEN
+                copy_memory_bytes(tempDskIconResPtr, PTROF(desktopDiskIcon), 4096);
+                free_memory(tempDskIconResPtr);
+            END;
+        END;
 
         (* create the window and draw its initial contents *)
         new_window(PTROF(browserWindow), "Fetcher", 384, 192, 64, 64, PTROF(browserMenuItemsRoot), PTROF(browserIcons));

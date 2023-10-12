@@ -82,8 +82,5 @@ menu_items_system_list:
     data.8 7                   ; menu width (usually longest item + 2)
     data.8 5 data.strz "About" ; text length, text, null-terminator
 
-diskIcon:
-    #include "icons/disk.inc"
-
     #include "../../../fox32rom/fox32rom.def"
     #include "../../fox32os.def"
