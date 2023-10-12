@@ -10,6 +10,8 @@ MODULE Browser;
         browserPrevPageButton: Fox32OSButtonWidget;
         browserDiskId: INT;
         browserFileList: ARRAY 341 OF CHAR;
+        browserHasIcons: CHAR;
+        browserIconsResPtr: PTR;
 
     EXTERN browserMenuItemsRoot: POINTER TO CHAR;
     EXTERN browserFileListFriendly: ARRAY 12 OF POINTER TO CHAR;
@@ -36,14 +38,17 @@ MODULE Browser;
         browserRunning := 1;
         browserPage := 0;
         browserDiskId := diskId;
+        browserHasIcons := 0;
+        browserIconsResPtr := iconsResPtr;
 
         (* if icons.res was loaded, then pull the `dsk` resource from it *)
         IF hasIcons THEN
-            tempDskIconResPtr := get_resource(iconsResPtr, "dsk", 4096);
+            tempDskIconResPtr := get_resource(browserIconsResPtr, "dsk", 4096);
             IF tempDskIconResPtr THEN
                 copy_memory_bytes(tempDskIconResPtr, PTROF(desktopDiskIcon), 4096);
                 free_memory(tempDskIconResPtr);
             END;
+            browserHasIcons := 1;
         END;
 
         (* create the window and draw its initial contents *)
@@ -123,6 +128,29 @@ MODULE Browser;
         fill_window(0FFFFFFFFH, PTROF(browserWindow));
         SetupBrowserIconStructs();
         draw_widgets_to_window(PTROF(browserWindow));
+        IF browserHasIcons THEN
+            DrawBrowserIcons();
+        END;
+    END;
+
+    PROCEDURE DrawBrowserIcons();
+    VAR i: INT;
+        icon: POINTER TO Fox32OSButtonWidget;
+        tempFileIconResPtr: PTR;
+        overlay: INT;
+    BEGIN
+        i := 0;
+        overlay := get_window_overlay_number(PTROF(browserWindow));
+        WHILE i <| 12 DO
+            icon := PTROF(browserIcons[i]);
+            tempFileIconResPtr := get_resource(browserIconsResPtr, icon^.text + string_length(icon^.text) - 3, 4096);
+            IF tempFileIconResPtr THEN
+                set_tilemap(tempFileIconResPtr, 32, 32);
+                draw_tile_to_overlay(0, icon^.x, icon^.y, overlay);
+                free_memory(tempFileIconResPtr);
+            END;
+            i := i + 1;
+        END;
     END;
 
     PROCEDURE SetupBrowserIconStructs();

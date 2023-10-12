@@ -10,7 +10,7 @@ MODULE OS;
         set_window_flags, menu_update_event, menu_bar_click_event, close_menu, new_messagebox,
         launch_fxf_from_disk, get_boot_disk_id, string_to_int, set_tilemap, draw_tile_to_overlay,
         ryfs_get_file_list, copy_memory_bytes, IsRomDiskAvailable, end_current_task, sleep_task,
-        open, read, get_size, get_boot_disk_id, get_resource, allocate_memory, free_memory: INT;
+        open, read, get_size, get_boot_disk_id, get_resource, allocate_memory, free_memory, string_length: INT;
 
     EXTERN PROCEDURE brk: INT;
 
