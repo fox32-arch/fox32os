@@ -53,10 +53,12 @@ draw_widgets_to_window:    jmp [0x00000E10]
 handle_widget_click:       jmp [0x00000E14]
 
 ; event types
-const EVENT_TYPE_BUTTON_CLICK: 0x80000000
+const EVENT_TYPE_BUTTON_CLICK:    0x80000000
+const EVENT_TYPE_TEXTBOX_REFRESH: 0x80000001
 
 ; widget types
-const WIDGET_TYPE_BUTTON: 0x00000000
+const WIDGET_TYPE_BUTTON:     0x00000000
+const WIDGET_TYPE_TEXTBOX_SL: 0x00000001
 
 ; window flags
 const WINDOW_FLAG_ALWAYS_BACKGROUND: 1
