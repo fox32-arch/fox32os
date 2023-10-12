@@ -30,7 +30,7 @@ const TEMP_SECTOR_BUF: 0x01FFF808
 ; inputs:
 ; r0: pointer to file name string (8.3 format if file, for example "testfile.txt" or "test.txt")
 ; r1: disk ID (ignored if stream)
-; r2: file struct: pointer to a blank file struct (8 bytes if file, 16 bytes if stream)
+; r2: file struct: pointer to a blank file struct (8 bytes if file, 20 bytes if stream)
 ; outputs:
 ; r0: if file: first file sector, or zero if file wasn't found
 ;     if stream: non-zero if stream opened, or zero if not
