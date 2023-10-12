@@ -67,8 +67,19 @@ bootloader/bootloader.bin: bootloader/main.asm $(wildcard bootloader/*.asm)
 base_image/startup.cfg: base_image/startup.cfg.default
 	cp $< $@
 
+ICONS := \
+	applications/icons/cfg_icon.inc \
+	applications/icons/dsk_icon.inc \
+	applications/icons/fxf_icon.inc
+
+applications/icons/%.inc: applications/icons/%.png
+	$(GFX2INC) 32 32 $< $@
+base_image/icons.res: applications/icons/icons.res.asm $(ICONS)
+	$(FOX32ASM) $< $@
+
 FILES = \
 	base_image/startup.cfg \
+	base_image/icons.res \
 	base_image/kernel.fxf \
 	base_image/sh.fxf \
 	base_image/barclock.fxf \
@@ -83,6 +94,7 @@ FILES = \
 
 ROM_FILES = \
 	base_image/startup.cfg \
+	base_image/icons.res \
 	base_image/kernel.fxf \
 	base_image/sh.fxf \
 	base_image/barclock.fxf \

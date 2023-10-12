@@ -77,6 +77,10 @@ jump_table:
     org.pad 0x00000610
     data.32 draw_widgets_to_window
     data.32 handle_widget_click
+
+    ; resource jump table
+    org.pad 0x00000710
+    data.32 get_resource
 jump_table_end:
 
     ; initialization code
@@ -374,6 +378,7 @@ get_os_api_version:
 
     #include "allocator.asm"
     #include "fxf/fxf.asm"
+    #include "res.asm"
     #include "task.asm"
     #include "vfs/vfs.asm"
     #include "widget/widget.asm"

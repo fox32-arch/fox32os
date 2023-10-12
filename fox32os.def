@@ -52,6 +52,9 @@ get_size:                  jmp [0x00000D24]
 draw_widgets_to_window:    jmp [0x00000E10]
 handle_widget_click:       jmp [0x00000E14]
 
+; resource jump table
+get_resource:              jmp [0x00000F10]
+
 ; event types
 const EVENT_TYPE_BUTTON_CLICK: 0x80000000
 
