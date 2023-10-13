@@ -3,6 +3,7 @@
 
 **/bootloader.bin
 **/*.fxf
+**/*.res
 **/bg.inc
 **/bg.raw
 **/icons.inc
