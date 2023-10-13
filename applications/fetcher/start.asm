@@ -30,6 +30,12 @@ IsRomDiskAvailable:
     ifnz mov r0, 0
     ret
 
+CompareString:
+    call compare_string
+    ifz mov r0, 1
+    ifnz mov r0, 0
+    ret
+
 brk:
     brk
     ret
