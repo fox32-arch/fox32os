@@ -1,5 +1,5 @@
 MODULE About;
-    IMPORT OS;
+    IMPORT OS, Browser;
 
     VAR aboutRunning: CHAR;
         aboutWindow: ARRAY WINDOW_STRUCT_SIZE OF CHAR;
@@ -26,11 +26,18 @@ MODULE About;
 
     PROCEDURE DrawAboutWindow();
     VAR overlay: INT;
+        tempAbtResPtr: PTR;
     BEGIN
         overlay := get_window_overlay_number(PTROF(aboutWindow));
         fill_overlay(0FF674764H, overlay);
         draw_str_to_overlay("fox32", 16, 16, 0FFFFFFFFH, 0FF674764H, overlay);
         draw_str_to_overlay("the computer made with love", 16, 32, 0FFFFFFFFH, 0FF674764H, overlay);
         draw_filled_rectangle_to_overlay(4, 56, 248, 2, 0FFFFFFFFH, overlay);
+
+        tempAbtResPtr := get_resource(browserIconsResPtr, "abt", 64);
+        IF tempAbtResPtr THEN
+            draw_str_to_overlay(tempAbtResPtr, 16, 176, 0FFFFFFFFH, 0FF674764H, overlay);
+            free_memory(tempAbtResPtr);
+        END;
     END;
 END.

@@ -148,6 +148,13 @@ MODULE Browser;
                 set_tilemap(tempFileIconResPtr, 32, 32);
                 draw_tile_to_overlay(0, icon^.x, icon^.y, overlay);
                 free_memory(tempFileIconResPtr);
+            ELSE
+                tempFileIconResPtr := get_resource(browserIconsResPtr, "msc", 4096);
+                IF tempFileIconResPtr THEN
+                    set_tilemap(tempFileIconResPtr, 32, 32);
+                    draw_tile_to_overlay(0, icon^.x, icon^.y, overlay);
+                    free_memory(tempFileIconResPtr);
+                END;
             END;
             i := i + 1;
         END;

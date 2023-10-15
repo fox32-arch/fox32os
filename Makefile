@@ -68,9 +68,9 @@ base_image/startup.cfg: base_image/startup.cfg.default
 	cp $< $@
 
 ICONS := \
-	applications/icons/cfg_icon.inc \
-	applications/icons/dsk_icon.inc \
-	applications/icons/fxf_icon.inc
+	applications/icons/dsk.inc \
+	applications/icons/fxf.inc \
+	applications/icons/msc.inc
 
 applications/icons/%.inc: applications/icons/%.png
 	$(GFX2INC) 32 32 $< $@
