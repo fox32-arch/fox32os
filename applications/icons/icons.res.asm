@@ -1,7 +1,7 @@
 const ICON_SIZE: 4096
 
     ; format: "RES" magic bytes, version, number of resource IDs
-    data.str "RES" data.8 0 data.8 3
+    data.str "RES" data.8 0 data.8 4
 
     ; format: 3 character null-terminated ID, pointer to data, size
     data.strz "abt" data.32 abt data.32 20
