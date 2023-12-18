@@ -23,8 +23,8 @@ MODULE Fetcher;
             hasIcons := 1;
         END;
 
-        IF (terminalStreamPtr = 0) & (arg0Ptr = 0) THEN
-            (* probably launched from startup.cfg *)
+        IF (CompareString("boot", arg0Ptr)) THEN
+            (* launched from startup.bat *)
             DesktopMain(hasIcons, iconsRes);
         ELSIF (CompareString("open", arg0Ptr)) & (arg1Ptr # 0) & (arg2Ptr # 0) THEN
             (* launched from an application wanting to open a file *)

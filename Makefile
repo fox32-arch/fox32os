@@ -64,7 +64,7 @@ applications/launcher/icons.inc: applications/launcher/icons.png
 bootloader/bootloader.bin: bootloader/main.asm $(wildcard bootloader/*.asm)
 	$(FOX32ASM) $< $@
 
-base_image/startup.cfg: base_image/startup.cfg.default
+base_image/startup.bat: base_image/startup.bat.default
 	cp $< $@
 
 ICONS := \
@@ -78,7 +78,7 @@ base_image/icons.res: applications/icons/icons.res.asm $(ICONS)
 	$(FOX32ASM) $< $@
 
 FILES = \
-	base_image/startup.cfg \
+	base_image/startup.bat \
 	base_image/icons.res \
 	base_image/kernel.fxf \
 	base_image/sh.fxf \
@@ -93,7 +93,7 @@ FILES = \
 	base_image/launcher.fxf
 
 ROM_FILES = \
-	base_image/startup.cfg \
+	base_image/startup.bat \
 	base_image/icons.res \
 	base_image/kernel.fxf \
 	base_image/sh.fxf \

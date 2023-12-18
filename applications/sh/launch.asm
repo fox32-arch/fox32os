@@ -96,7 +96,8 @@ launch_fxf_name_loop_done:
 ; loop until the launched task ends
 launch_fxf_yield_loop:
     cmp.8 [launch_fxf_yield_should_suspend], 0
-    ifz jmp shell_task_return
+    ifz pop r0 ; pop our return addr off the stack so we return 2 levels up. this is cursed
+    ifz ret
     movz.8 r0, [launch_fxf_task_id]
     call is_task_id_used
     ifz jmp shell_task_return

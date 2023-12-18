@@ -183,67 +183,33 @@ draw_bottom_bar_loop:
     call copy_memory_bytes
 
     ; check if a disk is inserted as disk 1
-    ; if so, skip checking startup.cfg and just run disk 1
+    ; if so, skip checking startup.bat and just run disk 1
     in r31, 0x80001001
     cmp r31, 0
     ifnz jmp boot_disk_1
 try_startup:
-    ; open startup.cfg
-    call get_current_disk_id
-    mov r1, r0
-    mov r0, startup_cfg
-    mov r2, startup_cfg_struct
-    call ryfs_open
+    mov r0, serial_stream
+    mov r2, serial_stream_struct
+    call open
+
+    mov r0, startup_bat
+    movz.8 r1, [boot_disk_id]
+    mov r2, startup_bat_check_struct
+    call open
     cmp r0, 0
-    ifz jmp startup_error
+    ifz jmp emergency_shell
 
-    ; load a startup task
-load_startup_task:
-    ; load 11 bytes of startup.cfg into startup_file
-    mov r0, 11
-    mov r1, startup_cfg_struct
-    mov r2, startup_file
-    call ryfs_read
-
-    ; open the actual startup file
-    call get_current_disk_id
-    mov r1, r0
-    mov r0, startup_file
-    mov r2, startup_file_struct
-    call ryfs_open
-    cmp r0, 0
-    ifz jmp startup_error
-
-    ; create a new task and yield to it
-    mov r0, startup_file_struct
-    mov r1, 0
-    mov r2, 0
-    mov r3, 0
+    ; run `sh startup.bat` with IO redirected to :serial
+    mov r0, sh_fxf
+    movz.8 r1, [boot_disk_id]
+    mov r2, serial_stream_struct
+    mov r3, startup_bat
     mov r4, 0
     mov r5, 0
     mov r6, 0
-    call launch_fxf_from_open_file
-
-    ; when the startup file yields for the first time, we'll end up back here
-    ; now, check to see if startup.cfg has any other entries
-    ; we do this by checking to see if the size of startup.cfg is less than or equal to 12 * next_task bytes
-    inc.8 [next_task]
-    mov r0, startup_cfg_struct
-    call get_size
-    movz.8 r1, [next_task]
-    mul r1, 12
-    cmp r0, r1
-    iflteq jmp no_other_tasks
-
-    ; seek forward one byte to skip the linefeed
-    mov r0, startup_cfg_struct
-    call ryfs_tell
-    inc r0
-    mov r1, startup_cfg_struct
-    call ryfs_seek
-
-    ; load the next task
-    jmp load_startup_task
+    call launch_fxf_from_disk
+    cmp r0, 0xFFFFFFFF
+    ifz jmp startup_error
 
 no_other_tasks:
     ; start the event manager task
@@ -255,6 +221,19 @@ no_other_tasks:
     ;   block.
     ; this does not return.
     call end_current_task_no_mark_no_free
+
+emergency_shell:
+    mov r0, sh_fxf
+    movz.8 r1, [boot_disk_id]
+    mov r2, serial_stream_struct
+    mov r3, 0
+    mov r4, 0
+    mov r5, 0
+    mov r6, 0
+    call launch_fxf_from_disk
+    cmp r0, 0xFFFFFFFF
+    ifz jmp startup_error
+    jmp no_other_tasks
 
 ; try loading the raw contents of disk 1 as an FXF binary
 ; if disk 1 is not inserted, then fail
@@ -387,7 +366,7 @@ get_os_api_version:
 bottom_bar_str_0: data.strz "FOX"
 bottom_bar_str_1: data.strz "32"
 bottom_bar_str_2: data.strz " OS version %u.%u.%u "
-startup_error_str: data.strz "fox32 - OS version %u.%u.%u - startup.cfg is invalid!"
+startup_error_str: data.strz "fox32 - OS version %u.%u.%u - sh.fxf is missing?"
 memory_error_str: data.strz "fox32 - OS version %u.%u.%u - not enough memory to perform operation!"
 api_error_str: data.strz "fox32 - OS version %u.%u.%u - fox32rom API version too low!"
 kernelception_error_str: data.strz "Error: kernelception?"
@@ -428,13 +407,13 @@ bottom_bar_patterns:
     data.32 0xFFFFFFFF
     data.32 0xFF674764
 
-next_task: data.8 0
 current_disk_id: data.8 0
 boot_disk_id: data.8 0
-startup_cfg: data.str "startup cfg"
-startup_cfg_struct: data.fill 0, 32
-startup_file: data.str "           "
-startup_file_struct: data.fill 0, 32
+sh_fxf: data.strz "sh.fxf"
+startup_bat: data.strz "startup.bat"
+startup_bat_check_struct: data.fill 0, 32
+serial_stream: data.strz ":serial"
+serial_stream_struct: data.fill 0, 32
 
     #include "../../fox32rom/fox32rom.def"
 
