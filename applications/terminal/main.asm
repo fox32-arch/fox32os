@@ -19,7 +19,7 @@
     call fill_window
 
     ; start an instance of sh.fxf
-    call get_current_disk_id
+    call get_boot_disk_id
     mov r1, r0
     mov r0, sh_fxf_name
     mov r2, stream_struct
