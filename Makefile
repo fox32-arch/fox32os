@@ -67,14 +67,19 @@ bootloader/bootloader.bin: bootloader/main.asm $(wildcard bootloader/*.asm)
 base_image/startup.bat: base_image/startup.bat.default
 	cp $< $@
 
-ICONS := \
+ICONS16 := \
+	applications/icons/mnu.inc
+
+ICONS32 := \
 	applications/icons/dsk.inc \
 	applications/icons/fxf.inc \
 	applications/icons/msc.inc
 
-applications/icons/%.inc: applications/icons/%.png
+applications/icons/%.inc: applications/icons/%.16.png
+	$(GFX2INC) 16 16 $< $@
+applications/icons/%.inc: applications/icons/%.32.png
 	$(GFX2INC) 32 32 $< $@
-base_image/icons.res: applications/icons/icons.res.asm $(ICONS)
+base_image/icons.res: applications/icons/icons.res.asm $(ICONS16) $(ICONS32)
 	$(FOX32ASM) $< $@
 
 FILES = \
