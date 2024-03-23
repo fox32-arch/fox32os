@@ -101,6 +101,20 @@ open_stream:
     mov r0, 0
     ret
 
+; create a file on a RYFS-formatted disk
+; inputs:
+; r0: pointer to file name string (8.3 format, for example "testfile.txt" or "test.txt")
+; r1: disk ID
+; r2: file struct: pointer to a blank file struct
+; r3: target file size
+; outputs:
+; r0: first file sector, or zero if file couldn't be created
+create:
+    call convert_filename
+    cmp r0, 0
+    ifz ret
+    jmp ryfs_create
+
 ; seek specified file to the specified offset
 ; inputs:
 ; r0: byte offset

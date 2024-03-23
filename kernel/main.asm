@@ -72,6 +72,7 @@ jump_table:
     data.32 read
     data.32 write
     data.32 get_size
+    data.32 create
 
     ; widget jump table
     org.pad 0x00000610
