@@ -101,15 +101,18 @@ open_stream:
     mov r0, 0
     ret
 
-; create a file on a RYFS-formatted disk
+; create a file on a RYFS-formatted disk, or open a named stream
 ; inputs:
-; r0: pointer to file name string (8.3 format, for example "testfile.txt" or "test.txt")
-; r1: disk ID
-; r2: file struct: pointer to a blank file struct
+; r0: pointer to file name string (8.3 format if file, for example "testfile.txt" or "test.txt")
+; r1: disk ID (ignored if stream)
+; r2: file struct: pointer to a blank file struct (8 bytes if file, 20 bytes if stream)
 ; r3: target file size
 ; outputs:
-; r0: first file sector, or zero if file couldn't be created
+; r0: if file: first file sector, or zero if file couldn't be created
+;     if stream: non-zero if stream opened, or zero if not
 create:
+    cmp.8 [r0], ':'
+    ifz jmp open_stream
     call convert_filename
     cmp r0, 0
     ifz ret
@@ -243,11 +246,17 @@ write:
     pop r1
     cmp.8 r3, 0x00
     ifz pop r3
-    ifz jmp ryfs_write
+    ifz jmp call_ryfs_write
     cmp.8 r3, 0x01
     ifz pop r3
     ifz jmp stream_write
     pop r3
+    ret
+call_ryfs_write:
+    ; `ryfs_write`, despite being written in okameron, clobbers r2 for some reason?
+    push r2
+    call ryfs_write
+    pop r2
     ret
 stream_write:
     push r31
