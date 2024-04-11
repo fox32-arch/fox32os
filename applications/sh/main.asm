@@ -270,6 +270,7 @@ print_character_to_terminal:
 ; none
 print_str_to_terminal:
     push r0
+    push r1
     push r2
 
     mov r1, [shell_stream_struct_ptr]
@@ -282,6 +283,7 @@ print_str_to_terminal_loop:
     ifnz jmp print_str_to_terminal_loop
 
     pop r2
+    pop r1
     pop r0
     ret
 
