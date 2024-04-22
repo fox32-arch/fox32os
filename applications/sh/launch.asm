@@ -23,16 +23,25 @@ launch_fxf_check_suspend_prefix:
     ifnz jmp launch_fxf_check_debug_prefix
     inc r0
     mov.8 [launch_fxf_yield_should_suspend], 0
-    jmp launch_fxf_no_prefix
+    jmp launch_fxf_check_disk_prefix
 launch_fxf_check_debug_prefix:
     ; if the name was prefixed with a '%' character then
     ; set a flag to cause a breakpoint at the beginning of the
     ; program
     cmp.8 [r0], '%'
     ifnz mov.8 [launch_fxf_debug_mode], 0
-    ifnz jmp launch_fxf_no_prefix
+    ifnz jmp launch_fxf_check_disk_prefix
     inc r0
     mov.8 [launch_fxf_debug_mode], 1
+launch_fxf_check_disk_prefix:
+    ; if the name was prefixed with a digit character and a ':' character then
+    ; use that as the disk ID
+    mov.8 [launch_fxf_disk_to_use], 0xFF
+    cmp.8 [r0+1], ':'
+    ifnz jmp launch_fxf_no_prefix
+    mov.8 [launch_fxf_disk_to_use], [r0]
+    sub.8 [launch_fxf_disk_to_use], '0'
+    inc r0, 2
 launch_fxf_no_prefix:
     ; copy the name into the launch_fxf_name buffer
     mov r1, launch_fxf_name
@@ -47,7 +56,9 @@ launch_fxf_name_loop:
 launch_fxf_name_loop_done:
     ; open the file
     call get_current_disk_id
-    mov r1, r0
+    cmp.8 [launch_fxf_disk_to_use], 0xFF
+    ifz mov r1, r0
+    ifnz movz.8 r1, [launch_fxf_disk_to_use]
     mov r0, launch_fxf_name
     mov r2, launch_fxf_struct
     call ryfs_open
@@ -156,5 +167,6 @@ launch_fxf_stack_ptr: data.32 0
 
 launch_fxf_yield_should_suspend: data.8 0
 launch_fxf_debug_mode: data.8 0
+launch_fxf_disk_to_use: data.8 0xFF
 
 out_of_memory_string: data.str "failed to allocate for new task!" data.8 10 data.8 0
