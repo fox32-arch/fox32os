@@ -1,4 +1,4 @@
-*bg;
+*bg bg.raw;
 *barclock;
 *fetcher boot;
 *terminal;
