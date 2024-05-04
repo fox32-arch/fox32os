@@ -149,12 +149,16 @@ menu_click_event:
     ; r2 contains the clicked root menu
     ; r3 contains the clicked menu item
 
-    ; canvas
+    ; file
     cmp r2, 0
+    ifz call file_menu_click_event
+
+    ; canvas
+    cmp r2, 1
     ifz call canvas_menu_click_event
 
     ; brush
-    cmp r2, 1
+    cmp r2, 2
     ifz call brush_menu_click_event
 
     ret
@@ -166,6 +170,16 @@ menu_ack_event:
     call close_menu
 
     pop r0
+    ret
+
+file_menu_click_event:
+    ; r2 contains the clicked root menu
+    ; r3 contains the clicked menu item
+
+    ; open image
+    cmp r3, 0
+    ifz call open_image
+
     ret
 
 canvas_menu_click_event:
@@ -256,6 +270,63 @@ draw_pixel:
     mov r4, [color]
     call draw_filled_rectangle_to_overlay
 
+    ret
+
+open_image:
+    push r3
+
+    ; hack lol
+    mov r0, menu_items_root
+    call close_menu
+
+    call get_boot_disk_id
+    mov r1, r0
+    mov r0, fetcher_filename
+    mov r2, 0
+    mov r3, fetcher_open_arg
+    mov r4, selected_filename
+    mov r5, selected_disk
+    mov r6, 0
+    call launch_fxf_from_disk
+open_image_wait:
+    push r0
+    call yield_task
+    pop r0
+    call is_task_id_used
+    ifnz jmp open_image_wait
+open_image_draw:
+    mov r0, 0xE0000 ; 512x448x4
+    call allocate_memory
+    cmp r0, 0
+    ifz pop r3
+    ifz ret
+    mov [selected_file_buffer_ptr], r0
+    mov r0, selected_filename
+    mov r1, [selected_disk]
+    mov r2, selected_file_struct
+    call open
+    cmp r0, 0
+    ifz pop r3
+    ifz ret
+    mov r0, 0xE0000 ; 512x448x4
+    mov r1, selected_file_struct
+    mov r2, [selected_file_buffer_ptr]
+    call read
+    mov r0, [selected_file_buffer_ptr]
+    mov r1, 512
+    mov r2, 448
+    call set_tilemap
+    mov r0, canvas_window_struct
+    call get_window_overlay_number
+    mov r3, r0
+    mov r0, 0
+    mov r1, 0
+    mov r2, 16
+    call draw_tile_to_overlay
+    mov r0, [selected_file_buffer_ptr]
+    call free_memory
+
+    pop r3
     ret
 
 clear_canvas_black:
@@ -360,13 +431,20 @@ color_button_blue_widget:
 color_button_text: data.strz "  "
 
 menu_items_root:
-    data.8 2                                                      ; number of menus
+    data.8 3                                                      ; number of menus
+    data.32 menu_items_file_list data.32 menu_items_file_name     ; pointer to menu list, pointer to menu name
     data.32 menu_items_canvas_list data.32 menu_items_canvas_name ; pointer to menu list, pointer to menu name
     data.32 menu_items_brush_list data.32 menu_items_brush_name   ; pointer to menu list, pointer to menu name
+menu_items_file_name:
+    data.8 4 data.strz "File" ; text length, text, null-terminator
 menu_items_canvas_name:
     data.8 6 data.strz "Canvas" ; text length, text, null-terminator
 menu_items_brush_name:
     data.8 5 data.strz "Brush" ; text length, text, null-terminator
+menu_items_file_list:
+    data.8 1                             ; number of items
+    data.8 15                            ; menu width (usually longest item + 2)
+    data.8 13 data.strz "Open Image..."  ; text length, text, null-terminator
 menu_items_canvas_list:
     data.8 2                             ; number of items
     data.8 16                            ; menu width (usually longest item + 2)
@@ -391,6 +469,13 @@ menu_items_color_list:
 is_drawing: data.8 0
 brush_size: data.8 4
 color: data.32 0xFFFFFFFF
+
+fetcher_filename: data.strz "fetcher.fxf"
+fetcher_open_arg: data.strz "open"
+selected_filename: data.fill 0, 13
+selected_disk: data.32 0
+selected_file_struct: data.fill 0, 32
+selected_file_buffer_ptr: data.32 0
 
     #include "../../../fox32rom/fox32rom.def"
     #include "../../fox32os.def"
