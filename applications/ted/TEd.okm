@@ -83,6 +83,27 @@ MODULE TEd;
         END;
 
         ClearScreen();
+        CleanUp();
+    END;
+
+    PROCEDURE CleanUp();
+    VAR i: INT;
+    BEGIN
+        i := numberOfRows;
+        WHILE i DO
+            DeleteRow(0);
+            i := i - 1;
+        END;
+        IF row THEN
+            free_memory(row);
+        END;
+        numberOfRows := 0;
+        rowOffset := 0;
+        colOffset := 0;
+        cursorX := 0;
+        cursorY := 0;
+        insertMode := 0;
+        row := 0;
     END;
 
     PROCEDURE RefreshScreen();
