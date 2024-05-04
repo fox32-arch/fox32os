@@ -6,6 +6,7 @@ const TERMINAL_Y_SIZE: 25
 const FILL_TERM:   0xF0
 const MOVE_CURSOR: 0xF1
 const SET_COLOR:   0xF2
+const FILL_LINE:   0xF3
 const REDRAW_LINE: 0xFE
 const REDRAW:      0xFF
 
@@ -154,6 +155,10 @@ handle_control_character:
     cmp.8 [terminal_control_char], SET_COLOR
     ifz jmp handle_control_character_set_color
 
+    ; fill line
+    cmp.8 [terminal_control_char], FILL_LINE
+    ifz jmp handle_control_character_fill_line
+
     ret
 handle_control_character_fill_term:
     push r0
@@ -169,6 +174,27 @@ handle_control_character_fill_term_loop:
     inc r1
     loop handle_control_character_fill_term_loop
     call redraw_terminal
+    pop r31
+    pop r1
+    pop r0
+    ret
+handle_control_character_fill_line:
+    push r0
+    push r1
+    push r31
+    movz.8 r0, [terminal_y]
+    mul r0, TERMINAL_X_SIZE
+    add r0, terminal_text_buf
+    movz.8 r1, [terminal_y]
+    mul r1, TERMINAL_X_SIZE
+    add r1, terminal_color_buf
+    mov r31, 40
+handle_control_character_fill_line_loop:
+    mov.8 [r0], [terminal_control_parameter_1]
+    mov.8 [r1], [terminal_current_color_attribute]
+    inc r0
+    inc r1
+    loop handle_control_character_fill_line_loop
     pop r31
     pop r1
     pop r0

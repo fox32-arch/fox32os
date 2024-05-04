@@ -1,0 +1,466 @@
+(* implemented based on this amazing guide: https://viewsourcecode.org/snaptoken/kilo/05.aTextEditor.html *)
+
+MODULE TEd;
+    IMPORT OS;
+
+    CONST ROW_RECORD_SIZE = 8;
+
+    TYPE Row = RECORD
+        size: INT;
+        characters: POINTER TO CHAR;
+    END;
+
+    VAR running: CHAR;
+        cursorX: CHAR;
+        cursorY: CHAR;
+        row: POINTER TO Row;
+        numberOfRows: INT;
+        rowOffset: INT;
+        colOffset: INT;
+        cursorShowing: SHORT;
+        insertMode: CHAR;
+        fileStruct: ARRAY FILE_STRUCT_SIZE OF CHAR;
+
+    PROCEDURE Main();
+    VAR charBuffer: CHAR;
+    BEGIN
+        IF terminalStreamPtr = 0 THEN
+            end_current_task();
+        END;
+        IF arg0Ptr = 0 THEN
+            Print("TEd - a small text editor\n");
+            Print("usage: ted <file>\n");
+            end_current_task();
+        END;
+
+        running := 1;
+        numberOfRows := 0;
+        rowOffset := 0;
+        colOffset := 0;
+        cursorShowing := 0;
+        insertMode := 0;
+        row := 0;
+
+        ClearScreen();
+        DrawStatusBar();
+
+        IF arg0Ptr THEN
+            OpenFile(arg0Ptr);
+        END;
+
+        WHILE running DO
+            RefreshScreen();
+            read(1, terminalStreamPtr, PTROF(charBuffer));
+            IF (insertMode) & (charBuffer # 0) THEN
+                IF charBuffer = 27 THEN
+                    insertMode := 0;
+                    DrawStatusBar();
+                ELSIF charBuffer = 8 THEN
+                    RemoveCharacter();
+                ELSIF charBuffer = 10 THEN
+                    InsertNewLine();
+                ELSE
+                    InsertCharacter(charBuffer);
+                END;
+            ELSE
+                IF charBuffer = 113 THEN
+                    (* 'q' pressed, exit *)
+                    running := 0;
+                ELSIF (charBuffer = 119) OR
+                    (charBuffer = 115) OR
+                    (charBuffer = 97) OR
+                    (charBuffer = 100) THEN
+                    MoveCursor(charBuffer);
+                ELSIF charBuffer = 105 THEN
+                    (* 'i' pressed,. enter insert mode *)
+                    insertMode := 1;
+                    DrawStatusBar();
+                ELSIF charBuffer = 111 THEN
+                    (* 'o' pressed,. save the file *)
+                    SaveFile(arg0Ptr);
+                END;
+            END;
+        END;
+
+        ClearScreen();
+    END;
+
+    PROCEDURE RefreshScreen();
+    BEGIN
+        ScrollScreen();
+
+        (* position cursor *)
+        PrintChar(MOVE_CURSOR);
+        PrintChar(0);
+        PrintChar(0);
+
+        DrawRows();
+
+        (* position cursor *)
+        PrintChar(MOVE_CURSOR);
+        PrintChar(cursorX - colOffset);
+        PrintChar(cursorY - rowOffset);
+
+        IncCursorBlock();
+    END;
+
+    PROCEDURE IncCursorBlock();
+    BEGIN
+        cursorShowing := cursorShowing + 1;
+        IF cursorShowing = 4096 THEN
+            cursorShowing := 0;
+        END;
+    END;
+
+    PROCEDURE ClearScreen();
+    BEGIN
+        (* position cursor in top left corner (0,0) *)
+        PrintChar(MOVE_CURSOR);
+        PrintChar(0);
+        PrintChar(0);
+        cursorX := 0;
+        cursorY := 0;
+
+        (* fill terminal with spaces *)
+        PrintChar(FILL_TERM);
+        PrintChar(020H);
+        PrintChar(000H);
+    END;
+
+    PROCEDURE ScrollScreen();
+    BEGIN
+        IF cursorY < rowOffset THEN
+            rowOffset := cursorY;
+        END;
+        IF cursorY >|= rowOffset + 24 THEN
+            rowOffset := cursorY - 24 + 1;
+        END;
+
+        IF cursorX < colOffset THEN
+            colOffset := cursorX;
+        END;
+        IF cursorX >|= colOffset + 39 THEN
+            colOffset := cursorX - 39 + 1;
+        END;
+    END;
+
+    PROCEDURE DrawRows();
+    VAR y: INT;
+        length: INT;
+        rowAt: POINTER TO Row;
+        fileRow: INT;
+    BEGIN
+        (* draw tildes *)
+        y := 0;
+        WHILE y <| 24 DO
+            fileRow := y + rowOffset;
+            IF fileRow >|= numberOfRows THEN
+                (* fill line with spaces *)
+                PrintChar(FILL_LINE);
+                PrintChar(020H);
+                PrintChar(000H);
+                (* print tilde *)
+                PrintChar(126);
+            ELSE
+                (* fill line with spaces *)
+                PrintChar(FILL_LINE);
+                PrintChar(020H);
+                PrintChar(000H);
+                rowAt := row + (ROW_RECORD_SIZE * fileRow);
+                length := rowAt^.size - colOffset;
+                IF length & 080000000H THEN
+                    length := 0;
+                END;
+                IF length >| 39 THEN
+                    length := 39;
+                END;
+                PrintChars(rowAt^.characters + colOffset, length);
+                IF (y = cursorY - rowOffset) AND (cursorShowing <| 1024) THEN
+                    PrintChar(MOVE_CURSOR);
+                    PrintChar(cursorX - colOffset);
+                    PrintChar(cursorY - rowOffset);
+                    PrintChar(08AH);
+                    PrintChar(008H);
+                END;
+            END;
+
+            PrintChar(10);
+
+            y := y + 1;
+        END;
+    END;
+
+    PROCEDURE DrawStatusBar();
+    VAR i: INT;
+    BEGIN
+        PrintChar(SET_COLOR);
+        PrintChar(005H);
+        PrintChar(0);
+        PrintChar(MOVE_CURSOR);
+        PrintChar(0);
+        PrintChar(24);
+
+        i := 40;
+        WHILE i DO
+            PrintChar(32);
+            i := i - 1;
+        END;
+
+        PrintChar(MOVE_CURSOR);
+        PrintChar(0);
+        PrintChar(24);
+
+        Print(arg0Ptr);
+
+        IF insertMode THEN
+            PrintChar(MOVE_CURSOR);
+            PrintChar(33);
+            PrintChar(24);
+            Print("INSERT");
+        END;
+
+        PrintChar(SET_COLOR);
+        PrintChar(070H);
+        PrintChar(0);
+    END;
+
+    PROCEDURE MoveCursor(key: CHAR;);
+    BEGIN
+        IF key = 119 THEN
+            (* 'w' *)
+            IF cursorY # 0 THEN
+                cursorY := cursorY - 1;
+            END;
+        ELSIF key = 115 THEN
+            (* 's' *)
+            IF cursorY <| numberOfRows THEN
+                cursorY := cursorY + 1;
+            END;
+        ELSIF key = 97 THEN
+            (* 'a' *)
+            IF cursorX # 0 THEN
+                cursorX := cursorX - 1;
+            END;
+        ELSIF key = 100 THEN
+            (* 'd' *)
+            cursorX := cursorX + 1;
+        END;
+    END;
+
+    PROCEDURE OpenFile(fileName: POINTER TO CHAR;);
+    VAR size: INT;
+        charBuffer: CHAR;
+        buffer: ARRAY 128 OF CHAR;
+        length: INT;
+    BEGIN
+        IF fileName = 0 THEN
+            RETURN();
+        END;
+
+        IF open(fileName, get_current_disk_id(), PTROF(fileStruct)) = 0 THEN
+            RETURN();
+        END;
+
+        size := get_size(PTROF(fileStruct));
+        length := 0;
+        WHILE size DO
+            read(1, PTROF(fileStruct), PTROF(charBuffer));
+            IF charBuffer # 10 THEN
+                buffer[length] := charBuffer;
+                length := length + 1;
+                IF length >|= 128 THEN
+                    length := 0;
+                END;
+            ELSE
+                InsertRow(numberOfRows, PTROF(buffer), length);
+                length := 0;
+            END;
+
+            size := size - 1;
+        END;
+    END;
+
+    PROCEDURE SaveFile(fileName: POINTER TO CHAR;);
+    VAR i: INT;
+        length: INT;
+        buffer: POINTER TO CHAR;
+    BEGIN
+        IF fileName = 0 THEN
+            RETURN();
+        END;
+
+        buffer := RowsToString(PTROF(length));
+
+        IF create(fileName, get_current_disk_id(), PTROF(fileStruct), length) = 0 THEN
+            PrintChar(SET_COLOR);
+            PrintChar(005H);
+            PrintChar(0);
+            PrintChar(MOVE_CURSOR);
+            PrintChar(0);
+            PrintChar(24);
+            i := 40;
+            WHILE i DO
+                PrintChar(32);
+                i := i - 1;
+            END;
+            PrintChar(MOVE_CURSOR);
+            PrintChar(0);
+            PrintChar(24);
+            Print("failed to save");
+            RETURN();
+        END;
+
+        write(length, PTROF(fileStruct), buffer);
+        free_memory(buffer);
+    END;
+
+    PROCEDURE InsertRow(at: INT; string: POINTER TO CHAR; length: INT;);
+    VAR rowAt: POINTER TO Row;
+        rowAtPlus1: POINTER TO Row;
+    BEGIN
+        IF (at & 080000000H) OR (at >| numberOfRows) THEN
+            RETURN();
+        END;
+
+        row := Reallocate(row, ROW_RECORD_SIZE * (numberOfRows + 1));
+        rowAt := row + (ROW_RECORD_SIZE * at);
+        rowAtPlus1 := row + (ROW_RECORD_SIZE * (at + 1));
+
+        MoveMemory(rowAt, rowAtPlus1, ROW_RECORD_SIZE * (numberOfRows - at));
+
+        rowAt^.size := length;
+        rowAt^.characters := allocate_memory(length + 1);
+        IF length # 0 THEN
+            copy_memory_bytes(string, rowAt^.characters, length);
+        END;
+        rowAt^.characters[length] := 0;
+        numberOfRows := numberOfRows + 1;
+    END;
+
+    PROCEDURE DeleteRow(at: INT;);
+    VAR rowAt: POINTER TO Row;
+        rowAtPlus1: POINTER TO Row;
+    BEGIN
+        IF (at & 080000000H) OR (at >| numberOfRows) THEN
+            RETURN();
+        END;
+
+        rowAt := row + (ROW_RECORD_SIZE * at);
+        rowAtPlus1 := row + (ROW_RECORD_SIZE * (at + 1));
+        free_memory(rowAt^.characters);
+        MoveMemory(rowAtPlus1, rowAt, ROW_RECORD_SIZE * (numberOfRows - at - 1));
+        numberOfRows := numberOfRows - 1;
+    END;
+
+    PROCEDURE InsertNewLine();
+    VAR rowAt: POINTER TO Row;
+    BEGIN
+        IF cursorX = 0 THEN
+            InsertRow(cursorY, "", 0);
+        ELSE
+            rowAt := row + (ROW_RECORD_SIZE * cursorY);
+            InsertRow(cursorY + 1, rowAt^.characters + cursorX, rowAt^.size - cursorX);
+            rowAt := row + (ROW_RECORD_SIZE * cursorY);
+            rowAt^.size := cursorX;
+            PUTCHAR(rowAt^.characters + rowAt^.size, 0);
+        END;
+        cursorY := cursorY + 1;
+        cursorX := 0;
+    END;
+
+    PROCEDURE RowAppendString(r: POINTER TO Row; string: POINTER TO CHAR; length: INT;);
+    VAR charPtr: POINTER TO CHAR;
+    BEGIN
+        r^.characters := Reallocate(r^.characters, r^.size + length + 1);
+        charPtr := r^.characters + r^.size;
+        IF length # 0 THEN
+            copy_memory_bytes(string, charPtr, length);
+        END;
+        r^.size := r^.size + length;
+        charPtr := r^.characters + r^.size;
+        charPtr^ := 0;
+    END;
+
+    PROCEDURE RowInsertCharacter(r: POINTER TO Row; at: INT; c: CHAR;);
+    BEGIN
+        IF (at & 080000000H) OR (at >| r^.size) THEN
+            at := r^.size;
+        END;
+        r^.characters := Reallocate(r^.characters, r^.size + 2);
+        MoveMemory(r^.characters + at, r^.characters + at + 1, r^.size - at + 1);
+        r^.size := r^.size + 1;
+        PUTCHAR(r^.characters + at, c);
+    END;
+
+    PROCEDURE RowRemoveCharacter(r: POINTER TO Row; at: INT;);
+    BEGIN
+        IF (at & 080000000H) OR (at >| r^.size) THEN
+            RETURN();
+        END;
+        MoveMemory(r^.characters + at + 1, r^.characters + at, r^.size - at);
+        r^.size := r^.size - 1;
+    END;
+
+    PROCEDURE InsertCharacter(c: CHAR;);
+    BEGIN
+        IF cursorY = numberOfRows THEN
+            InsertRow(numberOfRows, "", 0);
+        END;
+        RowInsertCharacter(row + (ROW_RECORD_SIZE * cursorY), cursorX, c);
+        cursorX := cursorX + 1;
+    END;
+
+    PROCEDURE RemoveCharacter();
+    VAR rowAt: POINTER TO Row;
+    BEGIN
+        IF cursorY = numberOfRows THEN
+            RETURN();
+        END;
+        IF (cursorX = 0) & (cursorY = 0) THEN
+            RETURN();
+        END;
+        IF cursorX > 0 THEN
+            RowRemoveCharacter(row + (ROW_RECORD_SIZE * cursorY), cursorX - 1);
+            cursorX := cursorX - 1;
+        ELSE
+            rowAt := row + (ROW_RECORD_SIZE * (cursorY - 1));
+            cursorX := rowAt^.size;
+            RowAppendString(rowAt, row^.characters, row^.size);
+            DeleteRow(cursorY);
+            cursorY := cursorY - 1;
+        END;
+    END;
+
+    PROCEDURE RowsToString(outBufferLength: POINTER TO INT;): POINTER TO CHAR;
+    VAR i: INT;
+        p: POINTER TO CHAR;
+        totalLength: INT;
+        rowAt: POINTER TO Row;
+        buffer: POINTER TO CHAR;
+    BEGIN
+        totalLength := 0;
+        i := 0;
+        WHILE i <| numberOfRows DO
+            rowAt := row + (ROW_RECORD_SIZE * i);
+            totalLength := totalLength + rowAt^.size + 1;
+            i := i + 1;
+        END;
+        outBufferLength^ := totalLength;
+
+        buffer := allocate_memory(totalLength);
+        p := buffer;
+        i := 0;
+        WHILE i <| numberOfRows DO
+            rowAt := row + (ROW_RECORD_SIZE * i);
+            IF rowAt^.size # 0 THEN
+                copy_memory_bytes(rowAt^.characters, p, rowAt^.size);
+            END;
+            p := p + rowAt^.size;
+            p^ := 10;
+            p := p + 1;
+            i := i + 1;
+        END;
+
+        RETURN(buffer);
+    END;
+END.
