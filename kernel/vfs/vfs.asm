@@ -102,6 +102,7 @@ open_stream:
     ret
 
 ; create a file on a RYFS-formatted disk, or open a named stream
+; if target file already exists, it will be deleted and then re-created as a blank file
 ; inputs:
 ; r0: pointer to file name string (8.3 format if file, for example "testfile.txt" or "test.txt")
 ; r1: disk ID (ignored if stream)
@@ -117,6 +118,16 @@ create:
     cmp r0, 0
     ifz ret
     jmp ryfs_create
+
+; delete a file on a RYFS-formatted disk
+; inputs:
+; r0: file struct: pointer to a filled file struct
+; outputs:
+; none
+delete:
+    cmp r0, 0
+    ifz ret
+    jmp ryfs_delete
 
 ; seek specified file to the specified offset
 ; inputs:

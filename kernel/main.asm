@@ -10,7 +10,7 @@ const FOX32OS_VERSION_PATCH: 0
 
 const FOX32OS_API_VERSION: 1
 
-const REQUIRED_FOX32ROM_API_VERSION: 1
+const REQUIRED_FOX32ROM_API_VERSION: 2
 
 const SYSTEM_STACK:     0x01FFF800
 const BACKGROUND_COLOR: 0xFF674764
@@ -73,6 +73,7 @@ jump_table:
     data.32 write
     data.32 get_size
     data.32 create
+    data.32 delete
 
     ; widget jump table
     org.pad 0x00000610
