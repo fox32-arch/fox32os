@@ -28,8 +28,16 @@ MODULE TEd;
             end_current_task();
         END;
         IF arg0Ptr = 0 THEN
-            Print("TEd - a small text editor\n");
+            Print("TEd - a tiny terminal text editor\n");
             Print("usage: ted <file>\n");
+            Print("keys: esc - exit insert mode\n");
+            Print("      i   - enter insert mode\n");
+            Print("      w   - cursor up\n");
+            Print("      s   - cursor down\n");
+            Print("      a   - cursor left\n");
+            Print("      d   - cursor right\n");
+            Print("      o   - save (output) file\n");
+            Print("      q   - quit\n");
             end_current_task();
         END;
 
