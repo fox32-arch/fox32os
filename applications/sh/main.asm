@@ -332,6 +332,8 @@ shell_redirect_next: data.8 0
 shell_redirect_stream_struct: data.fill 0, 32
 shell_batch_filename_ptr: data.32 0
 shell_char_buffer: data.32 0
+shell_command_return_value: data.32 0
+shell_batch_regs: data.fill 0, 1024 ; 256 regs x 4 bytes each
 
     #include "batch.asm"
     #include "commands/commands.asm"
