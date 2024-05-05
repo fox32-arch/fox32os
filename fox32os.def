@@ -49,6 +49,7 @@ write:                     jmp [0x00000D20]
 get_size:                  jmp [0x00000D24]
 create:                    jmp [0x00000D28]
 delete:                    jmp [0x00000D2C]
+copy:                      jmp [0x00000D30]
 
 ; widget jump table
 draw_widgets_to_window:    jmp [0x00000E10]
