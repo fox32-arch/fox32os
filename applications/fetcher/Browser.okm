@@ -20,12 +20,17 @@ MODULE Browser;
     VAR tempDskIconResPtr: PTR;
     BEGIN
         (* first, before we do anything, check to make sure the selected disk is available *)
-        IF diskId >| 4 THEN
+        IF diskId >| 5 THEN
             new_messagebox(0, "Invalid disk ID!", 0, 128, 128, 144);
             end_current_task();
         ELSIF diskId = 4 THEN
             IF IsRomDiskAvailable() = 0 THEN
                 new_messagebox(0, "ROM disk not available!", 0, 128, 128, 200);
+                end_current_task();
+            END;
+        ELSIF diskId = 5 THEN
+            IF IsRamDiskFormatted() = 0 THEN
+                new_messagebox(0, "RAM disk not formatted!", 0, 128, 128, 200);
                 end_current_task();
             END;
         ELSE

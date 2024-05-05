@@ -9,7 +9,7 @@ MODULE OS;
         save_state_and_yield_task, start_dragging_window, handle_widget_click, fill_window, fill_overlay,
         set_window_flags, menu_update_event, menu_bar_click_event, close_menu, new_messagebox, get_current_disk_id,
         launch_fxf_from_disk, get_boot_disk_id, string_to_int, set_tilemap, draw_tile_to_overlay,
-        ryfs_get_file_list, copy_memory_bytes, IsRomDiskAvailable, end_current_task, sleep_task, CompareString,
+        ryfs_get_file_list, copy_memory_bytes, IsRomDiskAvailable, IsRamDiskFormatted, end_current_task, sleep_task, CompareString,
         open, read, get_size, get_boot_disk_id, get_resource, allocate_memory, free_memory, string_length, copy_string: INT;
 
     EXTERN PROCEDURE brk: INT;
