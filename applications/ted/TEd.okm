@@ -179,7 +179,6 @@ MODULE TEd;
         rowAt: POINTER TO Row;
         fileRow: INT;
     BEGIN
-        (* draw tildes *)
         y := 0;
         WHILE y <| 24 DO
             fileRow := y + rowOffset;
@@ -214,7 +213,7 @@ MODULE TEd;
             END;
 
             PrintChar(10);
-
+            save_state_and_yield_task();
             y := y + 1;
         END;
     END;

@@ -10,7 +10,7 @@ MODULE OS;
           REDRAW           = 0FFH;
 
     EXTERN PROCEDURE end_current_task, open, create, read, write, get_size, get_current_disk_id,
-        allocate_memory, free_memory, string_length, copy_memory_bytes, copy_string: INT;
+        allocate_memory, free_memory, string_length, copy_memory_bytes, copy_string, save_state_and_yield_task: INT;
 
     EXTERN PROCEDURE brk: INT;
 
