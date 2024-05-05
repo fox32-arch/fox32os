@@ -85,6 +85,12 @@ open_stream:
     ifz pop r1
     ifz jmp open_stream_ofb
 
+    ; ramdisk
+    mov r1, ramdisk_vfs_stream_name
+    call compare_string
+    ifz pop r1
+    ifz jmp open_stream_ramdisk
+
     ; romdisk
     mov r1, romdisk_vfs_stream_name
     call compare_string
@@ -128,6 +134,38 @@ delete:
     cmp r0, 0
     ifz ret
     jmp ryfs_delete
+
+; copy a file's contents
+; inputs:
+; r0: source file struct: pointer to a filled file struct
+; r1: destination file struct: pointer to a filled file struct
+; outputs:
+; none
+copy:
+    mov [copy_source_struct_ptr], r0
+    mov [copy_dest_struct_ptr], r1
+    call get_size
+    mov [copy_buffer_size], r0
+    call allocate_memory
+    mov [copy_buffer_ptr], r0
+
+    mov r0, [copy_buffer_size]
+    mov r1, [copy_source_struct_ptr]
+    mov r2, [copy_buffer_ptr]
+    call read
+    mov r0, [copy_buffer_size]
+    mov r1, [copy_dest_struct_ptr]
+    mov r2, [copy_buffer_ptr]
+    call write
+
+    mov r0, [copy_buffer_ptr]
+    call free_memory
+
+    ret
+copy_source_struct_ptr: data.32 0
+copy_dest_struct_ptr: data.32 0
+copy_buffer_ptr: data.32 0
+copy_buffer_size: data.32 0
 
 ; seek specified file to the specified offset
 ; inputs:
@@ -394,5 +432,6 @@ convert_filename_output_string: data.fill 0, 12
     #include "vfs/disk3.asm"
     #include "vfs/fb.asm"
     #include "vfs/ofb.asm"
+    #include "vfs/ramdisk.asm"
     #include "vfs/romdisk.asm"
     #include "vfs/serial.asm"
