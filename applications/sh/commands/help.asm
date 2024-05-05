@@ -17,6 +17,7 @@ shell_help_text:
     data.str "command | description" data.8 10
     data.str "------- | -----------" data.8 10
     data.str "clear   | clear the terminal contents" data.8 10
+    data.str "copy    | copy file $0 to file $1" data.8 10
     data.str "del     | delete file $0" data.8 10
     data.str "dir     | show contents of selected disk" data.8 10
     data.str "disk    | select disk $0" data.8 10
@@ -31,8 +32,7 @@ shell_help_text:
     data.8 10
     data.str "type the name of an FXF binary to launch" data.8 10
     data.str "it as a new task; the shell will suspend" data.8 10
-    data.str "until the launched task ends" data.8 10
-    data.8 10
+    data.str "until the launched task ends." data.8 10
     data.str "prefix the name of an FXF binary with *" data.8 10
-    data.str "to launch it without suspending" data.8 10
+    data.str "to launch it without suspending." data.8 10
     data.8 0
