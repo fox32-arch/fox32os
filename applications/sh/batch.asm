@@ -112,6 +112,12 @@ shell_run_batch_ff_check_label:
     jmp shell_run_batch_next
 
 shell_run_batch_rw:
+    mov r0, [shell_batch_label_list_ptr]
+    mov r1, [shell_batch_lines_processed]
+    mul r1, 8
+    call shell_reallocate
+    mov [shell_batch_label_list_ptr], r0
+
     mov r31, [shell_batch_lines_processed]
     dec r31
 shell_run_batch_rw_loop:
@@ -162,11 +168,15 @@ shell_reallocate:
     ifz ret
     cmp r0, 0
     ifz jmp shell_reallocate_all_new
+    cmp r1, [shell_reallocate_old_size]
+    ifz ret
     push r31
     push r2
     push r0
     mov r0, r1
     call allocate_memory
+    mov r2, [shell_reallocate_old_size]
+    mov [shell_reallocate_old_size], r1
     mov r31, r1
     push r0
 shell_reallocate_clear_loop:
@@ -175,7 +185,6 @@ shell_reallocate_clear_loop:
     loop shell_reallocate_clear_loop
     pop r1
     pop r0
-    mov r2, [shell_reallocate_old_size]
     cmp r2, 0
     ifnz call copy_memory_bytes
     call free_memory
@@ -186,6 +195,7 @@ shell_reallocate_clear_loop:
 shell_reallocate_all_new:
     mov r0, r1
     call allocate_memory
+    mov [shell_reallocate_old_size], r1
     mov r31, r1
     push r0
 shell_reallocate_clear_loop2:
