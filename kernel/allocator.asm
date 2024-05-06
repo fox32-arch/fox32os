@@ -39,6 +39,7 @@ allocate_memory:
     push r1
     push r10
     push r11
+    push r31
 
     mov [block], [free_list_head]
     cmp [block], 0
@@ -95,7 +96,16 @@ allocate_memory_good_block:
 allocate_memory_good_block_ret:
     mov r0, [block]
     add r0, HEADER_SIZE
+    mov r31, r10
+    sub r31, HEADER_SIZE
+    push r0
+allocate_memory_clear_loop:
+    mov.8 [r0], 0
+    inc r0
+    loop allocate_memory_clear_loop
+    pop r0
 
+    pop r31
     pop r11
     pop r10
     pop r1
