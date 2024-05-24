@@ -60,9 +60,32 @@ launch_fxf_from_disk:
     cmp r0, 0
     ifz jmp launch_fxf_from_disk_file_error
 launch_fxf_from_open_file_1:
+    ; if this is not FXF version 0, then there is a bss section
+    mov r0, 3
+    mov r1, [launch_fxf_struct_ptr]
+    call seek
+    mov r0, 1
+    mov r1, [launch_fxf_struct_ptr]
+    mov r2, launch_fxf_bss_size
+    call read
+    cmp.8 [launch_fxf_bss_size], 0
+    ifz mov [launch_fxf_bss_size], 0
+    ifz jmp launch_fxf_continue
+    mov r0, FXF_BSS_SIZE
+    mov r1, [launch_fxf_struct_ptr]
+    call seek
+    mov r0, 4
+    mov r1, [launch_fxf_struct_ptr]
+    mov r2, launch_fxf_bss_size
+    call read
+launch_fxf_continue:
+    mov r0, 0
+    mov r1, [launch_fxf_struct_ptr]
+    call seek
     ; allocate memory for the binary
     mov r0, [launch_fxf_struct_ptr]
     call get_size
+    add r0, [launch_fxf_bss_size]
     call allocate_memory
     cmp r0, 0
     ifz jmp launch_fxf_from_disk_allocate_error
@@ -165,6 +188,7 @@ launch_fxf_struct: data.fill 0, 32
 launch_fxf_task_id: data.8 0
 launch_fxf_binary_ptr: data.32 0
 launch_fxf_stack_ptr: data.32 0
+launch_fxf_bss_size: data.32 0
 launch_fxf_allocate_error_string1: data.strz "Failed to allocate memory for a new task"
 launch_fxf_allocate_error_string2: data.strz "The memory allocator seems to be in an"
 launch_fxf_allocate_error_string3: data.strz "invalid state, a reboot is recommended"

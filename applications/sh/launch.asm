@@ -1,5 +1,8 @@
 ; FXF launcher helper routines
 
+; FIXME: this should really use the `launch_fxf_from_open_file` routine
+;        it will need some work to ensure things like the debug prefix works though
+
 ; launch an FXF binary from a shell entry
 ; inputs:
 ; r0: pointer to FXF binary name
@@ -65,9 +68,32 @@ launch_fxf_name_loop_done:
     cmp r0, 0
     ifz ret
 
+    ; if this is not FXF version 0, then there is a bss section
+    mov r0, 3
+    mov r1, launch_fxf_struct
+    call seek
+    mov r0, 1
+    mov r1, launch_fxf_struct
+    mov r2, launch_fxf_temp
+    call read
+    cmp.8 [launch_fxf_temp], 0
+    ifz mov [launch_fxf_temp], 0
+    ifz jmp launch_fxf_continue
+    mov r0, 0x14
+    mov r1, launch_fxf_struct
+    call seek
+    mov r0, 4
+    mov r1, launch_fxf_struct
+    mov r2, launch_fxf_temp
+    call read
+launch_fxf_continue:
+    mov r0, 0
+    mov r1, launch_fxf_struct
+    call seek
     ; allocate memory for the binary
     mov r0, launch_fxf_struct
     call get_size
+    add r0, [launch_fxf_temp] ; add bss size found above
     call allocate_memory
     cmp r0, 0
     ifz jmp allocate_error
@@ -164,6 +190,7 @@ launch_fxf_struct: data.fill 0, 32
 launch_fxf_task_id: data.8 0
 launch_fxf_binary_ptr: data.32 0
 launch_fxf_stack_ptr: data.32 0
+launch_fxf_temp: data.32 0
 
 launch_fxf_yield_should_suspend: data.8 0
 launch_fxf_debug_mode: data.8 0
