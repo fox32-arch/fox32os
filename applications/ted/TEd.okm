@@ -56,8 +56,8 @@ MODULE TEd;
             OpenFile(arg0Ptr);
         END;
 
+        RefreshScreen();
         WHILE running DO
-            RefreshScreen();
             read(1, terminalStreamPtr, PTROF(charBuffer));
             IF (insertMode) & (charBuffer # 0) THEN
                 IF charBuffer = 27 THEN
@@ -70,6 +70,7 @@ MODULE TEd;
                 ELSE
                     InsertCharacter(charBuffer);
                 END;
+                RefreshScreen();
             ELSE
                 IF charBuffer = 113 THEN
                     (* 'q' pressed, exit *)
@@ -79,13 +80,16 @@ MODULE TEd;
                     (charBuffer = 97) OR
                     (charBuffer = 100) THEN
                     MoveCursor(charBuffer);
+                    RefreshScreen();
                 ELSIF charBuffer = 105 THEN
-                    (* 'i' pressed,. enter insert mode *)
+                    (* 'i' pressed, enter insert mode *)
                     insertMode := 1;
                     DrawStatusBar();
+                    RefreshScreen();
                 ELSIF charBuffer = 111 THEN
-                    (* 'o' pressed,. save the file *)
+                    (* 'o' pressed, save the file *)
                     SaveFile(arg0Ptr);
+                    RefreshScreen();
                 END;
             END;
         END;
