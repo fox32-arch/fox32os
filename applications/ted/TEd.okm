@@ -20,6 +20,7 @@ MODULE TEd;
         cursorShowing: SHORT;
         insertMode: CHAR;
         fileStruct: ARRAY FILE_STRUCT_SIZE OF CHAR;
+        fileDiskId: CHAR;
 
     PROCEDURE Main();
     VAR charBuffer: CHAR;
@@ -53,7 +54,8 @@ MODULE TEd;
         DrawStatusBar();
 
         IF arg0Ptr THEN
-            OpenFile(arg0Ptr);
+            fileDiskId := get_current_disk_id();
+            OpenFile(arg0Ptr, fileDiskId);
         END;
 
         RefreshScreen();
@@ -88,7 +90,7 @@ MODULE TEd;
                     RefreshScreen();
                 ELSIF charBuffer = 111 THEN
                     (* 'o' pressed, save the file *)
-                    SaveFile(arg0Ptr);
+                    SaveFile(arg0Ptr, fileDiskId);
                     RefreshScreen();
                 END;
             END;
@@ -226,7 +228,7 @@ MODULE TEd;
     VAR i: INT;
     BEGIN
         PrintChar(SET_COLOR);
-        PrintChar(005H);
+        PrintChar(050H);
         PrintChar(0);
         PrintChar(MOVE_CURSOR);
         PrintChar(0);
@@ -279,7 +281,7 @@ MODULE TEd;
         END;
     END;
 
-    PROCEDURE OpenFile(fileName: POINTER TO CHAR;);
+    PROCEDURE OpenFile(fileName: POINTER TO CHAR; diskId: CHAR;);
     VAR size: INT;
         charBuffer: CHAR;
         buffer: ARRAY 128 OF CHAR;
@@ -289,7 +291,7 @@ MODULE TEd;
             RETURN();
         END;
 
-        IF open(fileName, get_current_disk_id(), PTROF(fileStruct)) = 0 THEN
+        IF open(fileName, diskId, PTROF(fileStruct)) = 0 THEN
             RETURN();
         END;
 
@@ -312,7 +314,7 @@ MODULE TEd;
         END;
     END;
 
-    PROCEDURE SaveFile(fileName: POINTER TO CHAR;);
+    PROCEDURE SaveFile(fileName: POINTER TO CHAR; diskId: CHAR;);
     VAR i: INT;
         length: INT;
         buffer: POINTER TO CHAR;
@@ -323,7 +325,7 @@ MODULE TEd;
 
         buffer := RowsToString(PTROF(length));
 
-        IF create(fileName, get_current_disk_id(), PTROF(fileStruct), length) = 0 THEN
+        IF create(fileName, diskId, PTROF(fileStruct), length) = 0 THEN
             PrintChar(SET_COLOR);
             PrintChar(005H);
             PrintChar(0);
@@ -339,6 +341,7 @@ MODULE TEd;
             PrintChar(0);
             PrintChar(24);
             Print("failed to save");
+            free_memory(buffer);
             RETURN();
         END;
 
