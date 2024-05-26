@@ -19,6 +19,9 @@ const REDRAW_LINE: 0xFE
     ifnz jmp shell_run_batch
 
 shell_task_return:
+    cmp [shell_batch_filename_ptr], 0
+    ifnz jmp shell_run_batch_next
+
     cmp.8 [shell_redirect_next], 0
     ifnz mov [shell_stream_struct_ptr], [shell_old_stream_struct_ptr]
     ifnz dec.8 [shell_redirect_next]
