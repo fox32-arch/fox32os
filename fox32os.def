@@ -25,6 +25,7 @@ sleep_task:                jmp [0x00000A2C]
 ; memory jump table
 allocate_memory:           jmp [0x00000B10]
 free_memory:               jmp [0x00000B14]
+heap_usage:                jmp [0x00000B18]
 
 ; window jump table
 new_window:                jmp [0x00000C10]

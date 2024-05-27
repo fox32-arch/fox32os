@@ -48,6 +48,7 @@ jump_table:
     org.pad 0x00000310
     data.32 allocate_memory
     data.32 free_memory
+    data.32 heap_usage
 
     ; window jump table
     org.pad 0x00000410

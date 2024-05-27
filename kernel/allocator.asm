@@ -1,7 +1,7 @@
 ; memory allocator routines
 
 ; block header fields:
-; data.32 size - size of block, NOT INCLUDING THE HEADER
+; data.32 size - size of block
 ; data.32 prev - pointer to previous free block, or zero
 ; data.32 next - pointer to next free block, or zero
 
@@ -19,6 +19,8 @@ initialize_allocator:
     mov r1, MEMORY_TOP
     sub r1, r0
     mov [r0], r1
+
+    mov [total_heap_size], 0
 
     ; mark this as the only free block
     add r0, 4
@@ -105,6 +107,8 @@ allocate_memory_clear_loop:
     loop allocate_memory_clear_loop
     pop r0
 
+    add [total_heap_size], r10
+
     pop r31
     pop r11
     pop r10
@@ -182,6 +186,9 @@ free_memory:
     sub r0, HEADER_SIZE
     mov r2, r0
 
+    ; subtract from the total heap size used for debugging
+    sub [total_heap_size], [r0] ; r0 points to header.size
+
     ; add it to the free list
     mov r1, 0
     call block_set_prev
@@ -201,4 +208,14 @@ free_memory:
     pop r0
     ret
 
+; get the current size of the heap
+; inputs:
+; none
+; outputs:
+; r0: size of heap in bytes
+heap_usage:
+    mov r0, [total_heap_size]
+    ret
+
 free_list_head: data.32 kernel_bottom
+total_heap_size: data.32 0
