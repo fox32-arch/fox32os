@@ -111,6 +111,11 @@ shell_parse_command:
     call compare_string
     ifz jmp shell_getreg_command
 
+    ; heap
+    mov r1, shell_heap_command_string
+    call compare_string
+    ifz jmp shell_heap_command
+
     ; help
     mov r1, shell_help_command_string
     call compare_string
@@ -210,6 +215,7 @@ shell_invalid_command_string: data.str "invalid command or FXF binary" data.8 10
     #include "commands/echo.asm"
     #include "commands/exit.asm"
     #include "commands/head.asm"
+    #include "commands/heap.asm"
     #include "commands/help.asm"
     #include "commands/if.asm"
     #include "commands/math.asm"

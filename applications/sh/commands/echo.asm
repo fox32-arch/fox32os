@@ -1,4 +1,4 @@
-; clear command
+; echo command
 
 shell_echo_command_string: data.strz "echo"
 shell_echoregd_command_string: data.strz "echoregd"
