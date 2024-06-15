@@ -25,6 +25,7 @@ sleep_task:                jmp [0x00000A2C]
 ; memory jump table
 allocate_memory:           jmp [0x00000B10]
 free_memory:               jmp [0x00000B14]
+heap_usage:                jmp [0x00000B18]
 
 ; window jump table
 new_window:                jmp [0x00000C10]
@@ -47,10 +48,16 @@ tell:                      jmp [0x00000D18]
 read:                      jmp [0x00000D1C]
 write:                     jmp [0x00000D20]
 get_size:                  jmp [0x00000D24]
+create:                    jmp [0x00000D28]
+delete:                    jmp [0x00000D2C]
+copy:                      jmp [0x00000D30]
 
 ; widget jump table
 draw_widgets_to_window:    jmp [0x00000E10]
 handle_widget_click:       jmp [0x00000E14]
+
+; resource jump table
+get_resource:              jmp [0x00000F10]
 
 ; event types
 const EVENT_TYPE_BUTTON_CLICK:    0x80000000

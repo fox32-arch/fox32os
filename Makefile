@@ -25,10 +25,10 @@ base_image/terminal.fxf: applications/terminal/main.asm $(wildcard applications/
 	$(FOX32ASM) $< $@
 
 base_image/fetcher.fxf: applications/fetcher/Fetcher.okm $(wildcard applications/fetcher/*.okm)
-	$(GFX2INC) 32 32 applications/fetcher/icons/disk.png applications/fetcher/icons/disk.inc
 	lua $(OKAMERON) -arch=fox32 -startup=applications/fetcher/start.asm $< \
 		applications/fetcher/About.okm \
 		applications/fetcher/Browser.okm \
+		applications/fetcher/BrowserOpen.okm \
 		applications/fetcher/Desktop.okm \
 		applications/fetcher/OS.okm \
 		> applications/fetcher/fetcher.asm
@@ -40,6 +40,13 @@ base_image/serial.fxf: applications/serial/main.asm $(wildcard applications/term
 
 base_image/foxpaint.fxf: applications/foxpaint/main.asm
 	$(FOX32ASM) $< $@
+
+base_image/ted.fxf: applications/ted/TEd.okm $(wildcard applications/ted/*.okm)
+	lua $(OKAMERON) -arch=fox32 -startup=applications/ted/start.asm $< \
+		applications/ted/OS.okm \
+		> applications/ted/ted.asm
+	$(FOX32ASM) applications/ted/ted.asm $@
+	rm applications/ted/ted.asm
 
 base_image/okmpaint.fxf: applications/okmpaint/OkmPaint.okm $(wildcard applications/okmpaint/*.okm)
 	lua $(OKAMERON) -arch=fox32 -startup=applications/okmpaint/start.asm $< > applications/okmpaint/okmpaint.asm
@@ -64,11 +71,27 @@ applications/launcher/icons.inc: applications/launcher/icons.png
 bootloader/bootloader.bin: bootloader/main.asm $(wildcard bootloader/*.asm)
 	$(FOX32ASM) $< $@
 
-base_image/startup.cfg: base_image/startup.cfg.default
+base_image/startup.bat: base_image/startup.bat.default
 	cp $< $@
 
+ICONS16 := \
+	applications/icons/mnu.inc
+
+ICONS32 := \
+	applications/icons/dsk.inc \
+	applications/icons/fxf.inc \
+	applications/icons/msc.inc
+
+applications/icons/%.inc: applications/icons/%.16.png
+	$(GFX2INC) 16 16 $< $@
+applications/icons/%.inc: applications/icons/%.32.png
+	$(GFX2INC) 32 32 $< $@
+base_image/icons.res: applications/icons/icons.res.asm $(ICONS16) $(ICONS32)
+	$(FOX32ASM) $< $@
+
 FILES = \
-	base_image/startup.cfg \
+	base_image/startup.bat \
+	base_image/icons.res \
 	base_image/kernel.fxf \
 	base_image/sh.fxf \
 	base_image/barclock.fxf \
@@ -79,10 +102,12 @@ FILES = \
 	base_image/okmpaint.fxf \
 	base_image/bg.fxf \
 	base_image/bg.raw \
-	base_image/launcher.fxf
+	base_image/launcher.fxf \
+	base_image/ted.fxf
 
 ROM_FILES = \
-	base_image/startup.cfg \
+	base_image/startup.bat \
+	base_image/icons.res \
 	base_image/kernel.fxf \
 	base_image/sh.fxf \
 	base_image/barclock.fxf \
@@ -90,7 +115,8 @@ ROM_FILES = \
 	base_image/fetcher.fxf \
 	base_image/serial.fxf \
 	base_image/bg.fxf \
-	base_image/launcher.fxf
+	base_image/launcher.fxf \
+	base_image/ted.fxf
 
 fox32os.img: $(BOOTLOADER) $(FILES)
 	$(RYFS) -s $(IMAGE_SIZE) -l fox32os -b $(BOOTLOADER) create $@.tmp

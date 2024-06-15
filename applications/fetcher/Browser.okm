@@ -10,19 +10,27 @@ MODULE Browser;
         browserPrevPageButton: Fox32OSButtonWidget;
         browserDiskId: INT;
         browserFileList: ARRAY 341 OF CHAR;
+        browserHasIcons: CHAR;
+        browserIconsResPtr: PTR;
 
     EXTERN browserMenuItemsRoot: POINTER TO CHAR;
     EXTERN browserFileListFriendly: ARRAY 12 OF POINTER TO CHAR;
 
-    PROCEDURE BrowserMain(diskId, iconX, iconY: INT; desktopWin: PTR;);
+    PROCEDURE BrowserMain(diskId, iconX, iconY: INT; desktopWin: PTR; hasIcons: CHAR; iconsResPtr: PTR;);
+    VAR tempDskIconResPtr: PTR;
     BEGIN
         (* first, before we do anything, check to make sure the selected disk is available *)
-        IF diskId >| 4 THEN
+        IF diskId >| 5 THEN
             new_messagebox(0, "Invalid disk ID!", 0, 128, 128, 144);
             end_current_task();
         ELSIF diskId = 4 THEN
             IF IsRomDiskAvailable() = 0 THEN
                 new_messagebox(0, "ROM disk not available!", 0, 128, 128, 200);
+                end_current_task();
+            END;
+        ELSIF diskId = 5 THEN
+            IF IsRamDiskFormatted() = 0 THEN
+                new_messagebox(0, "RAM disk not formatted!", 0, 128, 128, 200);
                 end_current_task();
             END;
         ELSE
@@ -35,6 +43,18 @@ MODULE Browser;
         browserRunning := 1;
         browserPage := 0;
         browserDiskId := diskId;
+        browserHasIcons := 0;
+        browserIconsResPtr := iconsResPtr;
+
+        (* if icons.res was loaded, then pull the `dsk` resource from it *)
+        IF hasIcons THEN
+            tempDskIconResPtr := get_resource(browserIconsResPtr, "dsk", 4096);
+            IF tempDskIconResPtr THEN
+                copy_memory_bytes(tempDskIconResPtr, PTROF(desktopDiskIcon), 4096);
+                free_memory(tempDskIconResPtr);
+            END;
+            browserHasIcons := 1;
+        END;
 
         (* create the window and draw its initial contents *)
         new_window(PTROF(browserWindow), "Fetcher", 384, 192, 64, 64, PTROF(browserMenuItemsRoot), PTROF(browserIcons));
@@ -113,6 +133,38 @@ MODULE Browser;
         fill_window(0FFFFFFFFH, PTROF(browserWindow));
         SetupBrowserIconStructs();
         draw_widgets_to_window(PTROF(browserWindow));
+        IF browserHasIcons THEN
+            DrawBrowserIcons();
+        END;
+    END;
+
+    PROCEDURE DrawBrowserIcons();
+    VAR i: INT;
+        icon: POINTER TO Fox32OSButtonWidget;
+        tempFileIconResPtr: PTR;
+        overlay: INT;
+    BEGIN
+        i := 0;
+        overlay := get_window_overlay_number(PTROF(browserWindow));
+        WHILE i <| 12 DO
+            icon := PTROF(browserIcons[i]);
+            IF CompareString("<empty>", icon^.text) = 0 THEN
+                tempFileIconResPtr := get_resource(browserIconsResPtr, icon^.text + string_length(icon^.text) - 3, 4096);
+                IF tempFileIconResPtr THEN
+                    set_tilemap(tempFileIconResPtr, 32, 32);
+                    draw_tile_to_overlay(0, icon^.x, icon^.y, overlay);
+                    free_memory(tempFileIconResPtr);
+                ELSE
+                    tempFileIconResPtr := get_resource(browserIconsResPtr, "msc", 4096);
+                    IF tempFileIconResPtr THEN
+                        set_tilemap(tempFileIconResPtr, 32, 32);
+                        draw_tile_to_overlay(0, icon^.x, icon^.y, overlay);
+                        free_memory(tempFileIconResPtr);
+                    END;
+                END;
+            END;
+            i := i + 1;
+        END;
     END;
 
     PROCEDURE SetupBrowserIconStructs();

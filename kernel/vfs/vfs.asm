@@ -30,7 +30,7 @@ const TEMP_SECTOR_BUF: 0x01FFF808
 ; inputs:
 ; r0: pointer to file name string (8.3 format if file, for example "testfile.txt" or "test.txt")
 ; r1: disk ID (ignored if stream)
-; r2: file struct: pointer to a blank file struct (8 bytes if file, 16 bytes if stream)
+; r2: file struct: pointer to a blank file struct (8 bytes if file, 20 bytes if stream)
 ; outputs:
 ; r0: if file: first file sector, or zero if file wasn't found
 ;     if stream: non-zero if stream opened, or zero if not
@@ -85,6 +85,12 @@ open_stream:
     ifz pop r1
     ifz jmp open_stream_ofb
 
+    ; ramdisk
+    mov r1, ramdisk_vfs_stream_name
+    call compare_string
+    ifz pop r1
+    ifz jmp open_stream_ramdisk
+
     ; romdisk
     mov r1, romdisk_vfs_stream_name
     call compare_string
@@ -100,6 +106,66 @@ open_stream:
     pop r1
     mov r0, 0
     ret
+
+; create a file on a RYFS-formatted disk, or open a named stream
+; if target file already exists, it will be deleted and then re-created as a blank file
+; inputs:
+; r0: pointer to file name string (8.3 format if file, for example "testfile.txt" or "test.txt")
+; r1: disk ID (ignored if stream)
+; r2: file struct: pointer to a blank file struct (8 bytes if file, 20 bytes if stream)
+; r3: target file size
+; outputs:
+; r0: if file: first file sector, or zero if file couldn't be created
+;     if stream: non-zero if stream opened, or zero if not
+create:
+    cmp.8 [r0], ':'
+    ifz jmp open_stream
+    call convert_filename
+    cmp r0, 0
+    ifz ret
+    jmp ryfs_create
+
+; delete a file on a RYFS-formatted disk
+; inputs:
+; r0: file struct: pointer to a filled file struct
+; outputs:
+; none
+delete:
+    cmp r0, 0
+    ifz ret
+    jmp ryfs_delete
+
+; copy a file's contents
+; inputs:
+; r0: source file struct: pointer to a filled file struct
+; r1: destination file struct: pointer to a filled file struct
+; outputs:
+; none
+copy:
+    mov [copy_source_struct_ptr], r0
+    mov [copy_dest_struct_ptr], r1
+    call get_size
+    mov [copy_buffer_size], r0
+    call allocate_memory
+    mov [copy_buffer_ptr], r0
+
+    mov r0, [copy_buffer_size]
+    mov r1, [copy_source_struct_ptr]
+    mov r2, [copy_buffer_ptr]
+    call read
+    mov r0, [copy_buffer_size]
+    mov r1, [copy_dest_struct_ptr]
+    mov r2, [copy_buffer_ptr]
+    call write
+
+    mov r0, [copy_buffer_ptr]
+    call free_memory
+
+    ret
+copy_source_struct_ptr: data.32 0
+copy_dest_struct_ptr: data.32 0
+copy_buffer_ptr: data.32 0
+copy_buffer_size: data.32 0
 
 ; seek specified file to the specified offset
 ; inputs:
@@ -229,11 +295,17 @@ write:
     pop r1
     cmp.8 r3, 0x00
     ifz pop r3
-    ifz jmp ryfs_write
+    ifz jmp call_ryfs_write
     cmp.8 r3, 0x01
     ifz pop r3
     ifz jmp stream_write
     pop r3
+    ret
+call_ryfs_write:
+    ; `ryfs_write`, despite being written in okameron, clobbers r2 for some reason?
+    push r2
+    call ryfs_write
+    pop r2
     ret
 stream_write:
     push r31
@@ -360,5 +432,6 @@ convert_filename_output_string: data.fill 0, 12
     #include "vfs/disk3.asm"
     #include "vfs/fb.asm"
     #include "vfs/ofb.asm"
+    #include "vfs/ramdisk.asm"
     #include "vfs/romdisk.asm"
     #include "vfs/serial.asm"

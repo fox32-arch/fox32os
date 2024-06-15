@@ -9,10 +9,19 @@ const SET_COLOR:   0xF2
 const REDRAW_LINE: 0xFE
 
     pop [shell_stream_struct_ptr]
+    pop [shell_batch_filename_ptr]
     cmp [shell_stream_struct_ptr], 0
     ifz call end_current_task
 
+    ; before dropping to an interactive prompt,
+    ; check if an argument was passed
+    cmp [shell_batch_filename_ptr], 0
+    ifnz jmp shell_run_batch
+
 shell_task_return:
+    cmp [shell_batch_filename_ptr], 0
+    ifnz jmp shell_run_batch_next
+
     cmp.8 [shell_redirect_next], 0
     ifnz mov [shell_stream_struct_ptr], [shell_old_stream_struct_ptr]
     ifnz dec.8 [shell_redirect_next]
@@ -264,6 +273,7 @@ print_character_to_terminal:
 ; none
 print_str_to_terminal:
     push r0
+    push r1
     push r2
 
     mov r1, [shell_stream_struct_ptr]
@@ -276,6 +286,7 @@ print_str_to_terminal_loop:
     ifnz jmp print_str_to_terminal_loop
 
     pop r2
+    pop r1
     pop r0
     ret
 
@@ -322,8 +333,12 @@ shell_stream_struct_ptr: data.32 0
 shell_old_stream_struct_ptr: data.32 0
 shell_redirect_next: data.8 0
 shell_redirect_stream_struct: data.fill 0, 32
+shell_batch_filename_ptr: data.32 0
 shell_char_buffer: data.32 0
+shell_command_return_value: data.32 0
+shell_batch_regs: data.fill 0, 1024 ; 256 regs x 4 bytes each
 
+    #include "batch.asm"
     #include "commands/commands.asm"
     #include "launch.asm"
 

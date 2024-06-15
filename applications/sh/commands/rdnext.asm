@@ -12,7 +12,8 @@ shell_rdnext_command:
     mov r1, r0
     pop r0
     mov r2, shell_redirect_stream_struct
-    call open
+    mov r3, 0
+    call create
     cmp r0, 0
     ifz jmp shell_rdnext_command_failed_to_open
 

@@ -3,13 +3,22 @@ MODULE Desktop;
 
     VAR desktopRunning: CHAR;
         desktopWindow: ARRAY WINDOW_STRUCT_SIZE OF CHAR;
-        desktopIcons: ARRAY 5 OF Fox32OSButtonWidget;
+        desktopIcons: ARRAY 6 OF Fox32OSButtonWidget;
+        desktopDiskIcon: ARRAY 4096 OF CHAR;
 
-    EXTERN diskIcon: ARRAY 1024 OF INT;
-
-    PROCEDURE DesktopMain();
+    PROCEDURE DesktopMain(hasIcons: CHAR; iconsResPtr: PTR;);
+    VAR tempDskIconResPtr: PTR;
     BEGIN
         desktopRunning := 1;
+
+        (* if icons.res was loaded, then pull the `dsk` resource from it *)
+        IF hasIcons THEN
+            tempDskIconResPtr := get_resource(iconsResPtr, "dsk", 4096);
+            IF tempDskIconResPtr THEN
+                copy_memory_bytes(tempDskIconResPtr, PTROF(desktopDiskIcon), 4096);
+                free_memory(tempDskIconResPtr);
+            END;
+        END;
 
         (* set up the desktop icon widgets *)
         SetupDesktopIconStructs();
@@ -72,9 +81,9 @@ MODULE Desktop;
         draw_widgets_to_window(desktopWin);
 
         (* set the tilemap and draw the icons! *)
-        set_tilemap(PTROF(diskIcon), 32, 32);
+        set_tilemap(PTROF(desktopDiskIcon), 32, 32);
         overlay := get_window_overlay_number(desktopWin);
-        i := 5;
+        i := 6;
         y := 16;
         WHILE i DO
             draw_tile_to_overlay(0, 592, y, overlay);
@@ -141,9 +150,22 @@ MODULE Desktop;
         prevDesktopIcon := desktopIcon;
         desktopIcon := PTROF(desktopIcons[4]);
         desktopIcon^.type := WIDGET_TYPE_BUTTON;
-        desktopIcon^.next := 0;
+        desktopIcon^.next := PTROF(desktopIcons[5]);
         desktopIcon^.id := 4;
-        desktopIcon^.text := "Disk 4";
+        desktopIcon^.text := "ROM Disk";
+        desktopIcon^.fgColor := 0FF000000H;
+        desktopIcon^.bgColor := 0FFFFFFFFH;
+        desktopIcon^.width := 32;
+        desktopIcon^.height := 32 + 16;
+        desktopIcon^.x := 592;
+        desktopIcon^.y := prevDesktopIcon^.y + 32 + 32;
+
+        prevDesktopIcon := desktopIcon;
+        desktopIcon := PTROF(desktopIcons[5]);
+        desktopIcon^.type := WIDGET_TYPE_BUTTON;
+        desktopIcon^.next := 0;
+        desktopIcon^.id := 5;
+        desktopIcon^.text := "RAM Disk";
         desktopIcon^.fgColor := 0FF000000H;
         desktopIcon^.bgColor := 0FFFFFFFFH;
         desktopIcon^.width := 32;

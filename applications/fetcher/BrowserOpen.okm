@@ -1,0 +1,106 @@
+MODULE BrowserOpen;
+    IMPORT OS, About, Browser;
+
+    VAR browserOpenReturnFileNamePtr: POINTER TO CHAR;
+        browserOpenReturnDiskIdPtr: POINTER TO INT;
+
+    EXTERN browserMenuItemsRoot: POINTER TO CHAR;
+
+    PROCEDURE BrowserOpenMain(returnFileName, returnDiskId: PTR; hasIcons: CHAR; iconsResPtr: PTR;);
+    BEGIN
+        browserRunning := 1;
+        browserPage := 0;
+        browserDiskId := get_current_disk_id();
+        browserHasIcons := hasIcons;
+        browserIconsResPtr := iconsResPtr;
+        browserOpenReturnFileNamePtr := returnFileName;
+        browserOpenReturnDiskIdPtr := returnDiskId;
+
+        (* first, before we do anything, check to make sure the selected disk is available *)
+        IF browserDiskId >| 5 THEN
+            new_messagebox(0, "Invalid disk ID!", 0, 128, 128, 144);
+            end_current_task();
+        ELSIF browserDiskId = 4 THEN
+            IF IsRomDiskAvailable() = 0 THEN
+                new_messagebox(0, "ROM disk not available!", 0, 128, 128, 200);
+                end_current_task();
+            END;
+        ELSIF browserDiskId = 5 THEN
+            IF IsRamDiskFormatted() = 0 THEN
+                new_messagebox(0, "RAM disk not formatted!", 0, 128, 128, 200);
+                end_current_task();
+            END;
+        ELSE
+            IF PortIn(080001000H OR browserDiskId) = 0 THEN
+                new_messagebox(0, "Disk not inserted!", 0, 128, 128, 160);
+                end_current_task();
+            END;
+        END;
+
+        (* create the window and draw its initial contents *)
+        new_window(PTROF(browserWindow), "Select a file - Fetcher", 384, 192, 64, 64, PTROF(browserMenuItemsRoot), PTROF(browserIcons));
+        DrawBrowserWindow();
+
+        WHILE browserRunning DO
+            GetNextWindowEvent(PTROF(browserWindow));
+
+            (* mouse click event *)
+            IF eventArgs[0] = PTROF(EVENT_TYPE_MOUSE_CLICK) THEN
+                IF (eventArgs[1] <| 8) & (eventArgs[2] <| 16) THEN
+                    browserRunning := 0;
+                ELSIF eventArgs[2] <| 16 THEN
+                    start_dragging_window(PTROF(browserWindow));
+                END;
+                handle_widget_click(PTROF(browserWindow), eventArgs[1], eventArgs[2]);
+
+            (* menu bar click event *)
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_MENU_BAR_CLICK) THEN
+                menu_bar_click_event(PTROF(browserMenuItemsRoot));
+
+            (* menu update event *)
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_MENU_UPDATE) THEN
+                menu_update_event();
+
+            (* menu click event *)
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_MENU_CLICK) THEN
+                MenuClickEvent(eventArgs[2], eventArgs[3]);
+
+            (* menu ack event *)
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_MENU_ACK) THEN
+                close_menu(PTROF(browserMenuItemsRoot));
+
+            (* button click event *)
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_BUTTON_CLICK) THEN
+                HandleIconClickOpen(eventArgs[1]);
+            END;
+
+            save_state_and_yield_task();
+        END;
+
+        destroy_window(PTROF(browserWindow));
+    END;
+
+    PROCEDURE HandleIconClickOpen(buttonId: INT;);
+    BEGIN
+        IF buttonId = 128 THEN
+            (* next page button *)
+            IncrementBrowserPage();
+        ELSIF buttonId = 129 THEN
+            (* previous page button *)
+            DecrementBrowserPage();
+        ELSE
+            (* an icon was clicked! *)
+            ReturnFromIcon(buttonId);
+        END;
+    END;
+
+    PROCEDURE ReturnFromIcon(buttonId: INT;);
+    VAR icon: POINTER TO Fox32OSButtonWidget;
+    BEGIN
+        icon := PTROF(browserIcons[buttonId]);
+        IF CompareString(icon^.text, "<empty>") THEN RETURN(); END;
+        browserOpenReturnDiskIdPtr^ := browserDiskId;
+        copy_string(icon^.text, browserOpenReturnFileNamePtr);
+        browserRunning := 0;
+    END;
+END.

@@ -30,6 +30,18 @@ IsRomDiskAvailable:
     ifnz mov r0, 0
     ret
 
+IsRamDiskFormatted:
+    call is_ramdisk_formatted
+    ifz mov r0, 1
+    ifnz mov r0, 0
+    ret
+
+CompareString:
+    call compare_string
+    ifz mov r0, 1
+    ifnz mov r0, 0
+    ret
+
 brk:
     brk
     ret
@@ -81,9 +93,6 @@ menu_items_system_list:
     data.8 1                   ; number of items
     data.8 7                   ; menu width (usually longest item + 2)
     data.8 5 data.strz "About" ; text length, text, null-terminator
-
-diskIcon:
-    #include "icons/disk.inc"
 
     #include "../../../fox32rom/fox32rom.def"
     #include "../../fox32os.def"

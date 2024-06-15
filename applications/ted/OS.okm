@@ -1,0 +1,97 @@
+(* FIXME: this module should probably be moved somewhere global so all applications can use it *)
+
+MODULE OS;
+    CONST FILE_STRUCT_SIZE = 32;
+          FILL_TERM        = 0F0H;
+          MOVE_CURSOR      = 0F1H;
+          SET_COLOR        = 0F2H;
+          FILL_LINE        = 0F3H;
+          REDRAW_LINE      = 0FEH;
+          REDRAW           = 0FFH;
+
+    EXTERN PROCEDURE end_current_task, open, create, read, write, get_size, get_current_disk_id,
+        allocate_memory, free_memory, string_length, copy_memory_bytes, copy_string, save_state_and_yield_task: INT;
+
+    EXTERN PROCEDURE brk: INT;
+
+    EXTERN eventArgs: ARRAY 8 OF INT;
+
+    EXTERN terminalStreamPtr: POINTER TO CHAR;
+    EXTERN arg0Ptr: POINTER TO CHAR;
+    EXTERN arg1Ptr: POINTER TO CHAR;
+    EXTERN arg2Ptr: POINTER TO CHAR;
+    EXTERN arg3Ptr: POINTER TO CHAR;
+
+    (* FIXME: this copies memory past the end of the old block *)
+    (* that is probably fine, as any allocated memory is assumed to contain garbage anyways *)
+    PROCEDURE Reallocate(oldBlock, newSize: PTR;): PTR;
+    VAR newBlock: PTR;
+    BEGIN
+        IF oldBlock = 0 THEN
+            newBlock := allocate_memory(newSize);
+        ELSE
+            newBlock := allocate_memory(newSize);
+            copy_memory_bytes(oldBlock, newBlock, newSize);
+            free_memory(oldBlock);
+        END;
+        RETURN(newBlock);
+    END;
+
+    PROCEDURE MoveMemory(source, destination: POINTER TO CHAR; size: INT;);
+    VAR tempBlock: POINTER TO CHAR;
+    BEGIN
+        IF size = 0 THEN RETURN(); END;
+        tempBlock := allocate_memory(size);
+        copy_memory_bytes(source, tempBlock, size);
+        copy_memory_bytes(tempBlock, destination, size);
+        free_memory(tempBlock);
+    END;
+
+    PROCEDURE Print(string: POINTER TO CHAR;);
+    BEGIN
+        write(string_length(string), terminalStreamPtr, string);
+    END;
+
+    PROCEDURE PrintChar(c: CHAR;);
+    VAR buffer: CHAR;
+    BEGIN
+        buffer := c;
+        write(1, terminalStreamPtr, PTROF(buffer));
+    END;
+
+    PROCEDURE PrintChars(string: POINTER TO CHAR; length: INT;);
+    VAR buffer: CHAR;
+    BEGIN
+        WHILE length DO
+            buffer := string^;
+            write(1, terminalStreamPtr, PTROF(buffer));
+            string := string + 1;
+            length := length - 1;
+        END;
+    END;
+
+    PROCEDURE PrintInt(i: INT; radix: CHAR;);
+    VAR string: ARRAY 11 OF CHAR;
+        temp: INT;
+        offset: CHAR;
+    BEGIN
+        offset := 0;
+        IF i = 0 THEN
+            PrintChar(48);
+            RETURN();
+        ELSE WHILE i DO
+            temp := i UMOD radix;
+            i := i /| radix;
+            IF temp <| 10 THEN
+                string[offset] := temp + 48; (* '0' *)
+            ELSE
+                string[offset] := temp + 65 - 10;
+            END;
+            offset := offset + 1;
+        END; END;
+        WHILE offset DO
+            PrintChar(string[offset - 1]);
+            offset := offset - 1;
+        END;
+    END;
+END.

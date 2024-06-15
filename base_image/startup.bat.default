@@ -1,0 +1,5 @@
+*bg bg.raw;
+*barclock;
+*fetcher boot;
+*terminal;
+exit;

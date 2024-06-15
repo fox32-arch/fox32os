@@ -1,5 +1,5 @@
 MODULE Fetcher;
-    IMPORT OS, Browser, Desktop;
+    IMPORT OS, Browser, BrowserOpen, Desktop;
 
     EXTERN terminalStreamPtr: POINTER TO CHAR;
     EXTERN arg0Ptr: POINTER TO CHAR;
@@ -7,17 +7,38 @@ MODULE Fetcher;
     EXTERN arg2Ptr: POINTER TO CHAR;
     EXTERN arg3Ptr: POINTER TO CHAR;
 
+    VAR iconsResFile: ARRAY FILE_STRUCT_SIZE OF CHAR;
+        iconsRes: POINTER TO CHAR;
+        iconsResSize: INT;
+        hasIcons: CHAR;
+
     PROCEDURE Main();
     BEGIN
-        IF (terminalStreamPtr = 0) & (arg0Ptr = 0) THEN
-            (* probably launched from startup.cfg *)
-            DesktopMain();
+        (* open icons.res from the boot disk and read its contents into `iconsRes` *)
+        hasIcons := 0;
+        IF open("icons.res", get_boot_disk_id(), PTROF(iconsResFile)) THEN
+            iconsResSize := get_size(PTROF(iconsResFile));
+            iconsRes := allocate_memory(iconsResSize);
+            read(iconsResSize, PTROF(iconsResFile), iconsRes);
+            hasIcons := 1;
+        END;
+
+        IF (CompareString("boot", arg0Ptr)) THEN
+            (* launched from startup.bat *)
+            DesktopMain(hasIcons, iconsRes);
+        ELSIF (CompareString("open", arg0Ptr)) & (arg1Ptr # 0) & (arg2Ptr # 0) THEN
+            (* launched from an application wanting to open a file *)
+            BrowserOpenMain(arg1Ptr, arg2Ptr, hasIcons, iconsRes);
         ELSIF arg0Ptr <|= 5 THEN
             (* launched from an existing instance of fetcher *)
-            BrowserMain(arg0Ptr, arg1Ptr, arg2Ptr, arg3Ptr);
+            BrowserMain(arg0Ptr, arg1Ptr, arg2Ptr, arg3Ptr, hasIcons, iconsRes);
         ELSE
             (* probably launched from the terminal *)
-            BrowserMain(string_to_int(arg0Ptr, 10), 0, 0, 0);
+            BrowserMain(string_to_int(arg0Ptr, 10), 0, 0, 0, hasIcons, iconsRes);
+        END;
+
+        IF hasIcons THEN
+            free_memory(iconsRes);
         END;
     END;
 END.
