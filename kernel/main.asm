@@ -81,6 +81,8 @@ jump_table:
     org.pad 0x00000610
     data.32 draw_widgets_to_window
     data.32 handle_widget_click
+    data.32 handle_widget_key_down
+    data.32 handle_widget_key_up
 
     ; resource jump table
     org.pad 0x00000710

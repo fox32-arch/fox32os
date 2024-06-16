@@ -100,7 +100,7 @@ messagebox_ok_clicked:
     ret
 
 messagebox_window_title: data.strz "Messagebox"
-messagebox_window_struct: data.fill 0, 36
+messagebox_window_struct: data.fill 0, 40
 messagebox_ok_button_widget:
     data.32 0                        ; next_ptr
     data.32 0                        ; id

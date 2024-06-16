@@ -14,8 +14,9 @@
 ; data.16 flags              - flags for this window
 ; data.32 menu_bar_ptr       - pointer to this window's menu bar root struct, or 0 for none
 ; data.32 first_widget_ptr   - pointer to this window's first widget
+; data.32 active_widget_ptr  - pointer to the currently active widget
 
-const WINDOW_STRUCT_SIZE: 36 ; 9 words = 36 bytes
+const WINDOW_STRUCT_SIZE: 40 ; 10 words = 40 bytes
 const TITLE_BAR_HEIGHT: 16
 const TITLE_BAR_TEXT_FOREGROUND: 0xFF000000
 const TITLE_BAR_TEXT_BACKGROUND: 0xFFFFFFFF
@@ -23,7 +24,7 @@ const WINDOW_FLAG_ALWAYS_BACKGROUND: 1
 
 ; create a new window and allocate memory as required
 ; inputs:
-; r0: pointer to empty 36 byte window struct
+; r0: pointer to empty 40 byte window struct
 ; r1: pointer to null-terminated title string
 ; r2: window width
 ; r3: window height, not including the title bar
@@ -65,6 +66,9 @@ new_window:
     ; first widget pointer
     add r10, 4
     mov [r10], r7
+    ; active widget pointer
+    add r10, 4
+    mov [r10], 0
 
     ; then, allocate memory for the framebuffer
     ; the space required is width * (height + TITLE_BAR_HEIGHT) * 4

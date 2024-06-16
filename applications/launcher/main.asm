@@ -91,7 +91,7 @@ close_window:
     call end_current_task
 
 window_title: data.strz "Launcher"
-window_struct: data.fill 0, 36
+window_struct: data.fill 0, 40
 
 terminal_button_fxf: data.strz "terminal.fxf"
 terminal_button_widget:

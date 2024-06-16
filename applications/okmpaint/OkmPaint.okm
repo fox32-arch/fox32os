@@ -23,7 +23,7 @@ MODULE OkmPaint;
         drawing: CHAR;
         size: CHAR;
         color: INT;
-        canvasWindow: ARRAY 36 OF CHAR;
+        canvasWindow: ARRAY 40 OF CHAR;
 
     PROCEDURE Main();
     BEGIN

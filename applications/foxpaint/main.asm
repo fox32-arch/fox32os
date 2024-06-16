@@ -367,10 +367,10 @@ drag_or_close_tools_window:
     ret
 
 canvas_window_title: data.strz "FoxPaint canvas"
-canvas_window_struct: data.fill 0, 36
+canvas_window_struct: data.fill 0, 40
 
 tools_window_title: data.strz "FoxPaint tools"
-tools_window_struct: data.fill 0, 36
+tools_window_struct: data.fill 0, 40
 
 color_section_text: data.strz "Color "
 color_button_black_widget:
