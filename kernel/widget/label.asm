@@ -33,12 +33,13 @@ draw_label_widget:
     push r5
 
     call get_window_overlay_number
+    push r4
+    mov r4, r3
+    mov r3, r2
     mov r2, r5
     mov r5, r0
     mov r0, r1
-    mov r1, r4
-    mov r4, r3
-    mov r3, r2
+    pop r1
     call draw_str_to_overlay
 
     pop r5
