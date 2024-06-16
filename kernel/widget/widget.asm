@@ -3,6 +3,7 @@
 ; widget types
 const WIDGET_TYPE_BUTTON:     0x00000000
 const WIDGET_TYPE_TEXTBOX_SL: 0x00000001
+const WIDGET_TYPE_LABEL:      0x00000002
 
 ; widget struct:
 ; data.32 next_ptr - pointer to next widget, or 0 for none
@@ -27,6 +28,8 @@ draw_widgets_to_window_next:
     ifz call draw_widgets_to_window_button
     cmp [r10], WIDGET_TYPE_TEXTBOX_SL
     ifz call draw_widgets_to_window_textbox_sl
+    cmp [r10], WIDGET_TYPE_LABEL
+    ifz call draw_widgets_to_window_label
 
     ; point to the next widget, if any
     sub r10, 8
@@ -89,6 +92,31 @@ draw_widgets_to_window_textbox_sl:
     call draw_textbox_sl_widget
 
     pop r10
+    pop r7
+    pop r6
+    pop r5
+    pop r4
+    pop r3
+    pop r2
+    pop r1
+    ret
+draw_widgets_to_window_label:
+    push r1
+    push r2
+    push r3
+    push r4
+    push r5
+    push r6
+    push r7
+
+    ; put label parameters in registers for the drawing routine
+    mov r1, [r10+4] ; text_ptr
+    mov r2, [r10+8] ; foreground_color
+    mov r3, [r10+12] ; background_color
+    movz.16 r4, [r10+20] ; x_pos
+    movz.16 r5, [r10+22] ; y_pos
+    call draw_label_widget
+
     pop r7
     pop r6
     pop r5
@@ -477,4 +505,5 @@ handle_widget_key_up_textbox_sl:
 
     ; include widget types
     #include "widget/button.asm"
+    #include "widget/label.asm"
     #include "widget/textbox_sl.asm"
