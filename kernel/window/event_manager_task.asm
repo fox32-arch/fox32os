@@ -135,7 +135,7 @@ event_manager_task_mouse_event_inactive_window_was_clicked:
 
     ; swap the two, if the "always background" flag is not set for the clicked window
     push r1
-    add r1, 25
+    add r1, 26
     movz.16 r1, [r1]
     and r1, WINDOW_FLAG_ALWAYS_BACKGROUND
     cmp r1, 0

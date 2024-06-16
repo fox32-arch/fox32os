@@ -21,6 +21,7 @@ const TITLE_BAR_HEIGHT: 16
 const TITLE_BAR_TEXT_FOREGROUND: 0xFF000000
 const TITLE_BAR_TEXT_BACKGROUND: 0xFFFFFFFF
 const WINDOW_FLAG_ALWAYS_BACKGROUND: 1
+const WINDOW_FLAG_CREATED_FROM_RES:  32768
 
 ; create a new window and allocate memory as required
 ; inputs:
@@ -191,6 +192,89 @@ new_window_skip_swap:
     pop r0
     ret
 
+; create a new window and draw its contents from a resource file loaded in memory
+; inputs:
+; r0: pointer to empty 40 byte window struct
+; r1: pointer to memory buffer containing a RES binary
+; outputs:
+; none
+;
+; WIN resource layout (40 bytes):
+;    data.fill 0, 32 - null-terminated window title
+;    data.16 width   - width of this window
+;    data.16 height  - height of this window, not including the title bar
+;    data.16 x_pos   - X coordinate of this window (top left corner of title bar)
+;    data.16 y_pos   - Y coordinate of this window (top left corner of title bar)
+new_window_from_resource:
+    push r0
+    push r1
+    push r2
+    push r3
+    push r4
+    push r5
+    push r6
+    push r7
+    push r8
+
+    push r0
+    mov r8, r1
+
+    ; get the WIN resource
+    mov r0, r8
+    mov r1, new_window_from_resource_win_str
+    mov r2, 40
+    call get_resource
+    mov [new_window_from_resource_win_ptr], r0
+
+    ; get the MNU resource
+    mov r0, r8
+    mov r1, new_window_from_resource_mnu_str
+    mov r2, 16384 ; set the max size
+    call get_resource
+    mov [new_window_from_resource_mnu_ptr], r0
+
+    ; get the WID resource
+    mov r0, r8
+    mov r1, new_window_from_resource_wid_str
+    mov r2, 16384 ; set the max size
+    call get_resource
+    mov [new_window_from_resource_wid_ptr], r0
+
+    ; create the window
+    pop r0
+    mov r8, [new_window_from_resource_win_ptr]
+    mov r1, r8 ; first 32 bytes are the window title
+    movz.16 r2, [r8+32] ; width
+    movz.16 r3, [r8+34] ; height
+    movz.16 r4, [r8+36] ; x_pos
+    movz.16 r5, [r8+38] ; y_pos
+    mov r6, [new_window_from_resource_mnu_ptr]
+    mov r7, [new_window_from_resource_wid_ptr]
+    brk
+    call new_window
+
+    ; set the flag that tells `destroy_window` to free our allocations
+    mov r1, r0
+    mov r0, WINDOW_FLAG_CREATED_FROM_RES
+    call set_window_flags
+
+    pop r8
+    pop r7
+    pop r6
+    pop r5
+    pop r4
+    pop r3
+    pop r2
+    pop r1
+    pop r0
+    ret
+new_window_from_resource_win_str: data.strz "WIN"
+new_window_from_resource_win_ptr: data.32 0
+new_window_from_resource_mnu_str: data.strz "MNU"
+new_window_from_resource_mnu_ptr: data.32 0
+new_window_from_resource_wid_str: data.strz "WID"
+new_window_from_resource_wid_ptr: data.32 0
+
 ; destroy a window and free memory used by it
 ; note that this does not free the memory used by the window struct itself
 ; inputs:
@@ -230,6 +314,24 @@ destroy_window:
     cmp r0, 0
     ifnz call draw_menu_bar_root_items
 destroy_window_no_more_windows:
+    ; if this window was created from a RES, free the resource data
+    movz.16 r0, [r2+26]
+    and r0, WINDOW_FLAG_CREATED_FROM_RES
+    cmp r0, 0
+    ifz jmp destroy_window_not_res
+
+    ; free WIN resource
+    mov r0, [r2+12]
+    call free_memory
+
+    ; free MNU resource
+    mov r0, [r2+28]
+    call free_memory
+
+    ; free WID resource
+    mov r0, [r2+32]
+    call free_memory
+destroy_window_not_res:
     ; free framebuffer memory
     mov r0, [r2]
     call free_memory
@@ -258,7 +360,7 @@ destroy_window_no_more_windows:
 set_window_flags:
     push r1
 
-    add r1, 25
+    add r1, 26
     mov.16 [r1], r0
 
     pop r1
@@ -684,7 +786,7 @@ search_for_nonempty_window_list_entry_loop:
     cmp [r1], 0
     ifz jmp search_for_nonempty_window_list_entry_loop_skip
     mov r3, [r1]
-    add r3, 25
+    add r3, 26
     movz.16 r3, [r3]
     and r3, WINDOW_FLAG_ALWAYS_BACKGROUND
     cmp r3, 0

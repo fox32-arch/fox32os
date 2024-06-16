@@ -64,6 +64,7 @@ jump_table:
     data.32 new_messagebox
     data.32 get_active_window_struct
     data.32 set_window_flags
+    data.32 new_window_from_resource
 
     ; VFS jump table
     org.pad 0x00000510
@@ -87,6 +88,7 @@ jump_table:
     ; resource jump table
     org.pad 0x00000710
     data.32 get_resource
+    data.32 get_res_in_fxf
 jump_table_end:
 
     ; initialization code
