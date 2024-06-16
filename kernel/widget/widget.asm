@@ -71,6 +71,7 @@ draw_widgets_to_window_textbox_sl:
     push r4
     push r5
     push r6
+    push r7
     push r10
 
     ; put textbox_sl parameters in registers for the drawing routine
@@ -80,13 +81,15 @@ draw_widgets_to_window_textbox_sl:
     movz.16 r4, [r10+16] ; width
     movz.16 r5, [r10+20] ; x_pos
     movz.16 r6, [r10+22] ; y_pos
+    mov r7, [r0+36] ; check active widget ID
     sub r10, 4
-    cmp [r10], [active_textbox_id]
+    cmp [r10], [r7+4]
     ifz mov r7, 1
     ifnz mov r7, 0
     call draw_textbox_sl_widget
 
     pop r10
+    pop r7
     pop r6
     pop r5
     pop r4
@@ -118,7 +121,11 @@ handle_widget_click:
 
     ; get pointer to first widget
     mov r0, [r0+32]
+    push r0
 handle_widget_click_check_type:
+    add rsp, 4
+    push r0
+
     add r0, 8
     ; check widget type
     cmp [r0], WIDGET_TYPE_BUTTON
@@ -126,6 +133,8 @@ handle_widget_click_check_type:
     cmp [r0], WIDGET_TYPE_TEXTBOX_SL
     ifz jmp handle_widget_click_textbox_sl
 handle_widget_click_done:
+    pop r0
+
     pop r30
     pop r8
     pop r7
@@ -205,6 +214,10 @@ handle_widget_click_button:
     mov r0, EVENT_TYPE_BUTTON_CLICK
     call new_window_event
 
+    ; set active widget pointer
+    mov r0, [rsp]
+    mov [r30+36], r0
+
     jmp handle_widget_click_done
 handle_widget_click_button_no_click:
     pop r22
@@ -275,23 +288,17 @@ handle_widget_click_textbox_sl:
     pop r12
     pop r11
     pop r10
+
+    ; set active widget pointer
+    mov r0, [rsp+4]
+    mov [r30+36], r0
+
     pop r0
 
-    ; activate the clicked textbox
-    sub r0, 4
-    mov [active_textbox_id], [r0]
-
-    ; add a textbox refresh event to the window
-    mov r1, [r0] ; parameter 0: widget ID
-    mov r2, 0
-    mov r3, 0
-    mov r4, 0
-    mov r5, 0
-    mov r6, 0
-    mov r7, 0
-    mov r8, r30
-    mov r0, EVENT_TYPE_TEXTBOX_REFRESH
-    call new_window_event
+    ; redraw the textbox
+    mov r10, r0
+    mov r0, r30
+    call draw_widgets_to_window_textbox_sl
 
     jmp handle_widget_click_done
 handle_widget_click_textbox_sl_no_click:
@@ -313,6 +320,160 @@ handle_widget_click_textbox_sl_no_click:
 
     ; retry
     jmp handle_widget_click_check_type
+
+; handle key-down events for the active widget
+; inputs:
+; r0: pointer to window struct
+; r1: key scancode
+; outputs:
+; none
+handle_widget_key_down:
+    push r0
+    push r1
+    push r2
+    push r3
+    push r4
+    push r5
+    push r6
+    push r7
+    push r8
+    push r30
+
+    mov r30, r0
+
+    ; get pointer to current widget
+    mov r0, [r0+36]
+handle_widget_key_down_check_type:
+    ; check widget type
+    cmp [r0+8], WIDGET_TYPE_TEXTBOX_SL
+    ifz jmp handle_widget_key_down_textbox_sl
+handle_widget_key_down_done:
+    pop r30
+    pop r8
+    pop r7
+    pop r6
+    pop r5
+    pop r4
+    pop r3
+    pop r2
+    pop r1
+    pop r0
+    ret
+handle_widget_key_down_textbox_sl:
+    ; r0: pointer to textbox widget struct
+    ; r1: key scancode
+    ; r30: pointer to window struct
+
+    mov r2, [r0+12] ; r2: pointer to text buffer
+    movz.16 r3, [r0+26] ; r3: max length of buffer
+    push r0
+    mov r0, r2
+    call string_length
+    mov r4, r0 ; r4: current length of text buffer
+    pop r0
+
+    cmp.8 r1, KEY_CTRL
+    ifz jmp handle_widget_key_down_done
+    cmp.8 r1, KEY_LSHIFT
+    ifz push handle_widget_key_down_done
+    ifz jmp shift_pressed
+    cmp.8 r1, KEY_RSHIFT
+    ifz push handle_widget_key_down_done
+    ifz jmp shift_pressed
+    cmp.8 r1, KEY_CAPS
+    ifz push handle_widget_key_down_done
+    ifz jmp caps_pressed
+
+    ; convert scancode to ascii
+    push r0
+    mov r0, r1
+    call scancode_to_ascii
+    mov r1, r0
+    pop r0
+
+    ; if this is a backspace, delete a char
+    cmp r1, 8
+    ifz jmp handle_widget_key_down_textbox_sl_backspace
+
+    ; insert character at the end
+    dec r3
+    cmp r4, r3
+    ifgteq jmp handle_widget_key_down_done
+    add r2, r4 ; point to end of text buffer
+    mov.8 [r2], r1
+    mov.8 [r2+1], 0
+
+    ; redraw the textbox
+    mov r10, r0
+    add r10, 8
+    mov r0, r30
+    call draw_widgets_to_window_textbox_sl
+
+    jmp handle_widget_key_down_done
+handle_widget_key_down_textbox_sl_backspace:
+    ; delete character at the end
+    dec r4
+    add r2, r4 ; point to end of text buffer
+    mov.8 [r2], 0
+
+    ; redraw the textbox
+    mov r10, r0
+    add r10, 8
+    mov r0, r30
+    call draw_widgets_to_window_textbox_sl
+
+    jmp handle_widget_key_down_done
+
+; handle key-up events for the active widget
+; inputs:
+; r0: pointer to window struct
+; r1: key scancode
+; outputs:
+; none
+handle_widget_key_up:
+    push r0
+    push r1
+    push r2
+    push r3
+    push r4
+    push r5
+    push r6
+    push r7
+    push r8
+    push r30
+
+    mov r30, r0
+
+    ; get pointer to current widget
+    mov r0, [r0+36]
+handle_widget_key_up_check_type:
+    ; check widget type
+    cmp [r0+8], WIDGET_TYPE_TEXTBOX_SL
+    ifz jmp handle_widget_key_up_textbox_sl
+handle_widget_key_up_done:
+    pop r30
+    pop r8
+    pop r7
+    pop r6
+    pop r5
+    pop r4
+    pop r3
+    pop r2
+    pop r1
+    pop r0
+    ret
+handle_widget_key_up_textbox_sl:
+    cmp.8 r1, KEY_LSHIFT
+    ifz push handle_widget_key_up_done
+    ifz jmp shift_released
+    cmp.8 r1, KEY_RSHIFT
+    ifz push handle_widget_key_up_done
+    ifz jmp shift_released
+    cmp.8 r1, KEY_CAPS
+    ifz push handle_widget_key_up_done
+    ifz jmp caps_pressed
+
+    jmp handle_widget_key_up_done
 
     ; include widget types
     #include "widget/button.asm"

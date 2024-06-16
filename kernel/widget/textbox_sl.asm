@@ -8,7 +8,7 @@
 ; data.32 foreground_color - text foreground color
 ; data.32 background_color - textbox_sl background color
 ; data.16 width            - width of this textbox_sl
-; data.16 buffer_max       - maximum input length
+; data.16 buffer_max       - maximum input length including null-terminator
 ; data.16 x_pos            - X coordinate of this widget
 ; data.16 y_pos            - Y coordinate of this widget
 
@@ -85,5 +85,3 @@ draw_textbox_sl_widget_not_active:
     pop r1
     pop r0
     ret
-
-active_textbox_id: data.32 0

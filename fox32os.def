@@ -55,6 +55,8 @@ copy:                      jmp [0x00000D30]
 ; widget jump table
 draw_widgets_to_window:    jmp [0x00000E10]
 handle_widget_click:       jmp [0x00000E14]
+handle_widget_key_down:    jmp [0x00000E18]
+handle_widget_key_up:      jmp [0x00000E1C]
 
 ; resource jump table
 get_resource:              jmp [0x00000F10]
