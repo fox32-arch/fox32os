@@ -132,7 +132,7 @@ new_window:
     call set_overlay_framebuffer_pointer
     mov r0, r11
     call enable_overlay
-    mov r0, 0xFF000000
+    mov r0, 0xFFFFFFFF
     mov r1, r11
     call fill_overlay
     pop r0
