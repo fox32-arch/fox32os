@@ -250,7 +250,6 @@ new_window_from_resource:
     movz.16 r5, [r8+38] ; y_pos
     mov r6, [new_window_from_resource_mnu_ptr]
     mov r7, [new_window_from_resource_wid_ptr]
-    brk
     call new_window
 
     ; set the flag that tells `destroy_window` to free our allocations
