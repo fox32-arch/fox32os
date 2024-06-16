@@ -40,6 +40,7 @@ start_dragging_window:     jmp [0x00000C30]
 new_messagebox:            jmp [0x00000C34]
 get_active_window_struct:  jmp [0x00000C38]
 set_window_flags:          jmp [0x00000C3C]
+new_window_from_resource:  jmp [0x00000C40]
 
 ; VFS jump table
 open:                      jmp [0x00000D10]
@@ -60,6 +61,7 @@ handle_widget_key_up:      jmp [0x00000E1C]
 
 ; resource jump table
 get_resource:              jmp [0x00000F10]
+get_res_in_fxf:            jmp [0x00000F14]
 
 ; event types
 const EVENT_TYPE_BUTTON_CLICK:    0x80000000
