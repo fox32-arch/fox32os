@@ -117,7 +117,7 @@ sh_fxf_missing_yield_loop:
     rjmp sh_fxf_missing_yield_loop
 
 window_title: data.strz "Terminal"
-window_struct: data.fill 0, 36
+window_struct: data.fill 0, 40
 
 sh_fxf_name: data.strz "sh.fxf"
 sh_fxf_missing_str: data.str "sh could not be launched! hanging here" data.8 10 data.8 0

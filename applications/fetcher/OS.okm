@@ -1,7 +1,7 @@
 (* FIXME: this module should probably be moved somewhere global so all applications can use it *)
 
 MODULE OS;
-    CONST WINDOW_STRUCT_SIZE = 36;
+    CONST WINDOW_STRUCT_SIZE = 40;
     CONST FILE_STRUCT_SIZE = 32;
 
     EXTERN PROCEDURE new_window, destroy_window, draw_str_to_overlay, get_window_overlay_number,
