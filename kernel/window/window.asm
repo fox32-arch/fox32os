@@ -325,15 +325,18 @@ destroy_window_no_more_windows:
 
     ; free WIN resource
     mov r0, [r2+12]
-    call free_memory
+    cmp r0, 0
+    ifnz call free_memory
 
     ; free MNU resource
     mov r0, [r2+28]
-    call free_memory
+    cmp r0, 0
+    ifnz call free_memory
 
     ; free WID resource
     mov r0, [r2+32]
-    call free_memory
+    cmp r0, 0
+    ifnz call free_memory
 destroy_window_not_res:
     ; free framebuffer memory
     mov r0, [r2]
