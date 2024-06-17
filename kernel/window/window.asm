@@ -257,6 +257,10 @@ new_window_from_resource:
     mov r0, WINDOW_FLAG_CREATED_FROM_RES
     call set_window_flags
 
+    ; draw the window's widgets
+    mov r0, r1
+    call draw_widgets_to_window
+
     pop r8
     pop r7
     pop r6
