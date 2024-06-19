@@ -41,6 +41,7 @@ new_messagebox:            jmp [0x00000C34]
 get_active_window_struct:  jmp [0x00000C38]
 set_window_flags:          jmp [0x00000C3C]
 new_window_from_resource:  jmp [0x00000C40]
+new_inputbox:              jmp [0x00000C44]
 
 ; VFS jump table
 open:                      jmp [0x00000D10]

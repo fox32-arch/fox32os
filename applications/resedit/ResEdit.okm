@@ -1,0 +1,131 @@
+MODULE ResEdit;
+    IMPORT OS;
+
+    VAR running: CHAR;
+        fileName: ARRAY 13 OF CHAR;
+        fileDisk: INT;
+        fileStruct: ARRAY FILE_STRUCT_SIZE OF CHAR;
+        fileContentsPtr: POINTER TO CHAR;
+        resContentsPtr: POINTER TO CHAR;
+        previewWindow: ARRAY WINDOW_STRUCT_SIZE OF CHAR;
+        clickedWidget: POINTER TO CHAR;
+
+    EXTERN menuItemsRoot: POINTER TO CHAR;
+    EXTERN editLabelRes: POINTER TO CHAR;
+
+    PROCEDURE Main();
+    VAR openId: INT;
+        fileSize: INT;
+    BEGIN
+        running := 1;
+
+        (* open a resource file *)
+        openId := launch_fxf_from_disk("fetcher.fxf", get_boot_disk_id(), 0, "open", PTROF(fileName), PTROF(fileDisk), 0);
+        WHILE IsTaskIdUsed(openId) DO
+            save_state_and_yield_task();
+        END;
+        IF open(PTROF(fileName), fileDisk, PTROF(fileStruct)) THEN
+            fileSize := get_size(PTROF(fileStruct));
+            fileContentsPtr := allocate_memory(fileSize);
+            read(fileSize, PTROF(fileStruct), fileContentsPtr);
+        ELSE
+            end_current_task();
+        END;
+
+        (* at this point, fileContentsPtr points to the contents of the selected .rsf file *)
+        (* extract the enclosed RES binary *)
+        resContentsPtr := get_res_in_fxf(fileContentsPtr);
+        IF resContentsPtr = 0 THEN
+            new_messagebox(0, "Invalid binary selected?", 0, 128, 128, 208);
+            end_current_task();
+        END;
+
+        (* create the window and draw its initial contents *)
+        new_window_from_resource(PTROF(previewWindow), resContentsPtr);
+
+        (* redraw our menu instead of the window's menu *)
+        close_menu(PTROF(menuItemsRoot));
+
+        WHILE running DO
+            GetNextWindowEvent(PTROF(previewWindow));
+
+            (* mouse click event *)
+            IF eventArgs[0] = PTROF(EVENT_TYPE_MOUSE_CLICK) THEN
+                IF (eventArgs[1] <| 8) & (eventArgs[2] <| 16) THEN
+                    destroy_window(PTROF(previewWindow));
+                    running := 0;
+                ELSIF eventArgs[2] <| 16 THEN
+                    start_dragging_window(PTROF(previewWindow));
+                END;
+                (*handle_widget_click(PTROF(previewWindow), eventArgs[1], eventArgs[2]);*)
+
+            (* menu bar click event *)
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_MENU_BAR_CLICK) THEN
+                menu_bar_click_event(PTROF(menuItemsRoot));
+
+            (* menu update event *)
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_MENU_UPDATE) THEN
+                menu_update_event();
+
+            (* menu click event *)
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_MENU_CLICK) THEN
+                MenuClickEvent(eventArgs[2], eventArgs[3]);
+
+            (* menu ack event *)
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_MENU_ACK) THEN
+                close_menu(PTROF(menuItemsRoot));
+            END;
+
+            save_state_and_yield_task();
+        END;
+
+        free_memory(fileContentsPtr);
+    END;
+
+    PROCEDURE MenuClickEvent(rootIndex, itemIndex: INT;);
+    BEGIN
+        close_menu(PTROF(menuItemsRoot));
+
+        IF rootIndex = 1 THEN
+            IF itemIndex = 0 THEN
+                EditLabelResource(clickedWidget);
+            END;
+        END;
+    END;
+
+    PROCEDURE EditLabelResource(res: POINTER TO Fox32OSLabelWidget;);
+    VAR editWindow: ARRAY WINDOW_STRUCT_SIZE OF CHAR;
+        editRunning: CHAR;
+    BEGIN
+        new_window_from_resource(PTROF(editWindow), PTROF(editLabelRes));
+
+        editRunning := 1;
+        WHILE editRunning DO
+            GetNextWindowEvent(PTROF(editWindow));
+
+            (* mouse click event *)
+            IF eventArgs[0] = PTROF(EVENT_TYPE_MOUSE_CLICK) THEN
+                IF (eventArgs[1] <| 8) & (eventArgs[2] <| 16) THEN
+                    (* nothing *)
+                ELSIF eventArgs[2] <| 16 THEN
+                    start_dragging_window(PTROF(editWindow));
+                END;
+                handle_widget_click(PTROF(editWindow), eventArgs[1], eventArgs[2]);
+
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_KEY_DOWN) THEN
+                handle_widget_key_down(PTROF(editWindow), eventArgs[1]);
+
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_KEY_UP) THEN
+                handle_widget_key_up(PTROF(editWindow), eventArgs[1]);
+
+            ELSIF eventArgs[0] = PTROF(EVENT_TYPE_BUTTON_CLICK) THEN
+                IF eventArgs[1] = 0 THEN
+                    (* TODO: apply edits here!! *)
+                    editRunning := 0;
+                END;
+            END;
+
+            save_state_and_yield_task();
+        END;
+    END;
+END.
