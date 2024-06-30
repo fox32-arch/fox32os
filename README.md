@@ -2,7 +2,7 @@
 
 **fox32os** is the main operating system for **fox32**. It runs on top of **fox32rom** and allows the use of relocatable FXF binaries, cooperative multitasking, filesystem access, memory allocation, and window management.
 
-![Screenshot of fox32os](docs/screenshots/screenshot_widget_demo.png)
+![Screenshot of fox32os](docs/screenshots/screenshot_fetcher.png)
 
 ## Getting Started
 
