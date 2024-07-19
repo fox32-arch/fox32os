@@ -58,7 +58,7 @@ event_loop_end:
 mouse_down:
     ; check if we are attempting to drag or close the window
     cmp r2, 16
-    iflteq jmp drag_window
+    iflt jmp drag_window
 
     jmp event_loop_end
 
@@ -98,7 +98,7 @@ key_up:
 
 drag_window:
     cmp r1, 8
-    iflteq jmp event_loop_end
+    iflt jmp close_window
     mov r0, window_struct
     call start_dragging_window
     jmp event_loop_end
