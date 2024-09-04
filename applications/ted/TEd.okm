@@ -376,7 +376,7 @@ MODULE TEd;
     VAR rowAt: POINTER TO Row;
         rowAtPlus1: POINTER TO Row;
     BEGIN
-        IF (at & 080000000H) OR (at >| numberOfRows) THEN
+        IF (at & 080000000H) OR (at >|= numberOfRows) THEN
             RETURN();
         END;
 
