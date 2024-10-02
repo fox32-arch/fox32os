@@ -35,6 +35,9 @@ base_image/fetcher.fxf: applications/fetcher/Fetcher.okm $(wildcard applications
 	$(FOX32ASM) applications/fetcher/fetcher.asm $@
 	rm applications/fetcher/fetcher.asm
 
+base_image/pride.fxf: applications/pride/main.asm
+	$(FOX32ASM) $< $@
+
 base_image/serial.fxf: applications/serial/main.asm $(wildcard applications/terminal/*.asm)
 	$(FOX32ASM) $< $@
 
@@ -98,6 +101,7 @@ FILES = \
 	base_image/terminal.fxf \
 	base_image/fetcher.fxf \
 	base_image/serial.fxf \
+	base_image/pride.fxf \
 	base_image/foxpaint.fxf \
 	base_image/okmpaint.fxf \
 	base_image/bg.fxf \
@@ -114,6 +118,7 @@ ROM_FILES = \
 	base_image/terminal.fxf \
 	base_image/fetcher.fxf \
 	base_image/serial.fxf \
+	base_image/pride.fxf \
 	base_image/bg.fxf \
 	base_image/launcher.fxf \
 	base_image/ted.fxf
