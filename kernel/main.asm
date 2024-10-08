@@ -200,24 +200,43 @@ try_startup:
     mov r2, serial_stream_struct
     call open
 
+    ; search each disk for a startup.bat and execute them in a shell
+    ; if the boot disk has none, open an 'emergency' shell on serial
+    mov r10, 0 ; disk ID
+try_startup_loop:
     mov r0, startup_bat
-    movz.8 r1, [boot_disk_id]
+    mov r1, r10
     mov r2, startup_bat_check_struct
     call open
+    ; if startup.bat exists, pass it as the first argument to shell
     cmp r0, 0
-    ifz jmp emergency_shell
-
-    ; run `sh startup.bat` with IO redirected to :serial
+    ifnz jmp try_startup_loop_format
+    ; if this is the boot disk, pass no arguments for emergency shell
+    ; otherwise, skip opening a shell
+    cmp.8 r10, [boot_disk_id]
+    ifnz jmp try_startup_loop_final
+    mov r3, 0
+    jmp try_startup_loop_launch
+try_startup_loop_format:
+    mov r3, disk_startup_bat
+    mov r0, r10
+    add r0, '0'
+    mov.8 [r3], r0
+try_startup_loop_launch:
     mov r0, sh_fxf
     movz.8 r1, [boot_disk_id]
     mov r2, serial_stream_struct
-    mov r3, startup_bat
+    ; r3 either is null or points to "N:startup.bat"
     mov r4, 0
     mov r5, 0
     mov r6, 0
     call launch_fxf_from_disk
     cmp r0, 0xFFFFFFFF
     ifz jmp startup_error
+try_startup_loop_final:
+    inc r10
+    cmp r10, 4
+    iflt jmp try_startup_loop
 
 no_other_tasks:
     ; start the event manager task
@@ -229,19 +248,6 @@ no_other_tasks:
     ;   block.
     ; this does not return.
     call end_current_task_no_mark_no_free
-
-emergency_shell:
-    mov r0, sh_fxf
-    movz.8 r1, [boot_disk_id]
-    mov r2, serial_stream_struct
-    mov r3, 0
-    mov r4, 0
-    mov r5, 0
-    mov r6, 0
-    call launch_fxf_from_disk
-    cmp r0, 0xFFFFFFFF
-    ifz jmp startup_error
-    jmp no_other_tasks
 
 ; try loading the raw contents of disk 1 as an FXF binary
 ; if disk 1 is not inserted, then fail
@@ -418,6 +424,7 @@ bottom_bar_patterns:
 current_disk_id: data.8 0
 boot_disk_id: data.8 0
 sh_fxf: data.strz "sh.fxf"
+disk_startup_bat: data.str "N:"
 startup_bat: data.strz "startup.bat"
 startup_bat_check_struct: data.fill 0, 32
 serial_stream: data.strz ":serial"
