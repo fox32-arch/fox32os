@@ -51,6 +51,10 @@ event_manager_task_loop:
     ifz call add_event_to_active_window
     cmp r0, EVENT_TYPE_KEY_UP
     ifz call add_event_to_active_window
+
+    ; keep adding events until the queue is exhausted
+    cmp r0, EVENT_TYPE_EMPTY
+    ifnz jmp event_manager_task_loop
 event_manager_task_loop_end:
     call yield_task
     rjmp event_manager_task_loop
