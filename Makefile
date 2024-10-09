@@ -59,11 +59,8 @@ base_image/okmpaint.fxf: applications/okmpaint/OkmPaint.okm $(wildcard applicati
 base_image/bg.fxf: applications/bg/main.asm
 	$(FOX32ASM) $< $@
 
-base_image/bg.raw: applications/bg/bg.inc
-	$(FOX32ASM) $< $@
-
-applications/bg/bg.inc: applications/bg/bg.png
-	$(GFX2INC) 640 480 $< $@
+base_image/bg.bmp: applications/bg/bg.bmp
+	cp $< $@
 
 base_image/launcher.fxf: applications/launcher/main.asm $(wildcard applications/launcher/*.asm) applications/launcher/icons.inc
 	$(FOX32ASM) $< $@
@@ -105,7 +102,7 @@ FILES = \
 	base_image/foxpaint.fxf \
 	base_image/okmpaint.fxf \
 	base_image/bg.fxf \
-	base_image/bg.raw \
+	base_image/bg.bmp \
 	base_image/launcher.fxf \
 	base_image/ted.fxf
 
