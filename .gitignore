@@ -5,7 +5,7 @@
 **/*.fxf
 **/*.res
 **/bg.inc
-**/bg.raw
+**/bg.bmp
 **/icons.inc
 **/fox32os.img
 **/fox32os.img.tmp
