@@ -64,7 +64,7 @@ get_resource:              jmp [0x00000F10]
 get_res_in_fxf:            jmp [0x00000F14]
 
 ; event types
-const EVENT_TYPE_BUTTON_CLICK:    0x80000000
+const EVENT_TYPE_BUTTON_CLICK: 0x80000000
 
 ; widget types
 const WIDGET_TYPE_BUTTON:     0x00000000
@@ -73,3 +73,4 @@ const WIDGET_TYPE_LABEL:      0x00000002
 
 ; window flags
 const WINDOW_FLAG_ALWAYS_BACKGROUND: 1
+const WINDOW_FLAG_NO_TITLE_BAR:      2

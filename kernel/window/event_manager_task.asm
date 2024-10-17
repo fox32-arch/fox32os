@@ -148,11 +148,20 @@ event_manager_task_mouse_event_inactive_window_was_clicked:
     call swap_windows
 
     ; mark the clicked window as the active window
+    push r0
     mov r0, r1
     call search_for_window_list_entry
     mov.8 [active_window_offset], r0
+    mov r2, r0
+
+    ; redraw the title bars of both windows
+    mov r0, r1
+    call draw_title_bar_to_window
+    pop r0
+    call draw_title_bar_to_window
 
     ; set the menu bar for the newly active window
+    mov r0, r2
     call window_list_offset_to_struct
     call get_window_menu_bar_root_struct
     call enable_menu_bar
