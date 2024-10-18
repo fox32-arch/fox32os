@@ -64,8 +64,11 @@ new_window:
     mov.16 [r10], r4
     add r10, 2
     mov.16 [r10], r5
+    ; flags
+    add r10, 4
+    mov.16 [r10], 0
     ; menu bar root struct pointer
-    add r10, 6
+    add r10, 2
     mov [r10], r6
     ; first widget pointer
     add r10, 4
@@ -378,19 +381,14 @@ destroy_window_not_res:
     pop r0
     ret
 
-; call this if the user clicks on a window's title bar
+; set the flags of a window; existing flags will be preserved
 ; inputs:
 ; r0: 16-bit flags value
 ; r1: pointer to window struct
 ; outputs:
 ; none
 set_window_flags:
-    push r1
-
-    add r1, 26
-    mov.16 [r1], r0
-
-    pop r1
+    or.16 [r1+26], r0
     ret
 
 ; call this if the user clicks on a window's title bar
@@ -505,8 +503,8 @@ swap_windows:
     add r3, 24
     movz.8 r1, [r3]
     call swap_overlays
-    movz.8 [r2], r1
-    movz.8 [r3], r0
+    mov.8 [r2], r1
+    mov.8 [r3], r0
 
     pop r3
     pop r2
