@@ -26,7 +26,7 @@ MODULE Desktop;
         (* create the window and make it fully transparent, mark it as "always background", and draw the icons to it *)
         new_window(PTROF(desktopWindow), "Desktop", 640, 448, 0, 16, 0, PTROF(desktopIcons));
         fill_overlay(000000000H, get_window_overlay_number(PTROF(desktopWindow)));
-        set_window_flags(000000001H, PTROF(desktopWindow));
+        set_window_flags(000000003H, PTROF(desktopWindow)); (* "always background" and "no title bar" *)
         DrawDesktopIcons(PTROF(desktopWindow));
 
         WHILE desktopRunning DO
