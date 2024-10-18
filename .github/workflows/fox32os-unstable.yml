@@ -19,7 +19,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v2
         with:
           repo: fox32-arch/fox32asm
-          workflow: fox32asm-unstable-linux.yml
+          workflow: fox32asm-unstable.yml
           workflow_conclusion: success
 
       - name: Download latest fox32rom artifact
@@ -39,14 +39,15 @@ jobs:
       - name: Install lua5.4
         run: |
           sudo apt update
-          sudo apt install -y lua5.4
+          sudo apt install -y lua5.4 unzip
 
       - name: Build
         run: |
           mkdir ../fox32rom
           cp fox32rom.def/fox32rom.def ../fox32rom/
-          chmod +x fox32asm/fox32asm gfx2inc/gfx2inc
-          make FOX32ASM=fox32asm/fox32asm GFX2INC=gfx2inc/gfx2inc
+          unzip fox32asm-linux-x86_64/fox32asm-*-x86_64-linux.zip
+          chmod +x ./fox32asm gfx2inc/gfx2inc
+          make FOX32ASM=./fox32asm GFX2INC=gfx2inc/gfx2inc
 
       - name: Upload fox32os.img
         uses: actions/upload-artifact@v3
