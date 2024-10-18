@@ -37,8 +37,9 @@ open_stream_ofb:
     in r0, r0
     mov r1, r0
     srl r1, 16
-    and r1, 0x0000FFFF
+    and r0, 0x0000FFFF
     mul r1, r0
+    mul r1, 4
     mov [r2], r1               ; write file_size
     add r2, 4
     mov [r2], 0                ; write file_reserved_3
@@ -76,7 +77,7 @@ ofb_stream_read:
     srl r0, 16
     and r1, 0x0000FFFF
     mul r1, r0
-    mul r0, 4
+    mul r1, 4
     pop r0
 
     ; ensure the seek offset is less than the overlay size
