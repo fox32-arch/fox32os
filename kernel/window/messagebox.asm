@@ -38,11 +38,12 @@ new_messagebox:
     call new_window
 
     ; fill the window with white and don't redraw the titlebar
-    mov r0, messagebox_window_struct
-    call get_window_overlay_number
-    mov r1, r0
+    mov r0, WINDOW_FLAG_NO_TITLE_BAR
+    mov r1, messagebox_window_struct
+    call set_window_flags
     mov r0, 0xFFFFFFFF
-    call fill_overlay
+    mov r1, messagebox_window_struct
+    call fill_window
 
     ; draw the button widget
     mov r0, messagebox_window_struct
