@@ -37,6 +37,7 @@ open_stream_ofb:
     in r0, r0
     mov r1, r0
     srl r1, 16
+    and r1, 0x0000FFFF
     mul r1, r0
     mov [r2], r1               ; write file_size
     add r2, 4
