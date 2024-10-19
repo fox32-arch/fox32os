@@ -38,6 +38,9 @@ base_image/fetcher.fxf: applications/fetcher/Fetcher.okm $(wildcard applications
 base_image/pride.fxf: applications/pride/main.asm
 	$(FOX32ASM) $< $@
 
+base_image/loadfont.fxf: applications/loadfont/main.asm
+	$(FOX32ASM) $< $@
+
 base_image/serial.fxf: applications/serial/main.asm $(wildcard applications/terminal/*.asm)
 	$(FOX32ASM) $< $@
 
@@ -104,7 +107,8 @@ FILES = \
 	base_image/bg.fxf \
 	base_image/bg.bmp \
 	base_image/launcher.fxf \
-	base_image/ted.fxf
+	base_image/ted.fxf \
+	base_image/loadfont.fxf
 
 ROM_FILES = \
 	base_image/startup.bat \
@@ -118,7 +122,8 @@ ROM_FILES = \
 	base_image/pride.fxf \
 	base_image/bg.fxf \
 	base_image/launcher.fxf \
-	base_image/ted.fxf
+	base_image/ted.fxf \
+	base_image/loadfont.fxf
 
 fox32os.img: $(BOOTLOADER) $(FILES)
 	$(RYFS) -s $(IMAGE_SIZE) -l fox32os -b $(BOOTLOADER) create $@.tmp
