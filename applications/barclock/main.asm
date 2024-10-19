@@ -17,6 +17,8 @@ loop:
 
     ; hour
     in r0, 0x80000703
+    cmp r0, 0
+    ifz mov r0, 12
     mov r1, 584
     cmp r0, 12
     ifgt call afternoon
