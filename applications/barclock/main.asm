@@ -6,6 +6,7 @@ loop:
     ; redraw the window title if the active window has changed
     call get_active_window_struct
     cmp r0, [active_window_struct_ptr]
+    ifnz mov.8 [second_counter], 0xFF ; force clock redraw
     ifnz call draw_window_title
 
     ; if no time has passed, don't bother redrawing the clock
