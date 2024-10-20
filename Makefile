@@ -4,7 +4,7 @@ OKAMERON := $(CURDIR)/meta/okameron/okameron.lua
 GFX2INC := ../tools/gfx2inc/target/release/gfx2inc
 
 IMAGE_SIZE := 16777216
-ROM_IMAGE_SIZE := 65536
+ROM_IMAGE_SIZE := 196608
 BOOTLOADER := bootloader/bootloader.bin
 
 all: fox32os.img romdisk.img
