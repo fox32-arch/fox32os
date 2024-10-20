@@ -236,7 +236,7 @@ try_startup_loop_launch:
     ifz jmp startup_error
 try_startup_loop_final:
     inc r10
-    cmp r10, 4
+    cmp r10, 6
     iflt jmp try_startup_loop
 
 no_other_tasks:
