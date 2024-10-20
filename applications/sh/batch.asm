@@ -11,12 +11,12 @@ shell_run_batch:
     mov r0, [shell_batch_filename_ptr]
     cmp.8 [r0], 0
     ifz jmp shell_run_batch_failed_to_open
-    cmp.8 [r0 + 1], ':'
+    cmp.8 [r0+1], ':'
     ifnz jmp fill_default_disk_id
     movz.8 r1, [r0]
     add r0, 2
     sub r1, '0'
-    cmp r1, 4
+    cmp r1, 6
     iflt jmp open_batch_file
 fill_default_disk_id:
     call get_current_disk_id
