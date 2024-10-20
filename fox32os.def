@@ -21,6 +21,7 @@ get_unused_task_id:        jmp [0x00000A20]
 is_task_id_used:           jmp [0x00000A24]
 save_state_and_yield_task: jmp [0x00000A28]
 sleep_task:                jmp [0x00000A2C]
+get_task_queue:            jmp [0x00000A30]
 
 ; memory jump table
 allocate_memory:           jmp [0x00000B10]

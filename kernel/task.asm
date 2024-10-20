@@ -233,6 +233,21 @@ get_current_task_id:
     pop r2
     ret
 
+; get a pointer to the bottom of the task queue and the number of tasks in it
+; inputs:
+; none
+; outputs:
+; r0: pointer to bottom (beginning) of the task queue
+; r1: number of tasks in the queue
+; r2: size in bytes of each entry in the queue
+get_task_queue:
+    mov r0, task_queue_bottom
+    mov r1, [task_queue_ptr]
+    sub r1, r0
+    div r1, TASK_SIZE
+    mov r2, TASK_SIZE
+    ret
+
 ; check if a task ID is used
 ; inputs:
 ; r0: task ID

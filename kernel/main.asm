@@ -43,6 +43,7 @@ jump_table:
     data.32 is_task_id_used
     data.32 save_state_and_yield_task
     data.32 sleep_task
+    data.32 get_task_queue
 
     ; memory jump table
     org.pad 0x00000310
