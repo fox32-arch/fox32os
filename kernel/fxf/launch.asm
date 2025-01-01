@@ -110,6 +110,7 @@ launch_fxf_continue:
     pop r1
     pop r0
     mov r5, rsp
+    icl
     mov rsp, [launch_fxf_stack_ptr]
     add rsp, 65536 ; point to the end of the stack (stack grows down!!)
     push r4
@@ -120,6 +121,7 @@ launch_fxf_continue:
     sub rsp, 65516
     mov [launch_fxf_stack_ptr], rsp
     mov rsp, r5
+    ise
 
     ; relocate the binary
     mov r0, [launch_fxf_binary_ptr]
