@@ -6,6 +6,8 @@ get_os_api_version:        jmp [0x00000814]
 get_current_disk_id:       jmp [0x00000818]
 set_current_disk_id:       jmp [0x0000081C]
 get_boot_disk_id:          jmp [0x00000820]
+open_library:              jmp [0x00000824]
+close_library:             jmp [0x00000828]
 
 ; FXF jump table
 parse_fxf_binary:          jmp [0x00000910]

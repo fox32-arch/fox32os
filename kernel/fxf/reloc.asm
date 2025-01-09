@@ -1,8 +1,8 @@
-; FXF relocation routines
+; FXF/LBR relocation routines
 
-; relocate a FXF binary
+; relocate an FXF/LBR binary
 ; inputs:
-; r0: pointer to memory buffer containing a FXF binary
+; r0: pointer to memory buffer containing a FXF/LBR binary
 ; outputs:
 ; r0: relocation address
 fxf_reloc:

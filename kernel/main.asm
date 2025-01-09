@@ -26,6 +26,8 @@ jump_table:
     data.32 get_current_disk_id
     data.32 set_current_disk_id
     data.32 get_boot_disk_id
+    data.32 open_library
+    data.32 close_library
 
     ; FXF jump table
     org.pad 0x00000110
@@ -372,6 +374,7 @@ get_os_api_version:
 
     #include "allocator.asm"
     #include "fxf/fxf.asm"
+    #include "lbr/lbr.asm"
     #include "res.asm"
     #include "task.asm"
     #include "vfs/vfs.asm"

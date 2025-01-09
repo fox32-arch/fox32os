@@ -4,7 +4,9 @@
 
 **/bootloader.bin
 **/*.fxf
+**/*.lbr
 **/*.res
+**/*.rsf
 **/bg.inc
 **/bg.bmp
 **/icons.inc
