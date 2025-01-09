@@ -7,7 +7,7 @@ IMAGE_SIZE := 16777216
 ROM_IMAGE_SIZE := 196608
 BOOTLOADER := bootloader/bootloader.bin
 
-all: fox32os.img romdisk.img
+all: base_image/streamio.lbr fox32os.img romdisk.img
 
 base_image:
 	mkdir -p base_image
@@ -130,15 +130,23 @@ ROM_FILES = \
 	base_image/loadfont.fxf \
 	base_image/tasks.fxf
 
-fox32os.img: $(BOOTLOADER) $(FILES)
+base_image/%.lbr: $(wildcard libraries/*/*.asm)
+	cd libraries && $(MAKE)
+
+fox32os.img: $(BOOTLOADER) $(FILES) $(wildcard libraries/*/*.asm)
 	$(RYFS) -s $(IMAGE_SIZE) -l fox32os -b $(BOOTLOADER) create $@.tmp
+	for file in base_image/*.lbr; do $(RYFS) add $@.tmp $$file; done
 	for file in $(FILES); do $(RYFS) add $@.tmp $$file; done
 	mv $@.tmp $@
 
-romdisk.img: $(BOOTLOADER) $(ROM_FILES)
+romdisk.img: $(BOOTLOADER) $(ROM_FILES) $(wildcard libraries/*/*.asm)
 	$(RYFS) -s $(ROM_IMAGE_SIZE) -l romdisk -b $(BOOTLOADER) create $@.tmp
+	for file in base_image/*.lbr; do $(RYFS) add $@.tmp $$file; done
 	for file in $(ROM_FILES); do $(RYFS) add $@.tmp $$file; done
 	mv $@.tmp $@
 
 clean:
+	cd libraries && $(MAKE) clean
 	rm -f $(FILES)
+
+.PHONY: clean
