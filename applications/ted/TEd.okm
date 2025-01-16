@@ -4,6 +4,8 @@ MODULE TEd;
     IMPORT OS;
 
     CONST ROW_RECORD_SIZE = 8;
+          SCREEN_WIDTH = 40;
+          SCREEN_HEIGHT = 25;
 
     TYPE Row = RECORD
         size: INT;
@@ -62,17 +64,20 @@ MODULE TEd;
         WHILE running DO
             read(1, terminalStreamPtr, PTROF(charBuffer));
             IF (insertMode) & (charBuffer # 0) THEN
-                IF charBuffer = 27 THEN
+                IF (charBuffer = 27) OR (charBuffer = 6) THEN
                     insertMode := 0;
                     DrawStatusBar();
+                    RefreshScreen();
                 ELSIF charBuffer = 8 THEN
                     RemoveCharacter();
+                    DrawCurrentRow();
                 ELSIF charBuffer = 10 THEN
                     InsertNewLine();
+                    RefreshScreen();
                 ELSE
                     InsertCharacter(charBuffer);
+                    DrawCurrentRow();
                 END;
-                RefreshScreen();
             ELSE
                 IF charBuffer = 113 THEN
                     (* 'q' pressed, exit *)
@@ -167,15 +172,58 @@ MODULE TEd;
         IF cursorY < rowOffset THEN
             rowOffset := cursorY;
         END;
-        IF cursorY >|= rowOffset + 24 THEN
-            rowOffset := cursorY - 24 + 1;
+        IF cursorY >|= rowOffset + SCREEN_HEIGHT - 1 THEN
+            rowOffset := cursorY - SCREEN_HEIGHT;
         END;
 
         IF cursorX < colOffset THEN
             colOffset := cursorX;
         END;
-        IF cursorX >|= colOffset + 39 THEN
-            colOffset := cursorX - 39 + 1;
+        IF cursorX >|= colOffset + SCREEN_WIDTH - 1 THEN
+            colOffset := cursorX - SCREEN_WIDTH;
+        END;
+    END;
+
+    PROCEDURE DrawCurrentRow();
+    VAR y: INT;
+        length: INT;
+        rowAt: POINTER TO Row;
+        fileRow: INT;
+    BEGIN
+        PrintChar(MOVE_CURSOR);
+        PrintChar(0);
+        PrintChar(cursorY - rowOffset);
+
+        y := cursorY - rowOffset;
+        fileRow := y + rowOffset;
+        IF fileRow >|= numberOfRows THEN
+            (* fill line with spaces *)
+            PrintChar(FILL_LINE);
+            PrintChar(020H);
+            PrintChar(000H);
+            (* print tilde *)
+            PrintChar(126);
+        ELSE
+            (* fill line with spaces *)
+            PrintChar(FILL_LINE);
+            PrintChar(020H);
+            PrintChar(000H);
+            rowAt := row + (ROW_RECORD_SIZE * fileRow);
+            length := rowAt^.size - colOffset;
+            IF length & 080000000H THEN
+                length := 0;
+            END;
+            IF length >| SCREEN_WIDTH - 1 THEN
+                length := SCREEN_WIDTH - 1;
+            END;
+            PrintChars(rowAt^.characters + colOffset, length);
+            IF (y = cursorY - rowOffset) AND (cursorShowing <| 1024) THEN
+                PrintChar(MOVE_CURSOR);
+                PrintChar(cursorX - colOffset);
+                PrintChar(cursorY - rowOffset);
+                PrintChar(08AH);
+                PrintChar(008H);
+            END;
         END;
     END;
 
@@ -186,7 +234,7 @@ MODULE TEd;
         fileRow: INT;
     BEGIN
         y := 0;
-        WHILE y <| 24 DO
+        WHILE y <| SCREEN_HEIGHT - 1 DO
             fileRow := y + rowOffset;
             IF fileRow >|= numberOfRows THEN
                 (* fill line with spaces *)
@@ -205,8 +253,8 @@ MODULE TEd;
                 IF length & 080000000H THEN
                     length := 0;
                 END;
-                IF length >| 39 THEN
-                    length := 39;
+                IF length >| SCREEN_WIDTH - 1 THEN
+                    length := SCREEN_WIDTH - 1;
                 END;
                 PrintChars(rowAt^.characters + colOffset, length);
                 IF (y = cursorY - rowOffset) AND (cursorShowing <| 1024) THEN
@@ -219,7 +267,6 @@ MODULE TEd;
             END;
 
             PrintChar(10);
-            save_state_and_yield_task();
             y := y + 1;
         END;
     END;
@@ -232,9 +279,9 @@ MODULE TEd;
         PrintChar(0);
         PrintChar(MOVE_CURSOR);
         PrintChar(0);
-        PrintChar(24);
+        PrintChar(SCREEN_HEIGHT - 1);
 
-        i := 40;
+        i := SCREEN_WIDTH;
         WHILE i DO
             PrintChar(32);
             i := i - 1;
@@ -242,15 +289,18 @@ MODULE TEd;
 
         PrintChar(MOVE_CURSOR);
         PrintChar(0);
-        PrintChar(24);
+        PrintChar(SCREEN_HEIGHT - 1);
 
         Print(arg0Ptr);
 
         IF insertMode THEN
+            PrintChar(SET_COLOR);
+            PrintChar(006H);
+            PrintChar(0);
             PrintChar(MOVE_CURSOR);
-            PrintChar(33);
-            PrintChar(24);
-            Print("INSERT");
+            PrintChar(SCREEN_WIDTH - 9);
+            PrintChar(SCREEN_HEIGHT - 1);
+            Print(" INSERT ");
         END;
 
         PrintChar(SET_COLOR);
@@ -331,15 +381,15 @@ MODULE TEd;
             PrintChar(0);
             PrintChar(MOVE_CURSOR);
             PrintChar(0);
-            PrintChar(24);
-            i := 40;
+            PrintChar(SCREEN_HEIGHT - 1);
+            i := SCREEN_WIDTH;
             WHILE i DO
                 PrintChar(32);
                 i := i - 1;
             END;
             PrintChar(MOVE_CURSOR);
             PrintChar(0);
-            PrintChar(24);
+            PrintChar(SCREEN_HEIGHT - 1);
             Print("failed to save");
             free_memory(buffer);
             RETURN();
