@@ -6,9 +6,15 @@ shell_dir_command:
     mov r0, shell_dir_command_header_string
     call print_str_to_terminal
 
+    mov.16 [shell_dir_command_file_dir], 0
+    call shell_parse_arguments
+    cmp r0, 0
+    ifnz call shell_dir_command_open_dir
+
     call get_current_disk_id
     mov r1, r0
     mov r0, shell_dir_command_list_buffer
+    movz.16 r2, [shell_dir_command_file_dir]
     call ryfs_get_file_list
     cmp r0, 0
     ifz ret
@@ -59,7 +65,10 @@ shell_dir_command_loop:
     mov r0, shell_dir_command_list_buffer
     add r0, r3
     mov r2, shell_dir_command_temp_file_struct
+    push r3
+    movz.16 r3, [shell_dir_command_file_dir]
     call ryfs_open
+    pop r3
     cmp r0, 0
     ifz jmp shell_dir_command_failed_to_open_file
     mov r0, shell_dir_command_temp_file_struct
@@ -76,9 +85,21 @@ shell_dir_command_failed_to_open_file:
 
     ret
 
+; FIXME: this assumes the passed name is always on the current disk
+shell_dir_command_open_dir:
+    push r0
+    call get_current_disk_id
+    mov r1, r0
+    pop r0
+    mov r2, shell_dir_command_temp_file_struct
+    call open
+    mov [shell_dir_command_file_dir], r0
+    ret
+
 shell_dir_command_list_buffer: data.fill 0, 341
 shell_dir_command_file_buffer: data.fill 0, 9
 shell_dir_command_type_buffer: data.fill 0, 4
+shell_dir_command_file_dir: data.fill 0, 2
 shell_dir_command_temp_file_struct: data.fill 0, 32
 shell_dir_command_header_string:
     data.8 SET_COLOR data.8 0x20 data.8 1 ; set the color to green

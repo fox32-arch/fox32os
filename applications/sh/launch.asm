@@ -64,6 +64,7 @@ launch_fxf_name_loop_done:
     ifnz movz.8 r1, [launch_fxf_disk_to_use]
     mov r0, launch_fxf_name
     mov r2, launch_fxf_struct
+    mov r3, 0 ; FIXME: THIS IS HARDCODED TO THE ROOT DIRECTORY!!!!!
     call ryfs_open
     cmp r0, 0
     ifz ret
@@ -148,6 +149,14 @@ launch_fxf_skip_push_reti_info:
 launch_fxf_skip_fill_reti_addr:
 
     ; create a new task
+    push r0
+    call get_current_disk_id
+    mov r5, r0
+    sla r5, 16
+    call get_current_directory
+    mov.16 r5, r0
+    pop r0
+    sla r5, 16
     mov r1, r0
     call get_unused_task_id
     mov.8 [launch_fxf_task_id], r0
