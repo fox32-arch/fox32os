@@ -7,6 +7,8 @@ MODULE Fetcher;
     EXTERN arg2Ptr: POINTER TO CHAR;
     EXTERN arg3Ptr: POINTER TO CHAR;
 
+    EXTERN doubleClickId: INT;
+
     VAR iconsResFile: ARRAY FILE_STRUCT_SIZE OF CHAR;
         iconsRes: POINTER TO CHAR;
         iconsResSize: INT;
@@ -14,6 +16,8 @@ MODULE Fetcher;
 
     PROCEDURE Main();
     BEGIN
+        doubleClickId := 0FFFFFFFFH;
+
         (* open icons.res from the boot disk and read its contents into `iconsRes` *)
         hasIcons := 0;
         IF open("icons.res", get_boot_disk_id(), PTROF(iconsResFile)) THEN

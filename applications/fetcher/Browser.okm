@@ -15,9 +15,12 @@ MODULE Browser;
         browserHasIcons: CHAR;
         browserIconsResPtr: PTR;
         browserWindowTitle: ARRAY 24 OF CHAR;
+        browserSelectedIconId: INT;
 
-    CONST BG_COLOR = 0FFDDDDDDH;
-          FG_COLOR = 0FF000000H;
+    CONST BROWSER_UNSELECTED_BG_COLOR = 0FFDDDDDDH;
+          BROWSER_UNSELECTED_FG_COLOR = 0FF000000H;
+          BROWSER_SELECTED_BG_COLOR = 0FF000000H;
+          BROWSER_SELECTED_FG_COLOR = 0FFDDDDDDH;
           EMPTY_COLOR = 0FFFFFFFFH;
 
     EXTERN browserMenuItemsRoot: POINTER TO CHAR;
@@ -62,6 +65,7 @@ MODULE Browser;
         browserDiskId := diskId;
         browserHasIcons := 0;
         browserIconsResPtr := iconsResPtr;
+        browserSelectedIconId := 0FFFFFFFFH;
 
         (* if icons.res was loaded, then pull the `dsk` resource from it *)
         IF hasIcons THEN
@@ -116,6 +120,16 @@ MODULE Browser;
         END;
     END;
 
+    PROCEDURE SelectBrowserIcon(buttonId: INT;);
+    VAR oldId: INT;
+    BEGIN
+        oldId := browserSelectedIconId;
+        browserSelectedIconId := buttonId;
+        IF oldId # buttonId THEN
+            DrawBrowserWindow();
+        END;
+    END;
+
     PROCEDURE HandleIconClick(buttonId: INT; desktopWin: PTR;);
     BEGIN
         IF buttonId = 128 THEN
@@ -126,7 +140,10 @@ MODULE Browser;
             DecrementBrowserPage();
         ELSE
             (* an icon was clicked! *)
-            LaunchFromIcon(buttonId, desktopWin);
+            SelectBrowserIcon(buttonId);
+            IF IsDoubleClick(buttonId) THEN
+                LaunchFromIcon(buttonId, desktopWin);
+            END;
         END;
     END;
 
@@ -216,8 +233,8 @@ MODULE Browser;
         browserNextPageButton.next := PTROF(browserPrevPageButton);
         browserNextPageButton.id := 128;
         browserNextPageButton.text := ">";
-        browserNextPageButton.fgColor := FG_COLOR;
-        browserNextPageButton.bgColor := BG_COLOR;
+        browserNextPageButton.fgColor := BROWSER_UNSELECTED_FG_COLOR;
+        browserNextPageButton.bgColor := BROWSER_UNSELECTED_BG_COLOR;
         browserNextPageButton.width := 16;
         browserNextPageButton.height := 16;
         browserNextPageButton.x := 368;
@@ -227,8 +244,8 @@ MODULE Browser;
         browserPrevPageButton.next := 0;
         browserPrevPageButton.id := 129;
         browserPrevPageButton.text := "<";
-        browserPrevPageButton.fgColor := FG_COLOR;
-        browserPrevPageButton.bgColor := BG_COLOR;
+        browserPrevPageButton.fgColor := BROWSER_UNSELECTED_FG_COLOR;
+        browserPrevPageButton.bgColor := BROWSER_UNSELECTED_BG_COLOR;
         browserPrevPageButton.width := 16;
         browserPrevPageButton.height := 16;
         browserPrevPageButton.x := 0;
@@ -239,6 +256,7 @@ MODULE Browser;
     BEGIN
         IF browserPage <| browserNumberOfPages THEN
             browserPage := browserPage + 1;
+            browserSelectedIconId := 0FFFFFFFFH;
         END;
         DrawBrowserWindow();
     END;
@@ -247,6 +265,7 @@ MODULE Browser;
     BEGIN
         IF browserPage >| 0 THEN
             browserPage := browserPage - 1;
+            browserSelectedIconId := 0FFFFFFFFH;
         END;
         DrawBrowserWindow();
     END;
@@ -315,8 +334,13 @@ MODULE Browser;
 
             (* give the button a visible color *)
             icon := PTROF(browserIcons[i]);
-            icon^.fgColor := FG_COLOR;
-            icon^.bgColor := BG_COLOR;
+            IF browserSelectedIconId = i THEN
+                icon^.fgColor := BROWSER_SELECTED_FG_COLOR;
+                icon^.bgColor := BROWSER_SELECTED_BG_COLOR;
+            ELSE
+                icon^.fgColor := BROWSER_UNSELECTED_FG_COLOR;
+                icon^.bgColor := BROWSER_UNSELECTED_BG_COLOR;
+            END;
 
             i := i + 1;
         END;
