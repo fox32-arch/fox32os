@@ -405,6 +405,7 @@ stream_write_char:
     ret
 
 ; convert a user-friendly filename (test.txt) to the internal representation (test    txt)
+; filenames without an extension (i.e. test) are assumed to be directories (test    dir)
 ; inputs:
 ; r0: pointer to null-terminated input string
 ; outputs:
@@ -447,7 +448,7 @@ convert_filename_copy_loop:
     inc r2
     inc r3
     cmp r3, r0
-    ifz jmp convert_filename_done
+    ifz jmp convert_filename_dir
     iflt jmp convert_filename_copy_loop
 convert_filename_found_ext:
     cmp r3, 0
@@ -478,6 +479,12 @@ convert_filename_found_ext:
 convert_filename_done:
     mov r0, convert_filename_output_string
     rjmp convert_filename_ret
+convert_filename_dir:
+    mov r2, convert_filename_output_string
+    mov.8 [r2+8], 'd'
+    mov.8 [r2+9], 'i'
+    mov.8 [r2+10], 'r'
+    rjmp convert_filename_done
 convert_filename_fail:
     mov r0, 0
 convert_filename_ret:
@@ -492,6 +499,8 @@ convert_filename_temp_file_struct: data.fill 0, 32
 ; iterate on a user-friendly directory path into its directory sector, and increment the path to the next '/'
 ; e.g. /stuff.dir/test.txt will return r0 = "test.txt", r1 = sector of stuff.dir, r2 = <disk ID>, r3 = 0
 ;      /stuff.dir/another.dir/test.txt will return r0 = "another.dir/test.txt", r1 = sector of stuff.dir, r2 = <disk ID>, r3 = <non-zero>
+; the .dir extension of directory names may be omitted as needed; /stuff.dir/test.txt and /stuff/test.txt are treated the same
+; trailing slashes in directory names are allowed (e.g. /stuff/ is treated the same as /stuff which is treated the same as /stuff.dir)
 ; inputs:
 ; r0: pointer to null-terminated path string
 ; r1: directory sector of previous iteration, or zero if no previous iteration
@@ -543,8 +552,11 @@ iterate_dir_path_continue:
     push r2
     add r2, r0
     pop r0
+    cmp.16 [r2], 0x002F ; '/' and a null-terminator
+    ifz rjmp iterate_dir_path_final_file ; trailing slash ignored
     cmp.8 [r2], 0
     ifnz rjmp iterate_dir_path_not_final_file
+iterate_dir_path_final_file:
     ; this is the final file, no need to open it
     mov r1, r29
     mov r3, 0
@@ -569,6 +581,10 @@ iterate_dir_path_not_final_file:
     pop r0
     push r0
     add r0, r2
+    cmp.8 [r0], '/'
+    ifz mov r3, 1
+    ifz pop r0
+    ifz rjmp iterate_dir_path_ret
     sub r0, 4
     push r1
     mov r1, iterate_dir_path_ending_str
