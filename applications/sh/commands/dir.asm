@@ -6,14 +6,17 @@ shell_dir_command:
     mov r0, shell_dir_command_header_string
     call print_str_to_terminal
 
-    mov.16 [shell_dir_command_file_dir], 0
+    call get_current_disk_id
+    mov.8 [shell_dir_command_file_disk], r0
+    mov.16 [shell_dir_command_file_dir], 1
     call shell_parse_arguments
     cmp r0, 0
     ifnz call shell_dir_command_open_dir
+    cmp.16 [shell_dir_command_file_dir], 0
+    ifz ret
 
-    call get_current_disk_id
-    mov r1, r0
     mov r0, shell_dir_command_list_buffer
+    movz.8 r1, [shell_dir_command_file_disk]
     movz.16 r2, [shell_dir_command_file_dir]
     call ryfs_get_file_list
     cmp r0, 0
@@ -60,10 +63,9 @@ shell_dir_command_loop:
 
     ; get and print the file size
     ; call ryfs_open instead of open because this uses the internal filename style
-    call get_current_disk_id
-    mov r1, r0
     mov r0, shell_dir_command_list_buffer
     add r0, r3
+    movz.8 r1, [shell_dir_command_file_disk]
     mov r2, shell_dir_command_temp_file_struct
     push r3
     movz.16 r3, [shell_dir_command_file_dir]
@@ -93,13 +95,18 @@ shell_dir_command_open_dir:
     pop r0
     mov r2, shell_dir_command_temp_file_struct
     call open
-    mov [shell_dir_command_file_dir], r0
+    mov.16 [shell_dir_command_file_dir], r0
+    ; `open` may have used a different disk depending on the path
+    ; first byte of the file struct is the disk ID
+    mov r0, shell_dir_command_temp_file_struct
+    mov.8 [shell_dir_command_file_disk], [r0]
     ret
 
 shell_dir_command_list_buffer: data.fill 0, 341
 shell_dir_command_file_buffer: data.fill 0, 9
 shell_dir_command_type_buffer: data.fill 0, 4
 shell_dir_command_file_dir: data.fill 0, 2
+shell_dir_command_file_disk: data.fill 0, 1
 shell_dir_command_temp_file_struct: data.fill 0, 32
 shell_dir_command_header_string:
     data.8 SET_COLOR data.8 0x20 data.8 1 ; set the color to green

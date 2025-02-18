@@ -29,7 +29,12 @@ const TEMP_SECTOR_BUF: 0x01FFF808
 
 ; open a file from a RYFS-formatted disk, or a named stream
 ; inputs:
-; r0: pointer to file name string (8.3 format if file, for example "testfile.txt" or "test.txt")
+; r0: pointer to file or directory path string
+;     i.e. 0:/stuff/test1.txt (will override specified disk) or
+;          /stuff/test1.txt (will use specified disk) or
+;          test2.txt (will use current directory and specified disk) or
+;          /stuff (will return sector of directory) or
+;          / (will return sector of root directory)
 ; r1: disk ID (ignored if stream)
 ; r2: file struct: pointer to a blank 32 byte file struct
 ; outputs:
@@ -39,21 +44,23 @@ open:
     cmp.8 [r0], ':'
     ifz jmp open_stream
 
-    push r1
     push r2
     mov r2, r1
     mov r1, 0
 open_iterate_loop:
     call iterate_dir_path
     ; r0: pointer to null-terminated path string, incremented past the first directory
-    ; r1: directory sector containing file, or zero if failure
+    ;     if zero, then r1 points to the sector of the file itself
+    ; r1: directory sector containing file, or sector of file, or zero if failure
     ; r2: disk ID
-    ; r3: zero if r0 points to the final file and not another directory; non-zero otherwise
+    ; r3: zero if r0 or r1 points to the final file and not another directory; non-zero otherwise
     cmp r3, 0
     ifnz rjmp open_iterate_loop
     mov r3, r1 ; ryfs_open expects the directory sector in r3
+    mov r1, r2 ; ryfs_open expects the disk ID in r1
     pop r2
-    pop r1
+    cmp r0, 0
+    ifz rjmp open_root
 
     call convert_filename
     cmp r0, 0
@@ -124,11 +131,24 @@ open_stream:
     pop r1
     mov r0, 0
     ret
+open_root:
+    mov r0, r3 ; return the directory sector directly
+    ; now, fill out the file struct like `ryfs_open` usually would
+    mov.8 [r2], r1 ; file_disk
+    mov.16 [r2+1], r0 ; file_first_sector
+    mov [r2+3], 0 ; file_seek_offset
+    mov [r2+7], 0 ; file_system_type (0x00 for RYFS)
+    mov.16 [r2+8], 0 ; file_dir_sector FIXME: should this be zero if `file_first_sector` points to the root dir???
+    ret
 
 ; create a file on a RYFS-formatted disk, or open a named stream
 ; if target file already exists, it will be deleted and then re-created as a blank file
 ; inputs:
-; r0: pointer to file name string (8.3 format if file, for example "testfile.txt" or "test.txt")
+; r0: pointer to file path string
+;     i.e. 0:/stuff/test1.txt (will override specified disk) or
+;          /stuff/test1.txt (will use specified disk) or
+;          test2.txt (will use current directory and specified disk)
+;     do not use this for directories directly
 ; r1: disk ID (ignored if stream)
 ; r2: file struct: pointer to a blank 32 byte file struct
 ; r3: target file size
@@ -139,7 +159,6 @@ create:
     cmp.8 [r0], ':'
     ifz jmp open_stream
 
-    push r1
     push r2
     push r3
     mov r2, r1
@@ -147,15 +166,18 @@ create:
 create_iterate_loop:
     call iterate_dir_path
     ; r0: pointer to null-terminated path string, incremented past the first directory
-    ; r1: directory sector containing file, or zero if failure
+    ;     if zero, then r1 points to the sector of the file itself
+    ; r1: directory sector containing file, or sector of file, or zero if failure
     ; r2: disk ID
-    ; r3: zero if r0 points to the final file and not another directory; non-zero otherwise
+    ; r3: zero if r0 or r1 points to the final file and not another directory; non-zero otherwise
     cmp r3, 0
     ifnz rjmp create_iterate_loop
     mov r4, r1 ; ryfs_create expects the directory sector in r4
+    mov r1, r2 ; ryfs_create expects the disk ID in r1
     pop r3
     pop r2
-    pop r1
+    cmp r0, 0
+    ifz ret
 
     call convert_filename
     cmp r0, 0
@@ -497,8 +519,8 @@ convert_filename_output_string: data.fill 0, 12
 convert_filename_temp_file_struct: data.fill 0, 32
 
 ; iterate on a user-friendly directory path into its directory sector, and increment the path to the next '/'
-; e.g. /stuff.dir/test.txt will return r0 = "test.txt", r1 = sector of stuff.dir, r2 = <disk ID>, r3 = 0
-;      /stuff.dir/another.dir/test.txt will return r0 = "another.dir/test.txt", r1 = sector of stuff.dir, r2 = <disk ID>, r3 = <non-zero>
+; e.g. 2:/stuff.dir/test.txt will return r0 = "test.txt", r1 = sector of stuff.dir, r2 = 2, r3 = 0
+;      /stuff.dir/another.dir/test.txt will return r0 = "another.dir/test.txt", r1 = sector of stuff.dir, r2 = <input disk ID>, r3 = <non-zero>
 ; the .dir extension of directory names may be omitted as needed; /stuff.dir/test.txt and /stuff/test.txt are treated the same
 ; trailing slashes in directory names are allowed (e.g. /stuff/ is treated the same as /stuff which is treated the same as /stuff.dir)
 ; inputs:
@@ -507,11 +529,11 @@ convert_filename_temp_file_struct: data.fill 0, 32
 ; r2: disk ID
 ; outputs:
 ; r0: pointer to null-terminated path string, incremented past the first directory
-; r1: directory sector containing file, or zero if failure
+;     if zero, then r1 points to the sector of the file itself
+; r1: directory sector containing file, or sector of file, or zero if failure
 ; r2: disk ID
-; r3: zero if r0 points to the final file and not another directory; non-zero otherwise
+; r3: zero if r0 or r1 points to the final file and not another directory; non-zero otherwise
 iterate_dir_path:
-    push r2
     push r27
     push r28
     push r29
@@ -528,13 +550,23 @@ iterate_dir_path:
     ifnz mov r29, r1 ; this isn't the first iteration
     ifnz rjmp iterate_dir_path_continue
 
-    ; this is the first iteration, should we start from the root or the task's current dir?
+    ; this is the first iteration
+    ; is there a disk ID?
+    cmp.8 [r27+1], ':'
+    ifnz rjmp iterate_dir_path_check_root
+    movz.8 r28, [r27]
+    sub r28, '0'
+    inc r27, 2
+iterate_dir_path_check_root:
+    ; should we start from the root or the task's current dir?
     cmp.8 [r27], '/'
-    ifz mov r29, 0
+    ifz mov r29, 1 ; root dir
     ifnz movz.16 r29, [current_directory]
 iterate_dir_path_continue:
     cmp.8 [r27], '/'
     ifz inc r27
+    cmp.8 [r27], 0
+    ifz rjmp iterate_dir_path_root
 
     mov r0, r27
     call vfs_string_length
@@ -556,6 +588,12 @@ iterate_dir_path_continue:
     ifz rjmp iterate_dir_path_final_file ; trailing slash ignored
     cmp.8 [r2], 0
     ifnz rjmp iterate_dir_path_not_final_file
+    rjmp iterate_dir_path_final_file
+iterate_dir_path_root:
+    ; the path we were given was simply "/" (with or without a disk ID)
+    ; simply return 1 as the sector of the file, as that is the root dir
+    mov r29, 1
+    mov r0, 0
 iterate_dir_path_final_file:
     ; this is the final file, no need to open it
     mov r1, r29
@@ -603,11 +641,11 @@ iterate_dir_path_fail:
     mov r1, 0
     mov r3, 0
 iterate_dir_path_ret:
+    mov r2, r28
     pop r30
     pop r29
     pop r28
     pop r27
-    pop r2
     ret
 iterate_dir_path_temp_file_struct: data.fill 0, 32
 iterate_dir_path_ending_str: data.strz ".dir"
