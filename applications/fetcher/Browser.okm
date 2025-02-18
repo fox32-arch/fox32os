@@ -9,16 +9,33 @@ MODULE Browser;
         browserNextPageButton: Fox32OSButtonWidget;
         browserPrevPageButton: Fox32OSButtonWidget;
         browserDiskId: INT;
+        browserDir: INT;
+        browserDirName: ARRAY 14 OF CHAR;
         browserFileList: ARRAY 341 OF CHAR;
         browserHasIcons: CHAR;
         browserIconsResPtr: PTR;
+        browserWindowTitle: ARRAY 24 OF CHAR;
+
+    CONST BG_COLOR = 0FFDDDDDDH;
+          FG_COLOR = 0FF000000H;
+          EMPTY_COLOR = 0FFFFFFFFH;
 
     EXTERN browserMenuItemsRoot: POINTER TO CHAR;
     EXTERN browserFileListFriendly: ARRAY 12 OF POINTER TO CHAR;
 
-    PROCEDURE BrowserMain(diskId, iconX, iconY: INT; desktopWin: PTR; hasIcons: CHAR; iconsResPtr: PTR;);
+    PROCEDURE BrowserMain(diskDirAndId, iconX, iconY: INT; desktopWin: PTR; hasIcons: CHAR; iconsResPtr: PTR;);
     VAR tempDskIconResPtr: PTR;
+        diskId: SHORT;
     BEGIN
+        diskId := diskDirAndId & 0FFFFH;
+        browserDir := RSH(diskDirAndId, 16);
+        set_current_directory(browserDir);
+
+        copy_string("Fetcher", PTROF(browserWindowTitle));
+        (* FIXME: finish this *)
+        (* get_dir_name(PTROF(browserWindowTitle), open()) *)
+        (* copy_string(browserDirName, PTROF(browserWindowTitle) + 10); *)
+
         (* first, before we do anything, check to make sure the selected disk is available *)
         IF diskId >| 5 THEN
             new_messagebox(0, "Invalid disk ID!", 0, 128, 128, 144);
@@ -57,7 +74,7 @@ MODULE Browser;
         END;
 
         (* create the window and draw its initial contents *)
-        new_window(PTROF(browserWindow), "Fetcher", 384, 192, 64, 64, PTROF(browserMenuItemsRoot), PTROF(browserIcons));
+        new_window(PTROF(browserWindow), PTROF(browserWindowTitle), 384, 192, 64, 64, PTROF(browserMenuItemsRoot), PTROF(browserIcons));
         DrawBrowserWindow();
 
         WHILE browserRunning DO
@@ -92,14 +109,14 @@ MODULE Browser;
 
             (* button click event *)
             ELSIF eventArgs[0] = PTROF(EVENT_TYPE_BUTTON_CLICK) THEN
-                HandleIconClick(eventArgs[1]);
+                HandleIconClick(eventArgs[1], desktopWin);
             END;
 
             save_state_and_yield_task();
         END;
     END;
 
-    PROCEDURE HandleIconClick(buttonId: INT;);
+    PROCEDURE HandleIconClick(buttonId: INT; desktopWin: PTR;);
     BEGIN
         IF buttonId = 128 THEN
             (* next page button *)
@@ -109,7 +126,7 @@ MODULE Browser;
             DecrementBrowserPage();
         ELSE
             (* an icon was clicked! *)
-            LaunchFromIcon(buttonId);
+            LaunchFromIcon(buttonId, desktopWin);
         END;
     END;
 
@@ -172,7 +189,7 @@ MODULE Browser;
         icon: POINTER TO Fox32OSButtonWidget;
     BEGIN
         (* get a list of files *)
-        numberOfFiles := ryfs_get_file_list(PTROF(browserFileList), browserDiskId);
+        numberOfFiles := ryfs_get_file_list(PTROF(browserFileList), browserDiskId, browserDir);
         browserNumberOfPages := numberOfFiles / 12;
         ConvertFileNames(numberOfFiles);
 
@@ -187,8 +204,6 @@ MODULE Browser;
             ELSE icon^.next := PTROF(browserIcons[i + 1]); END;
             icon^.id := i;
             icon^.text := browserFileListFriendly[i];
-            icon^.fgColor := 0FF000000H;
-            icon^.bgColor := 0FFDDDDDDH;
             icon^.width := 32;
             icon^.height := 32 + 16;
             icon^.x := x;
@@ -201,8 +216,8 @@ MODULE Browser;
         browserNextPageButton.next := PTROF(browserPrevPageButton);
         browserNextPageButton.id := 128;
         browserNextPageButton.text := ">";
-        browserNextPageButton.fgColor := 0FF000000H;
-        browserNextPageButton.bgColor := 0FFDDDDDDH;
+        browserNextPageButton.fgColor := FG_COLOR;
+        browserNextPageButton.bgColor := BG_COLOR;
         browserNextPageButton.width := 16;
         browserNextPageButton.height := 16;
         browserNextPageButton.x := 368;
@@ -212,8 +227,8 @@ MODULE Browser;
         browserPrevPageButton.next := 0;
         browserPrevPageButton.id := 129;
         browserPrevPageButton.text := "<";
-        browserPrevPageButton.fgColor := 0FF000000H;
-        browserPrevPageButton.bgColor := 0FFDDDDDDH;
+        browserPrevPageButton.fgColor := FG_COLOR;
+        browserPrevPageButton.bgColor := BG_COLOR;
         browserPrevPageButton.width := 16;
         browserPrevPageButton.height := 16;
         browserPrevPageButton.x := 0;
@@ -236,20 +251,41 @@ MODULE Browser;
         DrawBrowserWindow();
     END;
 
-    PROCEDURE LaunchFromIcon(buttonId: INT;);
+    PROCEDURE LaunchFromIcon(buttonId: INT; desktopWin: PTR;);
     VAR icon: POINTER TO Fox32OSButtonWidget;
+        dirToOpen: INT;
+        diskDirAndId: INT;
+        tempFileStruct: ARRAY FILE_STRUCT_SIZE OF CHAR;
     BEGIN
         icon := PTROF(browserIcons[buttonId]);
-        launch_fxf_from_disk(icon^.text, browserDiskId, 0, 0, 0, 0, 0);
+
+        IF CompareString(icon^.text + string_length(icon^.text) - 3, "dir") THEN
+            (* launch a new instance of Fetcher *)
+            dirToOpen := open(icon^.text, browserDiskId, PTROF(tempFileStruct));
+            IF dirToOpen = 0 THEN
+                new_messagebox("Failed to start new", "instance of fetcher.fxf", "with selected directory", 64, 64, 200);
+                RETURN();
+            END;
+            diskDirAndId := (browserDiskId OR LSH(dirToOpen, 16));
+            IF launch_fxf_from_disk("/fetcher.fxf", get_boot_disk_id(), 0FFFFFFFFH, diskDirAndId, icon^.x, icon^.y, desktopWin) = 0FFFFFFFFH THEN
+                new_messagebox("Failed to start new", "instance of fetcher.fxf", 0, 64, 64, 200);
+            END;
+        ELSE
+            launch_fxf_from_disk(icon^.text, browserDiskId, 0, 0, 0, 0, 0);
+        END;
     END;
 
     PROCEDURE ConvertFileNames(numberOfFiles: INT;);
     VAR i, j, numberOfFilesLeft: INT;
+        icon: POINTER TO Fox32OSButtonWidget;
     BEGIN
-        (* fill all filenames with "<empty>", 0, 0, 0, 0, 0 *)
+        (* fill all filenames with "<empty>", 0, 0, 0, 0, 0 and make them disappear *)
         i := 12;
         WHILE i DO
             copy_memory_bytes("<empty>\0\0\0\0\0", browserFileListFriendly[i - 1], 12);
+            icon := PTROF(browserIcons[i - 1]);
+            icon^.fgColor := EMPTY_COLOR;
+            icon^.bgColor := EMPTY_COLOR;
             i := i - 1;
         END;
 
@@ -276,6 +312,11 @@ MODULE Browser;
             PUTCHAR(browserFileListFriendly[i] + j, 46);
             copy_memory_bytes(PTROF(browserFileList) + (browserPage * 11 * 12) + (i * 11) + 8, browserFileListFriendly[i] + j + 1, 3);
             PUTCHAR(browserFileListFriendly[i] + j + 4, 0);
+
+            (* give the button a visible color *)
+            icon := PTROF(browserIcons[i]);
+            icon^.fgColor := FG_COLOR;
+            icon^.bgColor := BG_COLOR;
 
             i := i + 1;
         END;

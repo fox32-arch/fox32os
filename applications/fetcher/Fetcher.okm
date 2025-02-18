@@ -29,7 +29,7 @@ MODULE Fetcher;
         ELSIF (CompareString("open", arg0Ptr)) & (arg1Ptr # 0) & (arg2Ptr # 0) THEN
             (* launched from an application wanting to open a file *)
             BrowserOpenMain(arg1Ptr, arg2Ptr, hasIcons, iconsRes);
-        ELSIF arg0Ptr <|= 5 THEN
+        ELSIF arg0Ptr & 0FFFFH <|= 5 THEN
             (* launched from an existing instance of fetcher *)
             BrowserMain(arg0Ptr, arg1Ptr, arg2Ptr, arg3Ptr, hasIcons, iconsRes);
         ELSE

@@ -36,6 +36,7 @@ MODULE About;
 
         tempAbtResPtr := get_resource(browserIconsResPtr, "abt", 64);
         IF tempAbtResPtr THEN
+            draw_str_to_overlay("icons by", 16, 160, 0FFFFFFFFH, 0FF674764H, overlay);
             draw_str_to_overlay(tempAbtResPtr, 16, 176, 0FFFFFFFFH, 0FF674764H, overlay);
             free_memory(tempAbtResPtr);
         END;
