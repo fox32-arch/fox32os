@@ -4,6 +4,7 @@ jump_table:
     data.32 print_character
     data.32 print_string
     data.32 print_decimal
+    data.32 print_hex
     data.32 0x00000000 ; end jump table
 
 const ROM_string_length: 0xF0046018
@@ -82,3 +83,44 @@ print_decimal_loop:
     pop r10
     pop r0
     ret
+
+; print a hexadecimal integer to the given stream
+; inputs:
+; r0: integer
+; r1: stream pointer
+; outputs:
+; none
+print_hex:
+    push r0
+    push r1
+    push r2
+    push r10
+    push r11
+    push r12
+    push r31
+
+    mov r10, r0
+    mov r31, 8
+print_hex_loop:
+    rol r10, 4
+    movz.16 r11, r10
+    and r11, 0x0F
+    mov r12, hex_chars
+    add r12, r11
+    movz.8 r0, [r12]
+    push.8 r0
+    mov r2, rsp
+    mov r0, 1
+    call [OS_write]
+    inc rsp
+    loop print_hex_loop
+
+    pop r31
+    pop r12
+    pop r11
+    pop r10
+    pop r2
+    pop r1
+    pop r0
+    ret
+hex_chars: data.str "0123456789ABCDEF"
