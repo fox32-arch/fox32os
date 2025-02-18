@@ -11,7 +11,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -47,22 +47,22 @@ jobs:
           cp fox32rom.def/fox32rom.def ../fox32rom/
           unzip fox32asm-linux-x86_64/fox32asm-*-x86_64-linux.zip
           chmod +x ./fox32asm gfx2inc/gfx2inc
-          make FOX32ASM=./fox32asm GFX2INC=gfx2inc/gfx2inc
+          make FOX32ASM=$(pwd)/fox32asm GFX2INC=$(pwd)/gfx2inc/gfx2inc
 
       - name: Upload fox32os.img
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: fox32os.img
           path: fox32os.img
 
       - name: Upload romdisk.img
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: romdisk.img
           path: romdisk.img
 
       - name: Upload fox32os.def
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: fox32os.def
           path: fox32os.def
