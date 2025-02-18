@@ -84,6 +84,7 @@ ICONS16 := \
 	applications/icons/mnu.inc
 
 ICONS32 := \
+	applications/icons/dir.inc \
 	applications/icons/dsk.inc \
 	applications/icons/fxf.inc \
 	applications/icons/msc.inc
