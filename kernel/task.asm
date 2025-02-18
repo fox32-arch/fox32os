@@ -7,12 +7,14 @@
 ; r2: initial stack pointer (remember that the stack grows down!)
 ; r3: pointer to code block to free when task ends, or zero for none
 ; r4: pointer to stack block to free when task ends, or zero for none
+; r5: initial disk ID and directory sector (upper 16 bits = disk ID; lower 16 bits = directory sector)
 ; outputs:
 ; none
 new_task:
     ; mark this task ID as used
     bse [task_id_bitmap], r0
 
+    mov r7, r5 ; disk and directory
     mov r6, r4 ; stack block pointer
     mov r5, r3 ; code block pointer
     mov r4, r2 ; stack pointer
@@ -268,6 +270,8 @@ task_load:
     add r0, 4
     mov r6, [r0] ; stack block pointer
     add r0, 4
+    mov r7, [r0] ; active disk and directory
+    add r0, 4
     ret
 
 task_store:
@@ -281,6 +285,8 @@ task_store:
     add r0, 4
     mov [r0], r6 ; stack block pointer
     add r0, 4
+    mov [r0], r7 ; active disk and directory
+    add r0, 4
     ret
 
 task_empty:
@@ -291,13 +297,19 @@ task_empty:
 
 task_panic_str: data.str "Scheduler starved, task queue empty!" data.8 10 data.8 0
 
-const TASK_SIZE: 20
+const TASK_SIZE: 24
 task_id_bitmap: data.32 0
+
 current_task:
     data.32 0 ; task ID
     data.32 0 ; instruction pointer
     data.32 0 ; stack pointer
     data.32 0 ; code block pointer
     data.32 0 ; stack block pointer
+current_disk_id:
+    data.16 0 ; active disk ID
+current_directory:
+    data.16 0 ; active directory sector
+
 task_queue_ptr: data.32 task_queue_bottom
 task_queue_bottom: data.fill 0, 640 ; 32 tasks * 5 entries per task * 4 bytes per word = 640

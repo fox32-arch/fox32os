@@ -5,12 +5,12 @@
 const LOAD_ADDRESS: 0x03000000
 
 const FOX32OS_VERSION_MAJOR: 0
-const FOX32OS_VERSION_MINOR: 3
+const FOX32OS_VERSION_MINOR: 4
 const FOX32OS_VERSION_PATCH: 0
 
-const FOX32OS_API_VERSION: 2
+const FOX32OS_API_VERSION: 3
 
-const REQUIRED_FOX32ROM_API_VERSION: 2
+const REQUIRED_FOX32ROM_API_VERSION: 4
 
 const SYSTEM_STACK:     0x01FFF800
 const BACKGROUND_COLOR: 0xFF674764
@@ -28,6 +28,8 @@ jump_table:
     data.32 get_boot_disk_id
     data.32 open_library
     data.32 close_library
+    data.32 get_current_directory
+    data.32 set_current_directory
 
     ; FXF jump table
     org.pad 0x00000110
@@ -80,6 +82,7 @@ jump_table:
     data.32 create
     data.32 delete
     data.32 copy
+    data.32 get_dir_name
 
     ; widget jump table
     org.pad 0x00000610
@@ -295,6 +298,8 @@ boot_disk_1_loop:
     mov r2, rsp
     sub r2, 4
     mov r4, 0 ; don't attempt to free any stack block if the task ends
+    mov r5, [boot_disk_id]
+    sla r5, 16
     call new_task
     jmp no_other_tasks
 
@@ -362,6 +367,14 @@ set_current_disk_id:
     mov.8 [current_disk_id], r0
     ret
 
+get_current_directory:
+    movz.16 r0, [current_directory]
+    ret
+
+set_current_directory:
+    mov.16 [current_directory], r0
+    ret
+
 get_os_version:
     mov r0, FOX32OS_VERSION_MAJOR
     mov r1, FOX32OS_VERSION_MINOR
@@ -425,7 +438,6 @@ bottom_bar_patterns:
     data.32 0xFFFFFFFF
     data.32 0xFF674764
 
-current_disk_id: data.8 0
 boot_disk_id: data.8 0
 sh_fxf: data.strz "sh.fxf"
 disk_startup_bat: data.str "N:"

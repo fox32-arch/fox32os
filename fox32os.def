@@ -8,6 +8,8 @@ set_current_disk_id:       jmp [0x0000081C]
 get_boot_disk_id:          jmp [0x00000820]
 open_library:              jmp [0x00000824]
 close_library:             jmp [0x00000828]
+get_current_directory:     jmp [0x0000082C]
+set_current_directory:     jmp [0x00000830]
 
 ; FXF jump table
 parse_fxf_binary:          jmp [0x00000910]
@@ -55,6 +57,7 @@ get_size:                  jmp [0x00000D24]
 create:                    jmp [0x00000D28]
 delete:                    jmp [0x00000D2C]
 copy:                      jmp [0x00000D30]
+get_dir_name:              jmp [0x00000D34]
 
 ; widget jump table
 draw_widgets_to_window:    jmp [0x00000E10]

@@ -20,6 +20,7 @@ start_event_manager_task:
                                     ; (zero since we don't want to free any code blocks when the task ends)
     mov r4, r10                     ; pointer to task stack block to free when task ends
     sub r4, 256                     ; point to the start of the stack block that we allocated above
+    mov r5, 0                       ; don't care about current disk or directory
     call new_task
 
     ret

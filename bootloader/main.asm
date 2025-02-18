@@ -11,6 +11,7 @@ const LOAD_ADDRESS: 0x03000000
     mov r1, r0
     mov r0, kernel_file_name
     mov r2, kernel_file_struct
+    mov r3, 0 ; FIXME: THIS IS HARDCODED TO THE ROOT DIRECTORY!!!!!
     call [0xF0045008] ; ryfs_open
     cmp r0, 0
     ifz jmp error

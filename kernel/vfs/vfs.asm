@@ -7,7 +7,8 @@ const TEMP_SECTOR_BUF: 0x01FFF808
 ;   file_first_sector: 2 bytes
 ;   file_seek_offset:  4 bytes
 ;   file_system_type:  1 byte (0x00 for RYFS)
-;   file_reserved_1:   4 bytes
+;   file_dir_sector:   2 bytes
+;   file_reserved_1:   2 bytes
 ;   file_reserved_2:   4 bytes
 ;   file_reserved_3:   4 bytes
 ;   file_reserved_4:   4 bytes
@@ -30,13 +31,30 @@ const TEMP_SECTOR_BUF: 0x01FFF808
 ; inputs:
 ; r0: pointer to file name string (8.3 format if file, for example "testfile.txt" or "test.txt")
 ; r1: disk ID (ignored if stream)
-; r2: file struct: pointer to a blank file struct (8 bytes if file, 20 bytes if stream)
+; r2: file struct: pointer to a blank 32 byte file struct
 ; outputs:
 ; r0: if file: first file sector, or zero if file wasn't found
 ;     if stream: non-zero if stream opened, or zero if not
 open:
     cmp.8 [r0], ':'
     ifz jmp open_stream
+
+    push r1
+    push r2
+    mov r2, r1
+    mov r1, 0
+open_iterate_loop:
+    call iterate_dir_path
+    ; r0: pointer to null-terminated path string, incremented past the first directory
+    ; r1: directory sector containing file, or zero if failure
+    ; r2: disk ID
+    ; r3: zero if r0 points to the final file and not another directory; non-zero otherwise
+    cmp r3, 0
+    ifnz rjmp open_iterate_loop
+    mov r3, r1 ; ryfs_open expects the directory sector in r3
+    pop r2
+    pop r1
+
     call convert_filename
     cmp r0, 0
     ifz ret
@@ -112,7 +130,7 @@ open_stream:
 ; inputs:
 ; r0: pointer to file name string (8.3 format if file, for example "testfile.txt" or "test.txt")
 ; r1: disk ID (ignored if stream)
-; r2: file struct: pointer to a blank file struct (8 bytes if file, 20 bytes if stream)
+; r2: file struct: pointer to a blank 32 byte file struct
 ; r3: target file size
 ; outputs:
 ; r0: if file: first file sector, or zero if file couldn't be created
@@ -120,6 +138,25 @@ open_stream:
 create:
     cmp.8 [r0], ':'
     ifz jmp open_stream
+
+    push r1
+    push r2
+    push r3
+    mov r2, r1
+    mov r1, 0
+create_iterate_loop:
+    call iterate_dir_path
+    ; r0: pointer to null-terminated path string, incremented past the first directory
+    ; r1: directory sector containing file, or zero if failure
+    ; r2: disk ID
+    ; r3: zero if r0 points to the final file and not another directory; non-zero otherwise
+    cmp r3, 0
+    ifnz rjmp create_iterate_loop
+    mov r4, r1 ; ryfs_create expects the directory sector in r4
+    pop r3
+    pop r2
+    pop r1
+
     call convert_filename
     cmp r0, 0
     ifz ret
@@ -208,6 +245,31 @@ stream_get_size:
     mov r0, [r0]
 
     ret
+
+; get the name of a directory previously opened with `open`
+; inputs:
+; r0: pointer to 13 byte buffer (max 8 chars + '.' + max 3 chars + null)
+; r1: pointer to file struct
+; outputs:
+; none
+get_dir_name:
+    cmp.8 [r1+7], 0x00 ; must be RYFS
+    ifnz ret
+    push r0
+    push r1
+
+    push r0
+    mov r0, get_dir_name_temp_str
+    call ryfs_get_dir_name
+    mov r0, get_dir_name_temp_str
+    call convert_filename
+    pop r1
+    call copy_string
+
+    pop r1
+    pop r0
+    ret
+get_dir_name_temp_str: data.fill 0, 11
 
 ; read specified number of bytes into the specified buffer
 ; inputs:
@@ -355,7 +417,7 @@ convert_filename:
 
     ; check the length of the filename to ensure it isn't too long
     mov r1, r0
-    call string_length
+    call vfs_string_length
     cmp r0, 12
     ifgt jmp convert_filename_fail
     cmp r0, 0
@@ -403,27 +465,195 @@ convert_filename_found_ext:
     inc r2
     cmp.8 [r1], 0
     ifz jmp convert_filename_done
+    cmp.8 [r1], '/'
+    ifz jmp convert_filename_done
     mov.8 [r2], [r1]
     inc r1
     inc r2
     cmp.8 [r1], 0
     ifz jmp convert_filename_done
+    cmp.8 [r1], '/'
+    ifz jmp convert_filename_done
     mov.8 [r2], [r1]
 convert_filename_done:
     mov r0, convert_filename_output_string
-    pop r31
-    pop r3
-    pop r2
-    pop r1
-    ret
+    rjmp convert_filename_ret
 convert_filename_fail:
     mov r0, 0
+convert_filename_ret:
     pop r31
     pop r3
     pop r2
     pop r1
     ret
 convert_filename_output_string: data.fill 0, 12
+convert_filename_temp_file_struct: data.fill 0, 32
+
+; iterate on a user-friendly directory path into its directory sector, and increment the path to the next '/'
+; e.g. /stuff.dir/test.txt will return r0 = "test.txt", r1 = sector of stuff.dir, r2 = <disk ID>, r3 = 0
+;      /stuff.dir/another.dir/test.txt will return r0 = "another.dir/test.txt", r1 = sector of stuff.dir, r2 = <disk ID>, r3 = <non-zero>
+; inputs:
+; r0: pointer to null-terminated path string
+; r1: directory sector of previous iteration, or zero if no previous iteration
+; r2: disk ID
+; outputs:
+; r0: pointer to null-terminated path string, incremented past the first directory
+; r1: directory sector containing file, or zero if failure
+; r2: disk ID
+; r3: zero if r0 points to the final file and not another directory; non-zero otherwise
+iterate_dir_path:
+    push r2
+    push r27
+    push r28
+    push r29
+    push r30
+
+    cmp.8 [r0], 0
+    ifz mov r3, 0
+    ifz rjmp iterate_dir_path_ret
+
+    mov r27, r0
+    mov r28, r2
+
+    cmp r1, 0
+    ifnz mov r29, r1 ; this isn't the first iteration
+    ifnz rjmp iterate_dir_path_continue
+
+    ; this is the first iteration, should we start from the root or the task's current dir?
+    cmp.8 [r27], '/'
+    ifz mov r29, 0
+    ifnz movz.16 r29, [current_directory]
+iterate_dir_path_continue:
+    cmp.8 [r27], '/'
+    ifz inc r27
+
+    mov r0, r27
+    call vfs_string_length
+    mov r30, r0
+
+    ; r27: pointer to the directory name (incremented as we go along)
+    ; r28: disk ID
+    ; r29: currently searched directory sector
+    ; r30: length of this directory name
+    mov r0, r27
+
+    push r0
+    call vfs_string_length
+    pop r2
+    push r2
+    add r2, r0
+    pop r0
+    cmp.8 [r2], 0
+    ifnz rjmp iterate_dir_path_not_final_file
+    ; this is the final file, no need to open it
+    mov r1, r29
+    mov r3, 0
+    rjmp iterate_dir_path_ret
+iterate_dir_path_not_final_file:
+    call convert_filename
+    mov r1, r28
+    mov r2, iterate_dir_path_temp_file_struct
+    mov r3, r29
+    call ryfs_open
+    ; it should have returned the sector of this directory
+    cmp r0, 0
+    ifz rjmp iterate_dir_path_fail
+
+    mov r1, r0
+    mov r0, r27
+    add r0, r30
+
+    push r0
+    call vfs_string_length
+    mov r2, r0
+    pop r0
+    push r0
+    add r0, r2
+    sub r0, 4
+    push r1
+    mov r1, iterate_dir_path_ending_str
+    mov r3, 0
+    call vfs_compare_string
+    ifz inc r3
+    mov r1, iterate_dir_path_ending_slash_str
+    call vfs_compare_string
+    ifz inc r3
+    pop r1
+    pop r0
+
+    rjmp iterate_dir_path_ret
+iterate_dir_path_fail:
+    mov r0, 0
+    mov r1, 0
+    mov r3, 0
+iterate_dir_path_ret:
+    pop r30
+    pop r29
+    pop r28
+    pop r27
+    pop r2
+    ret
+iterate_dir_path_temp_file_struct: data.fill 0, 32
+iterate_dir_path_ending_str: data.strz ".dir"
+iterate_dir_path_ending_slash_str: data.strz ".dir/"
+
+; get the length of a string using 0 and '/' as the terminator
+; inputs:
+; r0: pointer to null-terminated or '/'-terminated string
+; outputs:
+; r0: length of the string, not including the terminator
+vfs_string_length:
+    push r1
+    mov r1, 0
+vfs_string_length_loop:
+    cmp.8 [r0], 0
+    ifz jmp vfs_string_length_end
+    cmp.8 [r0], '/'
+    ifz jmp vfs_string_length_end
+    inc r0
+    inc r1
+    jmp vfs_string_length_loop
+vfs_string_length_end:
+    mov r0, r1
+    pop r1
+    ret
+
+; compare string from source pointer with destination pointer using 0 and '/' as the terminator
+; inputs:
+; r0: pointer to source
+; r1: pointer to destination
+; outputs:
+; Z flag
+vfs_compare_string:
+    push r0
+    push r1
+vfs_compare_string_loop:
+    ; check if the strings match
+    cmp.8 [r0], [r1]
+    ifnz jmp vfs_compare_string_not_equal
+
+    ; if this is the end of string 1, then this must also be the end of string 2
+    ; the cmp above already ensured that both strings have a terminator here
+    cmp.8 [r0], 0
+    ifz jmp vfs_compare_string_equal
+    cmp.8 [r0], '/'
+    ifz jmp vfs_compare_string_equal
+
+    inc r0
+    inc r1
+    jmp vfs_compare_string_loop
+vfs_compare_string_not_equal:
+    ; Z flag is already cleared at this point
+    pop r1
+    pop r0
+    ret
+vfs_compare_string_equal:
+    ; set Z flag
+    mov r0, 0
+    cmp r0, 0
+    pop r1
+    pop r0
+    ret
 
     ; named streams
     #include "vfs/disk0.asm"
