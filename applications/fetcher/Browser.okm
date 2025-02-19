@@ -8,6 +8,7 @@ MODULE Browser;
         browserNumberOfPages: INT;
         browserNextPageButton: Fox32OSButtonWidget;
         browserPrevPageButton: Fox32OSButtonWidget;
+        browserUpDirButton: Fox32OSButtonWidget;
         browserDiskId: INT;
         browserDir: INT;
         browserDirName: ARRAY 14 OF CHAR;
@@ -75,7 +76,7 @@ MODULE Browser;
         END;
 
         (* create the window and draw its initial contents *)
-        new_window(PTROF(browserWindow), PTROF(browserWindowTitle), 384, 192, 64, 64, PTROF(browserMenuItemsRoot), PTROF(browserIcons));
+        new_window(PTROF(browserWindow), PTROF(browserWindowTitle), 384, 200, 64, 64, PTROF(browserMenuItemsRoot), PTROF(browserIcons));
         DrawBrowserWindow();
 
         WHILE browserRunning DO
@@ -146,6 +147,9 @@ MODULE Browser;
         ELSIF buttonId = 129 THEN
             (* previous page button *)
             DecrementBrowserPage();
+        ELSIF buttonId = 130 THEN
+            (* up directory button *)
+            GoUpDirectory();
         ELSE
             (* an icon was clicked! *)
             SelectBrowserIcon(buttonId);
@@ -221,7 +225,7 @@ MODULE Browser;
         i := 0;
         WHILE i <| 12 DO
             x := ((i MOD 4) * 96) + 32;
-            y := ((i / 4) * 64) + 24;
+            y := ((i / 4) * 64) + 32;
             icon := PTROF(browserIcons[i]);
 
             icon^.type := WIDGET_TYPE_BUTTON;
@@ -249,7 +253,7 @@ MODULE Browser;
         browserNextPageButton.y := 16;
 
         browserPrevPageButton.type := WIDGET_TYPE_BUTTON;
-        browserPrevPageButton.next := 0;
+        browserPrevPageButton.next := PTROF(browserUpDirButton);
         browserPrevPageButton.id := 129;
         browserPrevPageButton.text := "<";
         browserPrevPageButton.fgColor := BROWSER_UNSELECTED_FG_COLOR;
@@ -258,6 +262,17 @@ MODULE Browser;
         browserPrevPageButton.height := 16;
         browserPrevPageButton.x := 0;
         browserPrevPageButton.y := 16;
+
+        browserUpDirButton.type := WIDGET_TYPE_BUTTON;
+        browserUpDirButton.next := 0;
+        browserUpDirButton.id := 130;
+        browserUpDirButton.text := "up";
+        browserUpDirButton.fgColor := BROWSER_UNSELECTED_FG_COLOR;
+        browserUpDirButton.bgColor := BROWSER_UNSELECTED_BG_COLOR;
+        browserUpDirButton.width := 32;
+        browserUpDirButton.height := 16;
+        browserUpDirButton.x := 18;
+        browserUpDirButton.y := 16;
     END;
 
     PROCEDURE IncrementBrowserPage();
@@ -278,6 +293,27 @@ MODULE Browser;
         DrawBrowserWindow();
     END;
 
+    PROCEDURE GoUpDirectory();
+    VAR fakeStruct: ARRAY FILE_STRUCT_SIZE OF CHAR;
+        dir: INT;
+    BEGIN
+        PUTCHAR(PTROF(fakeStruct), browserDiskId);
+        PUTSHORT(PTROF(fakeStruct) + 1, browserDir);
+        PUTCHAR(PTROF(fakeStruct) + 7, 0);
+        dir := get_parent_dir(PTROF(fakeStruct));
+        SetDir(dir);
+    END;
+
+    PROCEDURE SetDir(diskDir: INT;);
+    BEGIN
+        browserDir := diskDir;
+        browserPage := 0;
+        set_current_directory(browserDir);
+        FillWindowTitle(browserDiskId, browserDir);
+        browserSelectedIconId := 0FFFFFFFFH;
+        DrawBrowserWindow();
+    END;
+
     PROCEDURE LaunchFromIcon(buttonId: INT; desktopWin: PTR;);
     VAR icon: POINTER TO Fox32OSButtonWidget;
         dirToOpen: INT;
@@ -287,17 +323,11 @@ MODULE Browser;
         icon := PTROF(browserIcons[buttonId]);
 
         IF CompareString(icon^.text + string_length(icon^.text) - 3, "dir") THEN
-            (* launch a new instance of Fetcher *)
+            (* open the dir in this window *)
             dirToOpen := open(icon^.text, browserDiskId, PTROF(tempFileStruct));
-            IF dirToOpen = 0 THEN
-                new_messagebox("Failed to start new", "instance of fetcher.fxf", "with selected directory", 64, 64, 200);
-                RETURN();
-            END;
-            diskDirAndId := (browserDiskId OR LSH(dirToOpen, 16));
-            IF launch_fxf_from_disk("/system/fetcher.fxf", get_boot_disk_id(), 0FFFFFFFFH, diskDirAndId, icon^.x, icon^.y, desktopWin) = 0FFFFFFFFH THEN
-                new_messagebox("Failed to start new", "instance of fetcher.fxf", 0, 64, 64, 200);
-            END;
-        ELSE
+            IF dirToOpen = 0 THEN RETURN(); END;
+            SetDir(dirToOpen);
+        ELSIF CompareString(icon^.text + string_length(icon^.text) - 3, "fxf") THEN
             launch_fxf_from_disk(icon^.text, browserDiskId, 0, 0, 0, 0, 0);
         END;
     END;
@@ -364,7 +394,7 @@ MODULE Browser;
                 x := RSH(GETSHORT(PTROF(browserWindow) + 20) *| (16 - i) + iconX *| i, 4);
                 y := RSH(GETSHORT(PTROF(browserWindow) + 22) *| (16 - i) + iconY *| i, 4);
                 w := RSH(384 *| (16 - i) + 32 *| i, 4);
-                h := RSH(192 *| (16 - i) + 32 *| i, 4);
+                h := RSH(200 *| (16 - i) + 32 *| i, 4);
                 DrawWireframeBox(get_window_overlay_number(desktopWin), x, y, w, h, 020F0F0F0H);
                 sleep_task(10);
                 draw_filled_rectangle_to_overlay(x, y, w, h, 0, get_window_overlay_number(desktopWin));
