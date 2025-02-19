@@ -7,11 +7,21 @@ const LOAD_ADDRESS: 0x03000000
     ; fox32rom passed the boot disk id in r0, save it
     mov.8 [boot_disk_id], r0
 
-    ; open kernel.fxf
+    ; open /system
     mov r1, r0
-    mov r0, kernel_file_name
+    mov r0, system_dir_name
     mov r2, kernel_file_struct
-    mov r3, 0 ; FIXME: THIS IS HARDCODED TO THE ROOT DIRECTORY!!!!!
+    mov r3, 1 ; root dir
+    call [0xF0045008] ; ryfs_open
+    cmp r0, 0
+    ifz jmp error
+    mov [system_dir], r0
+
+    ; open /system/kernel.fxf
+    mov r0, kernel_file_name
+    movz.8 r1, [boot_disk_id]
+    mov r2, kernel_file_struct
+    mov r3, [system_dir]
     call [0xF0045008] ; ryfs_open
     cmp r0, 0
     ifz jmp error
@@ -37,9 +47,11 @@ error:
     call [0xF0042004] ; draw_str_to_background
     rjmp 0
 
+system_dir: data.32 0
+system_dir_name: data.strz "system  dir"
 kernel_file_name: data.strz "kernel  fxf"
 kernel_file_struct: data.fill 0, 32
-error_str: data.strz "failed to open kernel file"
+error_str: data.strz "failed to open /system.dir/kernel.fxf"
 boot_disk_id: data.8 0
 
     #include "reloc.asm"

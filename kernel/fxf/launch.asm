@@ -137,9 +137,9 @@ launch_fxf_continue:
     add r2, 65516 ; point to the end of the stack (stack grows down!!)
     mov r3, [launch_fxf_binary_ptr]
     mov r4, [launch_fxf_stack_ptr]
-    movz.8 r5, [current_disk_id]
+    movz.16 r5, [current_directory]
     sla r5, 16
-    mov.16 r5, [current_directory]
+    mov.8 r5, [current_disk_id]
     call new_task
 
     pop r6

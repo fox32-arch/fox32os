@@ -283,8 +283,6 @@ get_dir_name:
     push r0
     mov r0, get_dir_name_temp_str
     call ryfs_get_dir_name
-    mov r0, get_dir_name_temp_str
-    call convert_filename
     pop r1
     call copy_string
 

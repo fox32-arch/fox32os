@@ -7,7 +7,7 @@
 ; r2: initial stack pointer (remember that the stack grows down!)
 ; r3: pointer to code block to free when task ends, or zero for none
 ; r4: pointer to stack block to free when task ends, or zero for none
-; r5: initial disk ID and directory sector (upper 16 bits = disk ID; lower 16 bits = directory sector)
+; r5: initial disk ID and directory sector (upper 16 bits = directory sector; lower 16 bits = disk ID)
 ; outputs:
 ; none
 new_task:

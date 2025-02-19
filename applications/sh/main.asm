@@ -111,9 +111,20 @@ shell_key_down_backspace:
     jmp shell_task_loop
 
 shell_print_prompt:
+    ; make a "fake" file struct to get the current dir name
+    call get_current_directory
+    mov r1, r0
     call get_current_disk_id
-    add r0, '0'
-    call print_character_to_terminal
+    mov r2, r0
+    mov r0, shell_prompt_dir_temp_struct
+    mov.8 [r0], r2
+    mov.16 [r0+1], r1
+    mov.8 [r0+7], 0
+    mov r1, shell_prompt_dir_temp_struct
+    ; get_dir_name will overwrite the temp struct with the name
+    call get_dir_name
+    mov r0, shell_prompt_dir_temp_struct
+    call print_str_to_terminal
     mov r0, shell_prompt
     call print_str_to_terminal
     mov r0, REDRAW_LINE
@@ -333,6 +344,7 @@ shell_stream_struct_ptr: data.32 0
 shell_old_stream_struct_ptr: data.32 0
 shell_redirect_next: data.8 0
 shell_redirect_stream_struct: data.fill 0, 32
+shell_prompt_dir_temp_struct: data.fill 0, 32
 shell_batch_filename_ptr: data.32 0
 shell_char_buffer: data.32 0
 shell_command_return_value: data.32 0

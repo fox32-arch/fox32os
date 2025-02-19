@@ -20,7 +20,7 @@ MODULE Fetcher;
 
         (* open icons.res from the boot disk and read its contents into `iconsRes` *)
         hasIcons := 0;
-        IF open("icons.res", get_boot_disk_id(), PTROF(iconsResFile)) THEN
+        IF open("/system/icons.res", get_boot_disk_id(), PTROF(iconsResFile)) THEN
             iconsResSize := get_size(PTROF(iconsResFile));
             iconsRes := allocate_memory(iconsResSize);
             read(iconsResSize, PTROF(iconsResFile), iconsRes);

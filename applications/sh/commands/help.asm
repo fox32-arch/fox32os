@@ -14,12 +14,11 @@ shell_help_text:
     data.8 SET_COLOR data.8 0x70 data.8 1 ; set the color to white
     data.8 10
     data.str "(in descriptions, $n is argument n)" data.8 10
-    data.str "command | description" data.8 10
-    data.str "------- | -----------" data.8 10
+    data.str "chgdir  | enter directory $1" data.8 10
     data.str "clear   | clear the terminal contents" data.8 10
     data.str "copy    | copy file $0 to file $1" data.8 10
     data.str "del     | delete file $0" data.8 10
-    data.str "dir     | show contents of selected disk" data.8 10
+    data.str "dir     | show contents of directory $1" data.8 10
     data.str "disk    | select disk $0" data.8 10
     data.str "diskrm  | remove disk $0" data.8 10
     data.str "echo    | print the specified text" data.8 10

@@ -8,7 +8,8 @@ shell_dir_command:
 
     call get_current_disk_id
     mov.8 [shell_dir_command_file_disk], r0
-    mov.16 [shell_dir_command_file_dir], 1
+    call get_current_directory
+    mov.16 [shell_dir_command_file_dir], r0
     call shell_parse_arguments
     cmp r0, 0
     ifnz call shell_dir_command_open_dir
@@ -44,6 +45,11 @@ shell_dir_command_loop:
     add r1, 3
     mov.8 [r1], 0
 
+    ; dirs are colored in cyan
+    cmp [shell_dir_command_type_buffer], [shell_dir_command_dir_type_str]
+    ifz mov r0, shell_dir_command_color_cyan
+    ifz call print_str_to_terminal
+
     ; print the file name to the terminal
     mov r0, shell_dir_command_file_buffer
     call print_str_to_terminal
@@ -54,6 +60,10 @@ shell_dir_command_loop:
 
     ; print the file type to the terminal
     mov r0, shell_dir_command_type_buffer
+    call print_str_to_terminal
+
+    ; reset the color
+    mov r0, shell_dir_command_color_white
     call print_str_to_terminal
 
     ; two spaces
@@ -105,11 +115,16 @@ shell_dir_command_open_dir:
 shell_dir_command_list_buffer: data.fill 0, 341
 shell_dir_command_file_buffer: data.fill 0, 9
 shell_dir_command_type_buffer: data.fill 0, 4
+shell_dir_command_dir_type_str: data.strz "dir"
 shell_dir_command_file_dir: data.fill 0, 2
 shell_dir_command_file_disk: data.fill 0, 1
 shell_dir_command_temp_file_struct: data.fill 0, 32
 shell_dir_command_header_string:
     data.8 SET_COLOR data.8 0x20 data.8 1 ; set the color to green
     data.str "file     type size" data.8 10
+shell_dir_command_color_white:
     data.8 SET_COLOR data.8 0x70 data.8 1 ; set the color to white
+    data.8 0
+shell_dir_command_color_cyan:
+    data.8 SET_COLOR data.8 0x60 data.8 1 ; set the color to cyan
     data.8 0

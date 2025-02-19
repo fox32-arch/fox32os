@@ -10,14 +10,6 @@
 ; none, does not return if task started successfully
 ; returns if FXF file not found
 launch_fxf:
-    ; clear the first 8 characters of the launch_fxf_name buffer
-    push r0
-    mov r0, launch_fxf_spaces
-    mov r1, launch_fxf_name
-    mov r2, 8
-    call copy_memory_bytes
-    pop r0
-
 launch_fxf_check_suspend_prefix:
     ; if the name was prefixed with a '*' character then
     ; clear a flag to have the shell return control immediately
@@ -26,46 +18,33 @@ launch_fxf_check_suspend_prefix:
     ifnz jmp launch_fxf_check_debug_prefix
     inc r0
     mov.8 [launch_fxf_yield_should_suspend], 0
-    jmp launch_fxf_check_disk_prefix
+    jmp launch_fxf_no_prefix
 launch_fxf_check_debug_prefix:
     ; if the name was prefixed with a '%' character then
     ; set a flag to cause a breakpoint at the beginning of the
     ; program
     cmp.8 [r0], '%'
     ifnz mov.8 [launch_fxf_debug_mode], 0
-    ifnz jmp launch_fxf_check_disk_prefix
+    ifnz jmp launch_fxf_no_prefix
     inc r0
     mov.8 [launch_fxf_debug_mode], 1
-launch_fxf_check_disk_prefix:
-    ; if the name was prefixed with a digit character and a ':' character then
-    ; use that as the disk ID
-    mov.8 [launch_fxf_disk_to_use], 0xFF
-    cmp.8 [r0+1], ':'
-    ifnz jmp launch_fxf_no_prefix
-    mov.8 [launch_fxf_disk_to_use], [r0]
-    sub.8 [launch_fxf_disk_to_use], '0'
-    inc r0, 2
 launch_fxf_no_prefix:
     ; copy the name into the launch_fxf_name buffer
     mov r1, launch_fxf_name
-    mov r31, 8
-launch_fxf_name_loop:
-    mov.8 [r1], [r0]
-    inc r0
-    inc r1
-    cmp.8 [r0], 0
-    ifz jmp launch_fxf_name_loop_done
-    loop launch_fxf_name_loop
-launch_fxf_name_loop_done:
+    call copy_string
+    mov r0, launch_fxf_name
+    call string_length
+    add r0, launch_fxf_name
+    dec r0, 4
+    cmp [r0], 0x6678662E
+    ifnz call launch_fxf_add_ext
+
     ; open the file
     call get_current_disk_id
-    cmp.8 [launch_fxf_disk_to_use], 0xFF
-    ifz mov r1, r0
-    ifnz movz.8 r1, [launch_fxf_disk_to_use]
+    mov r1, r0
     mov r0, launch_fxf_name
     mov r2, launch_fxf_struct
-    mov r3, 0 ; FIXME: THIS IS HARDCODED TO THE ROOT DIRECTORY!!!!!
-    call ryfs_open
+    call open
     cmp r0, 0
     ifz ret
 
@@ -150,13 +129,12 @@ launch_fxf_skip_fill_reti_addr:
 
     ; create a new task
     push r0
-    call get_current_disk_id
-    mov r5, r0
-    sla r5, 16
     call get_current_directory
+    movz.16 r5, r0
+    sla r5, 16
+    call get_current_disk_id
     mov.16 r5, r0
     pop r0
-    sla r5, 16
     mov r1, r0
     call get_unused_task_id
     mov.8 [launch_fxf_task_id], r0
@@ -193,8 +171,17 @@ launch_fxf_debug_start:
     ; jump indirect through system exception vector
     jmp [0x00000410]
 
-launch_fxf_name: data.str "        fxf"
-launch_fxf_spaces: data.str "        "
+launch_fxf_add_ext:
+    mov r0, launch_fxf_name
+    call string_length
+    add r0, launch_fxf_name
+    mov r1, r0
+    mov r0, fxf_str
+    call copy_string
+    ret
+
+fxf_str: data.strz ".fxf"
+launch_fxf_name: data.fill 0, 128
 launch_fxf_struct: data.fill 0, 32
 launch_fxf_task_id: data.8 0
 launch_fxf_binary_ptr: data.32 0
@@ -203,6 +190,5 @@ launch_fxf_temp: data.32 0
 
 launch_fxf_yield_should_suspend: data.8 0
 launch_fxf_debug_mode: data.8 0
-launch_fxf_disk_to_use: data.8 0xFF
 
 out_of_memory_string: data.str "failed to allocate for new task!" data.8 10 data.8 0

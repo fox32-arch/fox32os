@@ -90,7 +90,10 @@ MODULE BrowserOpen;
             DecrementBrowserPage();
         ELSE
             (* an icon was clicked! *)
-            ReturnFromIcon(buttonId);
+            SelectBrowserIcon(buttonId);
+            IF IsDoubleClick(buttonId) THEN
+                ReturnFromIcon(buttonId);
+            END;
         END;
     END;
 

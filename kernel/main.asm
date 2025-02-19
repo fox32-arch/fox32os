@@ -298,8 +298,9 @@ boot_disk_1_loop:
     mov r2, rsp
     sub r2, 4
     mov r4, 0 ; don't attempt to free any stack block if the task ends
-    mov r5, [boot_disk_id]
+    movz.16 r5, [current_directory]
     sla r5, 16
+    mov.8 r5, [current_disk_id]
     call new_task
     jmp no_other_tasks
 
@@ -439,9 +440,9 @@ bottom_bar_patterns:
     data.32 0xFF674764
 
 boot_disk_id: data.8 0
-sh_fxf: data.strz "sh.fxf"
+sh_fxf: data.strz "/system/sh.fxf"
 disk_startup_bat: data.str "N:"
-startup_bat: data.strz "startup.bat"
+startup_bat: data.strz "/system/startup.bat"
 startup_bat_check_struct: data.fill 0, 32
 serial_stream: data.strz ":serial"
 serial_stream_struct: data.fill 0, 32

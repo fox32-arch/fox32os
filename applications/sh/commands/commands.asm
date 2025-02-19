@@ -36,6 +36,11 @@ shell_parse_command:
     call compare_string
     ifz jmp shell_callrw_command
 
+    ; chgdir
+    mov r1, shell_chgdir_command_string
+    call compare_string
+    ifz jmp shell_chgdir_command
+
     ; clear
     mov r1, shell_clear_command_string
     call compare_string
@@ -205,6 +210,7 @@ shell_invalid_command_string: data.str "invalid command or FXF binary" data.8 10
 
     ; all commands
     #include "commands/call.asm"
+    #include "commands/chgdir.asm"
     #include "commands/clear.asm"
     #include "commands/cmp.asm"
     #include "commands/copy.asm"

@@ -32,12 +32,9 @@ MODULE Browser;
     BEGIN
         diskId := diskDirAndId & 0FFFFH;
         browserDir := RSH(diskDirAndId, 16);
+        IF browserDir = 0 THEN browserDir := 1; END;
         set_current_directory(browserDir);
-
-        copy_string("Fetcher", PTROF(browserWindowTitle));
-        (* FIXME: finish this *)
-        (* get_dir_name(PTROF(browserWindowTitle), open()) *)
-        (* copy_string(browserDirName, PTROF(browserWindowTitle) + 10); *)
+        FillWindowTitle(diskId, browserDir);
 
         (* first, before we do anything, check to make sure the selected disk is available *)
         IF diskId >| 5 THEN
@@ -118,6 +115,17 @@ MODULE Browser;
 
             save_state_and_yield_task();
         END;
+    END;
+
+    PROCEDURE FillWindowTitle(diskId, diskDir: INT;);
+    VAR fakeStruct: ARRAY FILE_STRUCT_SIZE OF CHAR;
+    BEGIN
+        PUTCHAR(PTROF(fakeStruct), diskId);
+        PUTSHORT(PTROF(fakeStruct) + 1, diskDir);
+        PUTCHAR(PTROF(fakeStruct) + 7, 0);
+        copy_string("Fetcher - ", PTROF(browserWindowTitle));
+        get_dir_name(PTROF(browserDirName), PTROF(fakeStruct));
+        copy_string(PTROF(browserDirName), PTROF(browserWindowTitle) + 10);
     END;
 
     PROCEDURE SelectBrowserIcon(buttonId: INT;);
@@ -286,7 +294,7 @@ MODULE Browser;
                 RETURN();
             END;
             diskDirAndId := (browserDiskId OR LSH(dirToOpen, 16));
-            IF launch_fxf_from_disk("/fetcher.fxf", get_boot_disk_id(), 0FFFFFFFFH, diskDirAndId, icon^.x, icon^.y, desktopWin) = 0FFFFFFFFH THEN
+            IF launch_fxf_from_disk("/system/fetcher.fxf", get_boot_disk_id(), 0FFFFFFFFH, diskDirAndId, icon^.x, icon^.y, desktopWin) = 0FFFFFFFFH THEN
                 new_messagebox("Failed to start new", "instance of fetcher.fxf", 0, 64, 64, 200);
             END;
         ELSE

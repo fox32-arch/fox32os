@@ -55,11 +55,11 @@ jobs:
           name: fox32os.img
           path: fox32os.img
 
-      - name: Upload romdisk.img
-        uses: actions/upload-artifact@v4
-        with:
-          name: romdisk.img
-          path: romdisk.img
+      #- name: Upload romdisk.img
+      #  uses: actions/upload-artifact@v4
+      #  with:
+      #    name: romdisk.img
+      #    path: romdisk.img
 
       - name: Upload fox32os.def
         uses: actions/upload-artifact@v4
