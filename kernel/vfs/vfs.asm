@@ -291,6 +291,16 @@ get_dir_name:
     ret
 get_dir_name_temp_str: data.fill 0, 11
 
+; get the sector of the parent of a directory previously opened with `open`
+; inputs:
+; r0: pointer to file struct
+; outputs:
+; r0: sector of the parent directory
+get_parent_dir:
+    cmp.8 [r0+7], 0x00 ; must be RYFS
+    ifz jmp ryfs_get_parent_dir
+    ret
+
 ; read specified number of bytes into the specified buffer
 ; inputs:
 ; r0: number of bytes to read

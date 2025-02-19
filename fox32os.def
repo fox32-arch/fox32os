@@ -58,6 +58,7 @@ create:                    jmp [0x00000D28]
 delete:                    jmp [0x00000D2C]
 copy:                      jmp [0x00000D30]
 get_dir_name:              jmp [0x00000D34]
+get_parent_dir:            jmp [0x00000D38]
 
 ; widget jump table
 draw_widgets_to_window:    jmp [0x00000E10]

@@ -83,6 +83,7 @@ jump_table:
     data.32 delete
     data.32 copy
     data.32 get_dir_name
+    data.32 get_parent_dir
 
     ; widget jump table
     org.pad 0x00000610
