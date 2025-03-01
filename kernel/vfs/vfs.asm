@@ -565,6 +565,9 @@ iterate_dir_path:
     movz.8 r28, [r27]
     sub r28, '0'
     inc r27, 2
+    ; force start from the root dir, since the disk id was overridden
+    mov r29, 1
+    rjmp iterate_dir_path_continue
 iterate_dir_path_check_root:
     ; should we start from the root or the task's current dir?
     cmp.8 [r27], '/'
