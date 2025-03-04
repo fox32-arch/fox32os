@@ -27,9 +27,6 @@ shell_copy_command:
     call create
 
     mov r0, shell_type_command_file_struct
-    call get_size
-
-    mov r0, shell_type_command_file_struct
     mov r1, shell_copy_command_file_struct
     call copy
 
@@ -56,4 +53,4 @@ shell_copy_command_file_not_found:
     ret
 
 shell_copy_command_file_struct: data.fill 0, 32
-shell_copy_command_file_not_found_string: data.strz "source file not found"
+shell_copy_command_file_not_found_string: data.str "source file not found" data.8 10 data.8 0

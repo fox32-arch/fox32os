@@ -91,14 +91,46 @@ launch_fxf_continue:
     ifz jmp allocate_error
     mov [launch_fxf_stack_ptr], r0
 
-    ; push the argument pointers and terminal stream struct pointer to the task's stack
+    ; push the arguments, their pointers, and the terminal stream struct pointer to the task's stack
     call shell_parse_arguments
+    push r3
+    push r2
+    push r1
+    push r0
+    mov r1, [launch_fxf_stack_ptr]
+    add r1, 65024 ; point to the end of the stack - argument string space
+    mov r31, 4
+launch_fxf_copy_args_loop:
+    pop r0
+    cmp r0, 0
+    ifz jmp launch_fxf_copy_args_done
+    call copy_string
+    call string_length
+    add r1, r0
+    inc r1
+launch_fxf_copy_args_done:
+    loop launch_fxf_copy_args_loop
+    mov r0, [launch_fxf_stack_ptr]
+    add r0, 65024 ; point to the end of the stack - argument string space
+    mov r1, 0
+    mov r31, 4
+launch_fxf_get_arg_ptrs_loop:
+    cmp.8 [r0], 0
+    ifz push 0
+    ifnz push r0
+    call shell_tokenize
+    loop launch_fxf_get_arg_ptrs_loop
+    pop r3
+    pop r2
+    pop r1
+    pop r0
+
     mov r4, rsp
     ; disable interrupts, because if an interrupt tried to use the stack
     ; during this then that probably wouldn't end well
     icl
     mov rsp, [launch_fxf_stack_ptr]
-    add rsp, 65536 ; point to the end of the stack (stack grows down!!)
+    add rsp, 65024 ; point to the end of the stack - argument string space
     push r3
     push r2
     push r1
@@ -139,7 +171,7 @@ launch_fxf_skip_fill_reti_addr:
     call get_unused_task_id
     mov.8 [launch_fxf_task_id], r0
     mov r2, [launch_fxf_stack_ptr]
-    add r2, 65516 ; point to the end of the stack (stack grows down!!)
+    add r2, 65004 ; point to the end of the stack (stack grows down!!)
     ; if we are in debug mode, there are 9 extra bytes on top of the stack
     cmp.8 [launch_fxf_debug_mode], 0
     ifnz sub r2, 9
