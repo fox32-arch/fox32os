@@ -44,10 +44,10 @@ event_loop:
     ifz call menu_update_event
 
     cmp r0, EVENT_TYPE_MENU_CLICK
-    ifz call menu_click_event
+    ifz jmp menu_click_event
 
     cmp r0, EVENT_TYPE_MENU_ACK
-    ifz call menu_ack_event
+    ifz jmp menu_ack_event
 
     cmp r0, EVENT_TYPE_KEY_DOWN
     ifz jmp key_down
@@ -118,16 +118,13 @@ menu_click_event:
     cmp r2, 1
     ifz call colors_menu_click_event
 
-    ret
+    jmp event_loop_end
 
 menu_ack_event:
-    push r0
-
     mov r0, menu_items_root
     call close_menu
 
-    pop r0
-    ret
+    jmp event_loop_end
 
 window_menu_click_event:
     ; r2 contains the clicked root menu
@@ -137,20 +134,17 @@ window_menu_click_event:
     cmp r3, 0
     ifz call toggle_full_screen
 
-    ret
+    jmp event_loop_end
 
 colors_menu_click_event:
     ; r2 contains the clicked root menu
     ; r3 contains the clicked menu item
 
-    push r0
-
     mov r0, r3
     call change_color
     call redraw_terminal
 
-    pop r0
-    ret
+    jmp event_loop_end
 
 drag_window:
     cmp r1, 8
