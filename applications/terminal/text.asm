@@ -1,8 +1,5 @@
 ; text rendering routines
 
-const TERMINAL_X_SIZE: 40
-const TERMINAL_Y_SIZE: 25
-
 const FILL_TERM:   0xF0
 const MOVE_CURSOR: 0xF1
 const SET_COLOR:   0xF2
@@ -64,28 +61,27 @@ print_character_to_terminal_allow:
     ifz jmp print_character_to_terminal_bs
 
     ; check if we are at the end of this line
-    cmp.8 [terminal_x], TERMINAL_X_SIZE
+    cmp.8 [terminal_x], [terminal_width]
     ; if so, increment to the next line
     ifgteq mov.8 [terminal_x], 0
     ifgteq inc.8 [terminal_y]
 
     ; check if we need to scroll the display
-    cmp.8 [terminal_y], TERMINAL_Y_SIZE
+    cmp.8 [terminal_y], [terminal_height]
     ifgteq call scroll_terminal
 
     ; calculate coords for character
     movz.8 r1, [terminal_x]
     movz.8 r2, [terminal_y]
-    mul r2, TERMINAL_X_SIZE
+    movz.8 r3, [terminal_width]
+    mul r2, r3
     add r1, r2
-    add r1, terminal_text_buf
+    push r1
+    add r1, [terminal_text_buf_ptr]
 
     ; calculate coords for color
-    movz.8 r2, [terminal_x]
-    movz.8 r3, [terminal_y]
-    mul r3, TERMINAL_X_SIZE
-    add r2, r3
-    add r2, terminal_color_buf
+    pop r2
+    add r2, [terminal_color_buf_ptr]
 
     ; and print!!
     mov.8 [r1], r0
@@ -103,7 +99,7 @@ print_character_to_terminal_lf:
     mov.8 [terminal_x], 0
     inc.8 [terminal_y]
     ; scroll the display if needed
-    cmp.8 [terminal_y], TERMINAL_Y_SIZE
+    cmp.8 [terminal_y], [terminal_height]
     ifgteq call scroll_terminal
     jmp print_character_to_terminal_end
 print_character_to_terminal_bs:
@@ -164,9 +160,11 @@ handle_control_character_fill_term:
     push r0
     push r1
     push r31
-    mov r0, terminal_text_buf
-    mov r1, terminal_color_buf
-    mov r31, 1000
+    movz.8 r31, [terminal_width]
+    movz.8 r0, [terminal_height]
+    mul r31, r0
+    mov r0, [terminal_text_buf_ptr]
+    mov r1, [terminal_color_buf_ptr]
 handle_control_character_fill_term_loop:
     mov.8 [r0], [terminal_control_parameter_1]
     mov.8 [r1], [terminal_current_color_attribute]
@@ -183,12 +181,12 @@ handle_control_character_fill_line:
     push r1
     push r31
     movz.8 r0, [terminal_y]
-    mul r0, TERMINAL_X_SIZE
-    add r0, terminal_text_buf
+    movz.8 r31, [terminal_width]
+    mul r0, r31
+    add r0, [terminal_text_buf_ptr]
     movz.8 r1, [terminal_y]
-    mul r1, TERMINAL_X_SIZE
-    add r1, terminal_color_buf
-    mov r31, 40
+    mul r1, r31
+    add r1, [terminal_color_buf_ptr]
 handle_control_character_fill_line_loop:
     mov.8 [r0], [terminal_control_parameter_1]
     mov.8 [r1], [terminal_current_color_attribute]
@@ -228,44 +226,54 @@ scroll_terminal:
     ; copy text buffer
 
     ; source
-    mov r0, terminal_text_buf
-    add r0, TERMINAL_X_SIZE
+    mov r0, [terminal_text_buf_ptr]
+    movz.8 r2, [terminal_width]
+    add r0, r2
 
     ; destination
-    mov r1, terminal_text_buf
+    mov r1, [terminal_text_buf_ptr]
 
     ; size
-    mov r2, TERMINAL_X_SIZE
-    mul r2, 24
-    div r2, 4
+    movz.8 r2, [terminal_width]
+    movz.8 r31, [terminal_height]
+    dec r31
+    mul r2, r31
 
-    call copy_memory_words
+    call copy_memory_bytes
 
     ; copy color buffer
 
     ; source
-    mov r0, terminal_color_buf
-    add r0, TERMINAL_X_SIZE
+    mov r0, [terminal_color_buf_ptr]
+    movz.8 r2, [terminal_width]
+    add r0, r2
 
     ; destination
-    mov r1, terminal_color_buf
+    mov r1, [terminal_color_buf_ptr]
 
     ; size
-    mov r2, TERMINAL_X_SIZE
-    mul r2, 24
-    div r2, 4
+    movz.8 r2, [terminal_width]
+    movz.8 r31, [terminal_height]
+    dec r31
+    mul r2, r31
 
-    call copy_memory_words
+    call copy_memory_bytes
 
     mov.8 [terminal_x], 0
-    mov.8 [terminal_y], 24
+    mov.8 [terminal_y], [terminal_height]
+    dec.8 [terminal_y]
 
     ; clear the last line
-    mov r0, terminal_text_buf
-    mov r1, terminal_color_buf
-    add r0, 960 ; 40 * 24
-    add r1, 960 ; 40 * 24
-    mov r31, TERMINAL_X_SIZE
+    movz.8 r0, [terminal_width]
+    movz.8 r1, [terminal_height]
+    dec r1
+    mul r0, r1
+    mov r31, r0
+    mov r0, [terminal_text_buf_ptr]
+    mov r1, [terminal_color_buf_ptr]
+    add r0, r31
+    add r1, r31
+    movz.8 r31, [terminal_width]
 scroll_terminal_clear_loop:
     mov.8 [r0], 0
     mov.8 [r1], [terminal_current_color_attribute]
@@ -301,13 +309,13 @@ redraw_terminal:
     call get_window_overlay_number
     mov r5, r0
 
-    mov r0, terminal_text_buf
+    mov r0, [terminal_text_buf_ptr]
     mov r2, 16
-    mov r31, TERMINAL_Y_SIZE
+    movz.8 r31, [terminal_height]
 redraw_terminal_loop_y:
     push r31
     mov r1, 0
-    mov r31, TERMINAL_X_SIZE
+    movz.8 r31, [terminal_width]
 redraw_terminal_loop_x:
     call get_color
     push r0
@@ -352,8 +360,9 @@ redraw_terminal_line:
     mov r5, r0
 
     movz.8 r0, [terminal_y]
-    mul r0, TERMINAL_X_SIZE
-    add r0, terminal_text_buf
+    movz.8 r1, [terminal_width]
+    mul r0, r1
+    add r0, [terminal_text_buf_ptr]
 
     movz.8 r1, [terminal_y]
     mov r2, 16
@@ -361,7 +370,7 @@ redraw_terminal_line:
     add r2, 16
 
     mov r1, 0
-    mov r31, TERMINAL_X_SIZE
+    movz.8 r31, [terminal_width]
 redraw_terminal_line_loop_x:
     call get_color
     push r0
@@ -399,9 +408,10 @@ get_color:
     div r2, 16
 
     ; get the color attribute at the specified position
-    mul r2, TERMINAL_X_SIZE
+    movz.8 r3, [terminal_width]
+    mul r2, r3
     add r2, r1
-    add r2, terminal_color_buf
+    add r2, [terminal_color_buf_ptr]
     movz.8 r2, [r2]
 
     ; get the foreground color
@@ -423,20 +433,14 @@ get_color:
     ret
 
 colors:
-    data.32 0xff2e1e1e ; black
-    data.32 0xffa88bf3 ; red
-    data.32 0xffa1e3a6 ; green
-    data.32 0xffafe2f9 ; yellow
-    data.32 0xfffab489 ; blue
-    data.32 0xffaca0eb ; magenta
-    data.32 0xffd5e294 ; cyan
-    data.32 0xfff4d6cd ; white
-    data.32 0x00000000 ; transparent
+    data.fill 0, 36
 
 terminal_x: data.8 0
 terminal_y: data.8 0
-terminal_text_buf: data.fill 0, 1000 ; 40x25 = 1000 bytes
-terminal_color_buf: data.fill 0x70, 1000 ; 40x25 = 1000 bytes
+terminal_width: data.8 0
+terminal_height: data.8 0
+terminal_text_buf_ptr: data.32 0
+terminal_color_buf_ptr: data.32 0
 terminal_current_color_attribute: data.8 0x70
 terminal_state: data.8 0 ; 0: normal, 1: awaiting first control parameter, 2: awaiting second control parameter
 terminal_control_char: data.8 0
