@@ -2,7 +2,7 @@
 
 ; open an LBR-format library from a file on disk
 ; inputs:
-; r0: pointer to LBR binary name (8.3 format, for example "testfile.lbr" or "test.lbr")
+; r0: pointer to LBR binary path
 ; r1: disk ID
 ; outputs:
 ; r0: address of library jump table, or 0 on error
@@ -23,16 +23,16 @@ open_library:
     ; if we reach this point then the library is already open
     ; r0 contains the list offset, ignore the pushed value
     inc rsp, 4
-    inc [r0+16] ; increment ref_count
-    mov r0, [r0+20] ; return the jump table pointer
+    inc [r0+4] ; increment ref_count
+    mov r0, [r0+8] ; return the jump table pointer
     rjmp.16 open_library_from_disk_ret
 open_library_from_disk:
     pop r0
 
     ; open the file
-    push r0
     mov r2, open_library_struct
     call open
+    push r0
     cmp r0, 0
     ifz jmp open_library_from_disk_file_error
 
@@ -64,9 +64,9 @@ open_library_from_disk:
     mov r1, r0
     add r1, open_library_list
     pop r0
-    call copy_string
-    mov [r1+16], 1 ; initialize ref_count
-    mov [r1+20], [open_library_jump_ptr] ; set table_ptr
+    mov [r1], r0 ; set file_sector
+    mov [r1+4], 1 ; initialize ref_count
+    mov [r1+8], [open_library_jump_ptr] ; set table_ptr
     mov r0, [open_library_jump_ptr] ; return jump table pointer
     mov r1, r0
     dec r1, 4
@@ -113,16 +113,16 @@ close_library:
 
     ; free the block of memory
     push r0
-    mov r0, [r0+20] ; r0 = table_ptr
-    dec r0, 4       ; r0 = table_ptr - 4 (contains ptr to free)
-    mov r0, [r0]    ; r0 = pointer to block to free
+    mov r0, [r0+8] ; r0 = table_ptr
+    dec r0, 4      ; r0 = table_ptr - 4 (contains ptr to free)
+    mov r0, [r0]   ; r0 = pointer to block to free
     call free_memory
     pop r0
 
     ; clear the entry in the library list
     mov [r0], 0
-    mov [r0+16], 0
-    mov [r0+20], 0
+    mov [r0+4], 0
+    mov [r0+8], 0
 close_library_ret:
     pop r0
     ret
@@ -132,7 +132,8 @@ close_library_ret:
 
 ; search for an entry in the open library list by name
 ; inputs:
-; r0: pointer to null-terminated file name
+; r0: pointer to null-terminated file path
+; r1: disk ID
 ; outputs:
 ; r0: list offset, or 0xFFFFFFFF if not found
 search_for_library_list_entry_by_name:
@@ -140,15 +141,21 @@ search_for_library_list_entry_by_name:
     push r2
     push r31
 
+    mov r2, open_library_struct
+    call open
+    cmp r0, 0
+    ifz rjmp search_for_library_list_entry_by_name_fail
+
     mov r1, open_library_list
     mov r2, 0
     mov r31, MAX_OPEN_LIBRARIES
 search_for_library_list_entry_by_name_loop:
-    call compare_string
+    cmp [r1], r0
     ifz rjmp.16 search_for_library_list_entry_by_name_found
     add r2, LIBRARY_SIZE
     add r1, LIBRARY_SIZE
     rloop.16 search_for_library_list_entry_by_name_loop
+search_for_library_list_entry_by_name_fail:
     ; not found, return 0xFFFFFFFF
     mov r0, 0xFFFFFFFF
 search_for_library_list_entry_by_name_ret:
@@ -175,7 +182,7 @@ search_for_library_list_entry_by_jump_table:
     mov r2, 0
     mov r31, MAX_OPEN_LIBRARIES
 search_for_library_list_entry_by_jump_table_loop:
-    cmp [r1+20], r0
+    cmp [r1+8], r0
     ifz rjmp.16 search_for_library_list_entry_by_jump_table_found
     add r2, LIBRARY_SIZE
     add r1, LIBRARY_SIZE
@@ -223,10 +230,10 @@ search_for_empty_library_list_entry_found:
     mov r0, r2
     rjmp.16 search_for_empty_library_list_entry_ret
 
-const LIBRARY_SIZE: 24
+const LIBRARY_SIZE: 12
 const MAX_OPEN_LIBRARIES: 32
 ; library struct:
-; data.fill 0, 16 file_name - file name of this library (null-terminated string, max 16 bytes, such as "mylbr.lbr", 0)
-; data.32 ref_count         - number of times this library has been opened; will free memory when this reaches zero
-; data.32 table_ptr         - pointer to this library's jump table
-open_library_list: data.fill 0, 768 ; MAX_OPEN_LIBRARIES library structs * LIBRARY_SIZE bytes = 768
+; data.32 file_sector - first file sector of this library as returned by `open`
+; data.32 ref_count   - number of times this library has been opened; will free memory when this reaches zero
+; data.32 table_ptr   - pointer to this library's jump table
+open_library_list: data.fill 0, 384 ; MAX_OPEN_LIBRARIES library structs * LIBRARY_SIZE bytes = 384
