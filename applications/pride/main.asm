@@ -71,4 +71,4 @@ window_title: data.strz "Trans Pride!"
 window_struct: data.fill 0, 40
 
     #include "../../../fox32rom/fox32rom.def"
-    #include "../../../fox32os/fox32os.def"
+    #include "../../fox32os.def"
