@@ -134,4 +134,4 @@ print_dec_loop:
 stream_ptr: data.32 0
 
     #include "../../../fox32rom/fox32rom.def"
-    #include "../../../fox32os/fox32os.def"
+    #include "../../fox32os.def"
