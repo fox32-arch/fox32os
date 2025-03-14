@@ -188,6 +188,9 @@ launch_fxf_yield_loop:
     ifz ret
     movz.8 r0, [launch_fxf_task_id]
     call is_task_id_used
+    ifz pop r0 ; discard
+    ifz pop r0 ; discard
+    ifz pop r0 ; discard
     ifz jmp shell_task_return
     call yield_task
     rjmp launch_fxf_yield_loop
