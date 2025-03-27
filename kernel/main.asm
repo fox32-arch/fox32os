@@ -142,6 +142,12 @@ entry_ok:
     cmp r0, REQUIRED_FOX32ROM_API_VERSION
     iflt jmp api_version_too_low_error
 
+    ; install exception handlers
+    mov [0x00000400], task_crash_handler ; exception 0x00 - divide by zero
+    mov [0x00000404], task_crash_handler ; exception 0x01 - invalid opcode
+    mov [0x00000408], task_crash_handler ; exception 0x02 - page fault read
+    mov [0x0000040C], task_crash_handler ; exception 0x03 - page fault write
+
     ; initialize the memory allocator
     call initialize_allocator
 
@@ -388,6 +394,7 @@ get_os_api_version:
     ret
 
     #include "allocator.asm"
+    #include "crash.asm"
     #include "fxf/fxf.asm"
     #include "lbr/lbr.asm"
     #include "res.asm"
