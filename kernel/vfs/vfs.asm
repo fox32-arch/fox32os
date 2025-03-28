@@ -35,7 +35,7 @@ const TEMP_SECTOR_BUF: 0x01FFF808
 ;          test2.txt (will use current directory and specified disk) or
 ;          /stuff (will return sector of directory) or
 ;          / (will return sector of root directory)
-; r1: disk ID (ignored if stream)
+; r1: disk ID (ignored if stream, or if path specifies disk)
 ; r2: file struct: pointer to a blank 32 byte file struct
 ; outputs:
 ; r0: if file: first file sector, or zero if file wasn't found
@@ -149,7 +149,7 @@ open_root:
 ;          /stuff/test1.txt (will use specified disk) or
 ;          test2.txt (will use current directory and specified disk)
 ;     do not use this for directories directly
-; r1: disk ID (ignored if stream)
+; r1: disk ID (ignored if stream, or if path specifies disk)
 ; r2: file struct: pointer to a blank 32 byte file struct
 ; r3: target file size
 ; outputs:
@@ -183,6 +183,45 @@ create_iterate_loop:
     cmp r0, 0
     ifz ret
     jmp ryfs_create
+
+; create a directory on a RYFS-formatted disk, or open a named stream
+; if target directory already exists, it will be opened as-is
+; inputs:
+; r0: pointer to directory path string
+;     i.e. 0:/stuff/test1 (will override specified disk) or
+;          /stuff/test1 (will use specified disk) or
+;          test2 (will use current directory and specified disk)
+; r1: disk ID (ignored if stream, or if path specifies disk)
+; r2: file struct: pointer to a blank 32 byte file struct
+; outputs:
+; r0: if directory: directory sector, or zero if directory couldn't be created
+;     if stream: non-zero if stream opened, or zero if not
+create_dir:
+    cmp.8 [r0], ':'
+    ifz jmp open_stream
+
+    push r2
+    mov r2, r1
+    mov r1, 0
+create_dir_iterate_loop:
+    call iterate_dir_path
+    ; r0: pointer to null-terminated path string, incremented past the first directory
+    ;     if zero, then r1 points to the sector of the file itself
+    ; r1: directory sector containing file, or sector of file, or zero if failure
+    ; r2: disk ID
+    ; r3: zero if r0 or r1 points to the final file and not another directory; non-zero otherwise
+    cmp r3, 0
+    ifnz rjmp create_dir_iterate_loop
+    mov r3, r1 ; ryfs_create_dir expects the directory sector in r3
+    mov r1, r2 ; ryfs_create_dir expects the disk ID in r1
+    pop r2
+    cmp r0, 0
+    ifz ret
+
+    call convert_filename
+    cmp r0, 0
+    ifz ret
+    jmp ryfs_create_dir
 
 ; delete a file on a RYFS-formatted disk
 ; inputs:
