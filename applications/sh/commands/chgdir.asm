@@ -21,4 +21,3 @@ shell_chgdir_command_fail:
     ret
 
 shell_chgdir_command_fail_str: data.str "failed to set directory" data.8 10 data.8 0
-shell_chgdir_command_temp_file_struct: data.fill 0, 32

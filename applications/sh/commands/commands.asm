@@ -141,6 +141,11 @@ shell_parse_command:
     call compare_string
     ifz jmp shell_label_command
 
+    ; newdir
+    mov r1, shell_newdir_command_string
+    call compare_string
+    ifz jmp shell_newdir_command
+
     ; rdall
     mov r1, shell_rdall_command_string
     call compare_string
@@ -225,6 +230,7 @@ shell_invalid_command_string: data.str "invalid command or FXF binary" data.8 10
     #include "commands/help.asm"
     #include "commands/if.asm"
     #include "commands/math.asm"
+    #include "commands/newdir.asm"
     #include "commands/rdall.asm"
     #include "commands/rdnext.asm"
     #include "commands/set.asm"
