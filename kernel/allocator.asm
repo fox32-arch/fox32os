@@ -4,8 +4,10 @@
 ; data.32 size - size of block
 ; data.32 prev - pointer to previous free block, or zero
 ; data.32 next - pointer to next free block, or zero
+; data.32 flag - zero if free, non-zero if used
+; data.32 size - size of block (redundancy check)
 
-const HEADER_SIZE: 12
+const HEADER_SIZE: 20
 const MEMORY_TOP:  0x01FEF800 ; 64KB below the stack
 
 initialize_allocator:
@@ -19,14 +21,14 @@ initialize_allocator:
     mov r1, MEMORY_TOP
     sub r1, r0
     mov [r0], r1
+    mov [r0+16], r1
 
     mov [total_heap_size], 0
 
     ; mark this as the only free block
-    add r0, 4
-    mov [r0], 0
-    add r0, 4
-    mov [r0], 0
+    mov [r0+4], 0
+    mov [r0+8], 0
+    mov [r0+12], 0
 
     pop r1
     pop r0
@@ -97,6 +99,8 @@ allocate_memory_good_block:
     mov [free_list_head], [next]
 allocate_memory_good_block_ret:
     mov r0, [block]
+    call block_set_used
+    mov r0, [block]
     add r0, HEADER_SIZE
     mov r31, r10
     sub r31, HEADER_SIZE
@@ -154,6 +158,7 @@ block_get_size:
     ret
 block_set_size:
     mov [r0], r1
+    mov [r0+16], r1
     ret
 block_get_prev:
     add r0, 4
@@ -171,6 +176,14 @@ block_set_next:
     add r0, 8
     mov [r0], r1
     ret
+block_set_used:
+    add r0, 12
+    mov [r0], 0xFFFFFFFF
+    ret
+block_set_free:
+    add r0, 12
+    mov [r0], 0x00000000
+    ret
 
 ; free a block of memory
 ; inputs:
@@ -185,6 +198,15 @@ free_memory:
     ; point to the header
     sub r0, HEADER_SIZE
     mov r2, r0
+
+    cmp [r0], [r0+16] ; size redundancy check
+    ifnz jmp free_memory_bad_size
+
+    cmp [r0+12], 0
+    ifz jmp free_memory_already_freed
+    push r0
+    call block_set_free
+    pop r0
 
     ; subtract from the total heap size used for debugging
     sub [total_heap_size], [r0] ; r0 points to header.size
@@ -202,11 +224,21 @@ free_memory:
     ifnz call block_set_prev
 
     mov [free_list_head], r2
-
+free_memory_ret:
     pop r2
     pop r1
     pop r0
     ret
+free_memory_already_freed:
+    mov r0, free_memory_already_freed_str
+    call panic
+    jmp free_memory_ret
+free_memory_already_freed_str: data.str "attempted double free" data.8 10 data.8 0
+free_memory_bad_size:
+    mov r0, free_memory_bad_size_str
+    call panic
+    jmp free_memory_ret
+free_memory_bad_size_str: data.str "bad size in block header" data.8 10 data.8 0
 
 ; get the current size of the heap
 ; inputs:
