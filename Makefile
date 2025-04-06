@@ -74,7 +74,8 @@ ICONS32 := \
 	applications/icons/dir.inc \
 	applications/icons/dsk.inc \
 	applications/icons/fxf.inc \
-	applications/icons/msc.inc
+	applications/icons/msc.inc \
+	applications/icons/ssc.inc
 
 applications/icons/%.inc: applications/icons/%.16.png
 	$(GFX2INC) 16 16 $< $@

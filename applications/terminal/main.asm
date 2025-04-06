@@ -273,9 +273,16 @@ change_color:
     ret
 
 color_table:
+    ; dark
     data.32 catppuccin
     data.32 sea
+    data.32 enbee
+    data.32 transwitches
     data.32 c64
+    ; light
+    data.32 arctic
+    data.32 fennec
+    data.32 signpad
 catppuccin:
     data.32 0xff2e1e1e ; black
     data.32 0xffa88bf3 ; red
@@ -305,6 +312,58 @@ c64:
     data.32 0xff7881c1 ; magenta
     data.32 0xffccc584 ; cyan
     data.32 0xffde7a86 ; white
+    data.32 0x00000000 ; transparent
+
+; color schemes by finley (https://www.finlee.ee)
+enbee:
+    data.32 0xff390e21 ; bg
+    data.32 0xff27a6ff ; col3
+    data.32 0xff35ddec ; col1
+    data.32 0xffaca0eb ; FILLER
+    data.32 0xffaca0eb ; FILLER
+    data.32 0xffaca0eb ; FILLER
+    data.32 0xfff16ccd ; col2
+    data.32 0xffe4f4f6 ; text
+    data.32 0x00000000 ; transparent
+arctic:
+    data.32 0xffffffff ; bg
+    data.32 0xffb2ff6f ; col3
+    data.32 0xff55182f ; col1
+    data.32 0xffaca0eb ; FILLER
+    data.32 0xffaca0eb ; FILLER
+    data.32 0xffaca0eb ; FILLER
+    data.32 0xff6d6d6d ; col2
+    data.32 0xffb5b85d ; text
+    data.32 0x00000000 ; transparent
+fennec:
+    data.32 0xffe4f4f6 ; bg
+    data.32 0xff518bf6 ; col3
+    data.32 0xff343497 ; col1
+    data.32 0xffaca0eb ; FILLER
+    data.32 0xffaca0eb ; FILLER
+    data.32 0xffaca0eb ; FILLER
+    data.32 0xfff16ccd ; col2
+    data.32 0xff390e21 ; text
+    data.32 0x00000000 ; transparent
+transwitches:
+    data.32 0xff3d1813 ; bg
+    data.32 0xffcba960 ; col3
+    data.32 0xffb873aa ; col1
+    data.32 0xffaca0eb ; FILLER
+    data.32 0xffaca0eb ; FILLER
+    data.32 0xffaca0eb ; FILLER
+    data.32 0xfff1e0bb ; col2
+    data.32 0xffe3d0e2 ; text
+    data.32 0x00000000 ; transparent
+signpad:
+    data.32 0xffffffff ; bg
+    data.32 0xff683dd9 ; col3
+    data.32 0xffa67eea ; col1
+    data.32 0xffaca0eb ; FILLER
+    data.32 0xffaca0eb ; FILLER
+    data.32 0xffaca0eb ; FILLER
+    data.32 0xffb266bb ; col2
+    data.32 0xff000000 ; text
     data.32 0x00000000 ; transparent
 
 window_title: data.strz "Terminal"
@@ -355,11 +414,16 @@ menu_items_window_list:
 menu_items_colors_name:
     data.8 6 data.strz "Colors" ; text length, text, null-terminator
 menu_items_colors_list:
-    data.8 3                                 ; number of items
-    data.8 15                                ; menu width (usually longest item + 2)
-    data.8 10 data.strz "Catppuccin"         ; text length, text, null-terminator
-    data.8 13 data.strz "Base2Tone Sea"      ; text length, text, null-terminator
-    data.8 3  data.strz "C64"                ; text length, text, null-terminator
+    data.8 8                                     ; number of items
+    data.8 22                                    ; menu width
+    data.8 22 data.strz "Catppuccin      (dark)" ; text length, text, null-terminator
+    data.8 22 data.strz "Base2Tone Sea   (dark)" ; text length, text, null-terminator
+    data.8 22 data.strz "Enbee           (dark)" ; text length, text, null-terminator
+    data.8 22 data.strz "Transwitches    (dark)" ; text length, text, null-terminator
+    data.8 22 data.strz "C64             (dark)" ; text length, text, null-terminator
+    data.8 22 data.strz "Arctic         (light)" ; text length, text, null-terminator
+    data.8 22 data.strz "Fennec         (light)" ; text length, text, null-terminator
+    data.8 22 data.strz "SIGNpad        (light)" ; text length, text, null-terminator
 
     #include "stream.asm"
     #include "text.asm"
