@@ -25,15 +25,18 @@ shell_disk_command_is_disk:
     cmp r1, 0
     ifz ret
     call set_current_disk_id
+shell_disk_command_ret:
+    mov r0, 1 ; force root dir
+    call set_current_directory
     ret
 shell_disk_command_is_romdisk:
     call is_romdisk_available
     ifz call set_current_disk_id
-    ret
+    rjmp shell_disk_command_ret
 shell_disk_command_is_ramdisk:
     call is_ramdisk_formatted
     ifz call set_current_disk_id
-    ret
+    rjmp shell_disk_command_ret
 
 shell_disk_command_out_of_range:
     mov r0, shell_disk_command_out_of_range_string
