@@ -2,7 +2,8 @@
 **/.vscode/
 **/.DS_Store
 
-**/bootloader.bin
+**/boot1.bin
+**/boot2.bin
 **/*.fxf
 **/*.lbr
 **/*.res
