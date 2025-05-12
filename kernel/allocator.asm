@@ -14,11 +14,11 @@ initialize_allocator:
     push r0
     push r1
 
-    mov [free_list_head], 0x0000FFFF
+    mov [free_list_head], 0x00001000
 
-    ; set the free block size to MEMORY_TOP - [free_list_head]
+    ; set the free block size to [memory_top] - [free_list_head]
     mov r0, [free_list_head]
-    mov r1, MEMORY_TOP
+    mov r1, [memory_top]
     sub r1, r0
     mov [r0], r1
     mov [r0+16], r1
@@ -249,5 +249,6 @@ heap_usage:
     mov r0, [total_heap_size]
     ret
 
-free_list_head: data.32 kernel_bottom
+free_list_head: data.32 0
 total_heap_size: data.32 0
+memory_top: data.32 0

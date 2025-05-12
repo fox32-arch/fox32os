@@ -5,7 +5,8 @@ GFX2INC := ../tools/gfx2inc/target/release/gfx2inc
 
 IMAGE_SIZE := 16777216
 ROM_IMAGE_SIZE := 196608
-BOOTLOADER := bootloader/bootloader.bin
+BOOTLOADER := bootloader/boot1.bin
+BOOT_STAGE2 := bootloader/boot2.bin
 
 all: base_image/system/library base_image/apps base_image/user base_image/system/library/streamio.lbr fox32os.img #romdisk.img
 
@@ -61,9 +62,13 @@ base_image/apps/okmpaint.fxf: applications/okmpaint/OkmPaint.okm $(wildcard appl
 base_image/user/bg.bmp: applications/bg/bg.bmp
 	cp $< $@
 
-bootloader/bootloader.bin: bootloader/main.asm $(wildcard bootloader/*.asm)
+bootloader/boot1.bin: bootloader/boot1.asm $(wildcard bootloader/*.asm)
+	$(FOX32ASM) $< $@
+bootloader/boot2.bin: bootloader/boot2.asm $(wildcard bootloader/*.asm)
 	$(FOX32ASM) $< $@
 
+base_image/system/boot2.bin: bootloader/boot2.bin
+	cp $< $@
 base_image/system/startup.bat: base_image/system/startup.bat.default
 	cp $< $@
 
@@ -85,6 +90,7 @@ base_image/system/icons.res: applications/icons/icons.res.asm $(ICONS16) $(ICONS
 	$(FOX32ASM) $< $@
 
 FILES = \
+	base_image/system/boot2.bin \
 	base_image/system/startup.bat \
 	base_image/system/icons.res \
 	base_image/system/kernel.fxf \
@@ -103,6 +109,7 @@ FILES = \
 	base_image/user/bg.bmp
 
 #ROM_FILES = \
+#	base_image/system/boot2.bin \
 #	base_image/startup.bat \
 #	base_image/icons.res \
 #	base_image/kernel.fxf \
@@ -117,7 +124,7 @@ FILES = \
 #	base_image/loadfont.fxf \
 #	base_image/tasks.fxf
 
-base_image/%.lbr: $(wildcard libraries/*/*.asm)
+base_image/system/library/%.lbr: $(wildcard libraries/*/*.asm)
 	cd libraries && $(MAKE)
 
 fox32os.img: $(BOOTLOADER) $(FILES) $(wildcard libraries/*/*.asm)

@@ -2,17 +2,15 @@
 
     opton
 
-const LOAD_ADDRESS: 0x03000000
+const BOOT_MAGIC: 0x523C334C
 
 const FOX32OS_VERSION_MAJOR: 0
 const FOX32OS_VERSION_MINOR: 4
 const FOX32OS_VERSION_PATCH: 0
-
 const FOX32OS_API_VERSION: 3
 
 const REQUIRED_FOX32ROM_API_VERSION: 4
 
-const SYSTEM_STACK:     0x01FFF800
 const BACKGROUND_COLOR: 0xFF674764
 const TEXT_COLOR:       0xFFFFFFFF
 
@@ -101,33 +99,25 @@ jump_table_end:
 
     ; initialization code
 entry:
-    ; before doing anything, check if we are running on top of an existing instance of the kernel
-    ; we can do this by comparing our load address to the known load address that the bootloader loads us to
-    ; only the high 16 bits are checked
-    rcall 6
-    pop r1
-    mov.16 r1, 0
-    cmp r1, LOAD_ADDRESS
+    ; validate magic bytes
+    ; the bootloader puts them in rsp as under normal circumstances rsp will never be this high
+    cmp rsp, BOOT_MAGIC
     ifz jmp entry_ok
 
-    ; if it appears that we're running on top of an existing kernel, then show a messagebox and exit
-    ; call the messagebox routines of the existing kernel
-    mov r0, 0
-    mov r1, kernelception_error_str
-    mov r2, 0
-    mov r3, 64
-    mov r4, 64
-    mov r5, 184
-    call [0x00000C34] ; new_messagebox
-    call [0x00000A18] ; end_current_task
-    rjmp 0
+    ; if it appears that we're running on top of an existing kernel, then just exit
+    jmp [0x00000A18] ; end_current_task of the existing kernel
 
 entry_ok:
-    mov rsp, SYSTEM_STACK
-
-    ; save the boot disk id that the bootloader passed in r0
+    ; r0: boot disk id
+    ; r1: total memory
+    ; r2: usable memory (i.e. memory not used by fox32rom)
+    ; r3: kernel base address
+    mov rsp, kernel_end
+    add rsp, 1024 ; the bootloader left us 1024 bytes of memory after the kernel
     mov.8 [boot_disk_id], r0
     mov.8 [current_disk_id], r0
+    mov [memory_top], r3
+    ise
 
     ; clear the background
     mov r0, BACKGROUND_COLOR
@@ -458,4 +448,4 @@ serial_stream_struct: data.fill 0, 32
 
     #include "../../fox32rom/fox32rom.def"
 
-kernel_bottom:
+kernel_end:
