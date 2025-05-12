@@ -113,7 +113,7 @@ fxf_reloc:
 
     ; get the number of entries in the reloc table
     mov r1, [r0+12] ; FXF_RELOC_SIZE
-    div r1, 4
+    srl r1, 2
     mov r31, r1
 
     ; get the pointer to the table
