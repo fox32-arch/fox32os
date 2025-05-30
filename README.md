@@ -16,5 +16,9 @@ Releases available on the [Releases page](https://github.com/fox32-arch/fox32os/
   Either use the pre-built binaries or build them.
 - Run `make`
 
+### Application Development
+
+Documentation of the fox32os APIs is currently a work-in-progress. See the [docs/api directory](docs/api/) for information.
+
 ## License
 This project is licensed under the [MIT license](LICENSE).
