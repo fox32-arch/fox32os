@@ -3,6 +3,12 @@ FOX32ASM := ../fox32asm/target/release/fox32asm
 OKAMERON := $(CURDIR)/meta/okameron/okameron.lua
 GFX2INC := ../tools/gfx2inc/target/release/gfx2inc
 
+ifeq ($(shell uname), Darwin)
+REALPATH ?= grealpath
+else
+REALPATH ?= realpath
+endif
+
 IMAGE_SIZE := 16777216
 ROM_IMAGE_SIZE := 196608
 BOOTLOADER := bootloader/boot1.bin
@@ -134,7 +140,7 @@ fox32os.img: $(BOOTLOADER) $(FILES) $(wildcard libraries/*/*.asm)
 	$(RYFS) newdir $@.tmp apps.dir
 	$(RYFS) newdir $@.tmp user.dir
 	for file in base_image/system/library/*.lbr; do $(RYFS) add -d /system/library $@.tmp $$file; done
-	$(foreach file, $(FILES), $(RYFS) add -q -d $(patsubst %/,%,$(dir $(shell realpath --relative-to base_image/ $(file)))) $@.tmp $(file);)
+	$(foreach file, $(FILES), $(RYFS) add -q -d $(patsubst %/,%,$(dir $(shell $(REALPATH) --relative-to base_image/ $(file)))) $@.tmp $(file);)
 	mv $@.tmp $@
 
 #romdisk.img: $(BOOTLOADER) $(ROM_FILES) $(wildcard libraries/*/*.asm)
