@@ -4,9 +4,9 @@ OKAMERON := $(CURDIR)/meta/okameron/okameron.lua
 GFX2INC := ../tools/gfx2inc/target/release/gfx2inc
 
 ifeq ($(shell uname), Darwin)
-REALPATH := grealpath
+REALPATH ?= grealpath
 else
-REALPATH := realpath
+REALPATH ?= realpath
 endif
 
 IMAGE_SIZE := 16777216
