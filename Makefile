@@ -114,21 +114,22 @@ FILES = \
 	base_image/apps/okmpaint.fxf \
 	base_image/user/bg.bmp
 
-#ROM_FILES = \
-#	base_image/system/boot2.bin \
-#	base_image/startup.bat \
-#	base_image/icons.res \
-#	base_image/kernel.fxf \
-#	base_image/sh.fxf \
-#	base_image/barclock.fxf \
-#	base_image/terminal.fxf \
-#	base_image/fetcher.fxf \
-#	base_image/serial.fxf \
-#	base_image/pride.fxf \
-#	base_image/bg.fxf \
-#	base_image/ted.fxf \
-#	base_image/loadfont.fxf \
-#	base_image/tasks.fxf
+ROM_FILES = \
+	base_image/system/boot2.bin \
+	base_image/system/startup.bat \
+	base_image/system/icons.res \
+	base_image/system/kernel.fxf \
+	base_image/system/sh.fxf \
+	base_image/system/barclock.fxf \
+	base_image/system/fetcher.fxf \
+	base_image/system/serial.fxf \
+	base_image/system/bg.fxf \
+	base_image/system/format.fxf \
+	base_image/system/ted.fxf \
+	base_image/system/loadfont.fxf \
+	base_image/system/tasks.fxf \
+	base_image/apps/pride.fxf \
+	base_image/apps/terminal.fxf
 
 base_image/system/library/%.lbr: $(wildcard libraries/*/*.asm)
 	cd libraries && $(MAKE)
@@ -143,11 +144,15 @@ fox32os.img: $(BOOTLOADER) $(FILES) $(wildcard libraries/*/*.asm)
 	$(foreach file, $(FILES), $(RYFS) add -q -d $(patsubst %/,%,$(dir $(shell $(REALPATH) --relative-to base_image/ $(file)))) $@.tmp $(file);)
 	mv $@.tmp $@
 
-#romdisk.img: $(BOOTLOADER) $(ROM_FILES) $(wildcard libraries/*/*.asm)
-#	$(RYFS) -s $(ROM_IMAGE_SIZE) -l romdisk -b $(BOOTLOADER) create $@.tmp
-#	for file in base_image/*.lbr; do $(RYFS) add $@.tmp $$file; done
-#	for file in $(ROM_FILES); do $(RYFS) add $@.tmp $$file; done
-#	mv $@.tmp $@
+romdisk.img: $(BOOTLOADER) $(ROM_FILES) $(wildcard libraries/*/*.asm)
+	$(RYFS) -s $(ROM_IMAGE_SIZE) -l romdisk -b $(BOOTLOADER) create $@.tmp
+	$(RYFS) newdir $@.tmp system.dir
+	$(RYFS) newdir -d system $@.tmp library.dir
+	$(RYFS) newdir $@.tmp apps.dir
+	$(RYFS) newdir $@.tmp user.dir
+	for file in base_image/system/library/*.lbr; do $(RYFS) add -d /system/library $@.tmp $$file; done
+	$(foreach file, $(ROM_FILES), $(RYFS) add -q -d $(patsubst %/,%,$(dir $(shell $(REALPATH) --relative-to base_image/ $(file)))) $@.tmp $(file);)
+	mv $@.tmp $@
 
 clean:
 	cd libraries && $(MAKE) clean
