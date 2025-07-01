@@ -14,10 +14,19 @@ ROM_IMAGE_SIZE := 196608
 BOOTLOADER := bootloader/boot1.bin
 BOOT_STAGE2 := bootloader/boot2.bin
 
-all: base_image/system/library base_image/apps base_image/user base_image/system/library/streamio.lbr fox32os.img #romdisk.img
+all: \
+	base_image/system/library \
+	base_image/system/font \
+	base_image/apps \
+	base_image/user \
+	base_image/system/library/*.lbr \
+	base_image/system/font/*.fnt \
+	fox32os.img #romdisk.img
 
 base_image/system/library:
 	mkdir -p base_image/system/library
+base_image/system/font:
+	mkdir -p base_image/system/font
 base_image/apps:
 	mkdir -p base_image/apps
 base_image/user:
@@ -134,13 +143,18 @@ ROM_FILES = \
 base_image/system/library/%.lbr: $(wildcard libraries/*/*.asm)
 	cd libraries && $(MAKE)
 
+base_image/system/font/%.fnt: $(wildcard fonts/*.asm) $(wildcard fonts/*.png)
+	cd fonts && $(MAKE)
+
 fox32os.img: $(BOOTLOADER) $(FILES) $(wildcard libraries/*/*.asm)
 	$(RYFS) -s $(IMAGE_SIZE) -l boot -b $(BOOTLOADER) create $@.tmp
 	$(RYFS) newdir $@.tmp system.dir
 	$(RYFS) newdir -d system $@.tmp library.dir
+	$(RYFS) newdir -d system $@.tmp font.dir
 	$(RYFS) newdir $@.tmp apps.dir
 	$(RYFS) newdir $@.tmp user.dir
 	for file in base_image/system/library/*.lbr; do $(RYFS) add -d /system/library $@.tmp $$file; done
+	for file in base_image/system/font/*.fnt; do $(RYFS) add -d /system/font $@.tmp $$file; done
 	$(foreach file, $(FILES), $(RYFS) add -q -d $(patsubst %/,%,$(dir $(shell $(REALPATH) --relative-to base_image/ $(file)))) $@.tmp $(file);)
 	mv $@.tmp $@
 
@@ -148,6 +162,7 @@ romdisk.img: $(BOOTLOADER) $(ROM_FILES) $(wildcard libraries/*/*.asm)
 	$(RYFS) -s $(ROM_IMAGE_SIZE) -l romdisk -b $(BOOTLOADER) create $@.tmp
 	$(RYFS) newdir $@.tmp system.dir
 	$(RYFS) newdir -d system $@.tmp library.dir
+	$(RYFS) newdir -d system $@.tmp font.dir
 	$(RYFS) newdir $@.tmp apps.dir
 	$(RYFS) newdir $@.tmp user.dir
 	for file in base_image/system/library/*.lbr; do $(RYFS) add -d /system/library $@.tmp $$file; done
@@ -156,6 +171,7 @@ romdisk.img: $(BOOTLOADER) $(ROM_FILES) $(wildcard libraries/*/*.asm)
 
 clean:
 	cd libraries && $(MAKE) clean
+	cd fonts && $(MAKE) clean
 	rm -f $(FILES)
 
 .PHONY: clean

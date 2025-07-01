@@ -6,6 +6,7 @@
 **/boot2.bin
 **/*.fxf
 **/*.lbr
+**/*.fnt
 **/*.res
 **/*.rsf
 **/bg.inc
