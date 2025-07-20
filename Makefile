@@ -62,6 +62,10 @@ base_image/system/ted.fxf: applications/ted/TEd.okm $(wildcard applications/ted/
 	rm applications/ted/ted.asm
 base_image/system/bg.fxf: applications/bg/main.asm
 	$(FOX32ASM) $< $@
+base_image/system/format.fxf: applications/format/main.asm
+	$(FOX32ASM) $< $@
+base_image/system/sysdisk.fxf: applications/sysdisk/main.asm
+	$(FOX32ASM) $< $@
 
 base_image/apps/terminal.fxf: applications/terminal/main.asm $(wildcard applications/terminal/*.asm)
 	$(FOX32ASM) $< $@
@@ -114,6 +118,8 @@ FILES = \
 	base_image/system/fetcher.fxf \
 	base_image/system/serial.fxf \
 	base_image/system/bg.fxf \
+	base_image/system/format.fxf \
+	base_image/system/sysdisk.fxf \
 	base_image/system/ted.fxf \
 	base_image/system/loadfont.fxf \
 	base_image/system/tasks.fxf \
@@ -134,6 +140,7 @@ ROM_FILES = \
 	base_image/system/serial.fxf \
 	base_image/system/bg.fxf \
 	base_image/system/format.fxf \
+	base_image/system/sysdisk.fxf \
 	base_image/system/ted.fxf \
 	base_image/system/loadfont.fxf \
 	base_image/system/tasks.fxf \
