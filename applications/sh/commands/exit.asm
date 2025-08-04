@@ -7,12 +7,12 @@ shell_exit_command:
     cmp r0, 0
     ifz call end_current_task
 
-    mov r31, [shell_batch_lines_processed]
-    dec r31
+    mov r31, [shell_batch_label_list_size]
+    srl r31, 3 ; divide by 8
 shell_exit_command_loop:
     mov r0, [shell_batch_label_list_ptr]
     mov r1, r31
-    mul r1, 8
+    sla r1, 3 ; multiply by 8
     add r0, r1
     cmp [r0], 0
     ifnz mov r0, [r0]

@@ -159,6 +159,8 @@ shell_parse_line:
 shell_tokenize:
     cmp.8 [r0], r1
     ifz jmp shell_tokenize_found_token
+    ;cmp.8 [r0], '"'
+    ;ifz jmp shell_tokenize_found_token_quote
 
     cmp.8 [r0], 0
     ifz mov r0, 0
@@ -169,7 +171,13 @@ shell_tokenize:
 shell_tokenize_found_token:
     mov.8 [r0], 0
     inc r0
+    cmp.8 r1, '"'
+    ifz inc r0
     ret
+;shell_tokenize_found_token_quote:
+;    mov.8 [r0], 0
+;    inc r0, 2
+;    ret
 
 ; parse up to 4 arguments into individual strings
 ; for example, "this is a test" will be converted to
@@ -188,12 +196,15 @@ shell_parse_arguments:
     push r31
 
     mov r0, [shell_args_ptr]
-    mov r1, ' '
     mov r31, 3
+    rcall.16 shell_parse_arguments_post_tokenize
     push r0
+    rcall.16 shell_parse_arguments_post_push
 shell_parse_arguments_loop:
     call shell_tokenize
+    rcall.16 shell_parse_arguments_post_tokenize
     push r0
+    rcall.16 shell_parse_arguments_post_push
     loop shell_parse_arguments_loop
     pop r3
     pop r2
@@ -202,6 +213,103 @@ shell_parse_arguments_loop:
 
     pop r31
     ret
+shell_parse_arguments_post_tokenize:
+    mov r1, ' '
+    mov [shell_parse_arguments_post_push_saved], 0
+    cmp.8 [r0], '$'
+    ifz rjmp.16 shell_parse_arguments_post_1
+    cmp.8 [r0], '"'
+    ifz mov r1, '"'
+    ifz inc r0
+    ret
+shell_parse_arguments_post_1:
+    mov [shell_parse_arguments_post_push_saved], r0
+    cmp.8 [r0+1], 'r'
+    ifz rjmp.16 shell_parse_arguments_post_1_register
+    ; if we give a number without the 'r', interpret it as "register as value"
+    inc r0
+    rjmp.16 shell_parse_arguments_post_1_register_as_value
+    ret
+shell_parse_arguments_post_1_register:
+    inc r0, 2
+    cmp.8 [r0], 'd'
+    ifz rjmp.16 shell_parse_arguments_post_1_register_as_decimal_string
+    cmp.8 [r0], 'c'
+    ifz rjmp.16 shell_parse_arguments_post_1_register_as_character
+shell_parse_arguments_post_1_register_as_value:
+    push r1
+    mov r1, 10
+    call string_to_int
+    mul r0, 4
+    add r0, shell_batch_regs
+    mov r0, [r0]
+    pop r1
+    ret
+shell_parse_arguments_post_1_register_as_decimal_string:
+    push r1
+    inc r0
+    mov r1, 10
+    call string_to_int
+    mul r0, 4
+    add r0, shell_batch_regs
+    mov r0, [r0]
+    pop r1
+
+    push [shell_text_buf_ptr]
+    push r10
+    push r11
+    push r12
+    push r13
+    mov r10, rsp
+    mov r12, r0
+
+    push.8 0
+shell_parse_arguments_post_1_register_as_decimal_string_loop:
+    push r12
+    div r12, 10
+    pop r13
+    rem r13, 10
+    mov r11, r13
+    add r11, '0'
+    push.8 r11
+    cmp r12, 0
+    ifnz jmp shell_parse_arguments_post_1_register_as_decimal_string_loop
+    mov r11, rsp
+shell_parse_arguments_post_1_register_as_decimal_string_push:
+    movz.8 r0, [r11]
+    call shell_push_character
+    inc r11
+    cmp r0, 0
+    ifnz rjmp.16 shell_parse_arguments_post_1_register_as_decimal_string_push
+
+    mov rsp, r10
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r0
+    ret
+shell_parse_arguments_post_1_register_as_character:
+    push r1
+    inc r0
+    mov r1, 10
+    call string_to_int
+    mul r0, 4
+    add r0, shell_batch_regs
+    mov r0, [r0]
+    push [shell_text_buf_ptr]
+    call shell_push_character
+    movz.8 r0, 0
+    call shell_push_character
+    pop r0
+    pop r1
+    ret
+shell_parse_arguments_post_push:
+    cmp [shell_parse_arguments_post_push_saved], 0
+    ifnz mov r0, [shell_parse_arguments_post_push_saved]
+    mov [shell_parse_arguments_post_push_saved], 0
+    ret
+shell_parse_arguments_post_push_saved: data.32 0
 
 ; push a character to the text buffer
 ; inputs:
@@ -246,7 +354,7 @@ shell_delete_character_end:
 shell_clear_buffer:
     push r0
 
-    ; set the text buffer poinrer to the start of the text buffer
+    ; set the text buffer pointer to the start of the text buffer
     mov [shell_text_buf_ptr], shell_text_buf_bottom
 
     ; set the first character as null

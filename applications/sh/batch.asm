@@ -7,6 +7,12 @@
 ; outputs:
 ; none (does not return)
 shell_run_batch:
+    ; pop the command line arguments into registers 0, 1, and 2
+    mov r0, shell_batch_regs
+    pop [r0]
+    pop [r0+4]
+    pop [r0+8]
+
     ; open the batch file
     mov r0, [shell_batch_filename_ptr]
     cmp.8 [r0], 0
@@ -108,9 +114,11 @@ shell_run_batch_ff_check_label:
     mov r0, [shell_batch_label_list_ptr]
     mov r1, [shell_batch_lines_processed]
     mul r1, 8
+    mov r2, [shell_batch_label_list_size]
     call shell_reallocate
-
     mov [shell_batch_label_list_ptr], r0
+    mov [shell_batch_label_list_size], r1
+
     mov r1, [shell_batch_lines_processed]
     dec r1
     mul r1, 8
@@ -127,8 +135,10 @@ shell_run_batch_rw:
     mov r0, [shell_batch_label_list_ptr]
     mov r1, [shell_batch_lines_processed]
     mul r1, 8
+    mov r2, [shell_batch_label_list_size]
     call shell_reallocate
     mov [shell_batch_label_list_ptr], r0
+    mov [shell_batch_label_list_size], r1
 
     mov r31, [shell_batch_lines_processed]
     dec r31
@@ -153,7 +163,7 @@ shell_run_batch_rw_check_label:
     ifnz ret
 
     ; if we reach this point then we're at the requested label, resume execution
-    sub [shell_batch_lines_processed], r31
+    mov [shell_batch_lines_processed], r31
     mov r0, [shell_batch_label_list_ptr]
     mov r1, r31
     mul r1, 8
@@ -173,15 +183,19 @@ shell_run_batch_failed_to_open:
 ; inputs:
 ; r0: pointer to old block
 ; r1: new size
+; r2: old size
 ; outputs:
 ; r0: pointer to new block
+; r1: new size
 shell_reallocate:
     cmp r1, 0
     ifz ret
     cmp r0, 0
     ifz jmp shell_reallocate_all_new
-    cmp r1, [shell_reallocate_old_size]
-    ifz ret
+    cmp r1, r2
+    iflteq ret
+    mov [shell_reallocate_old_size], r2
+    push r1
     push r31
     push r2
     push r0
@@ -203,6 +217,7 @@ shell_reallocate_clear_loop:
     pop r2
     pop r31
     mov r0, r1
+    pop r1
     ret
 shell_reallocate_all_new:
     mov r0, r1
@@ -227,4 +242,5 @@ shell_batch_label_to_look_for: data.fill 0, 128
 shell_batch_ret_stack: data.fill 0, 128
 shell_batch_ret_stack_offset: data.32 32
 shell_batch_label_list_ptr: data.32 0
+shell_batch_label_list_size: data.32 0
 shell_batch_lines_processed: data.32 0

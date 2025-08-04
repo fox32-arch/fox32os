@@ -46,6 +46,7 @@ launch_fxf_no_prefix:
     mov r2, launch_fxf_struct
     call open
     cmp r0, 0
+    ifz mov [shell_command_return_value], 1 ; return 1 to indicate file failure
     ifz ret
 
     ; if this is not FXF version 0, then there is a bss section
@@ -179,6 +180,9 @@ launch_fxf_skip_fill_reti_addr:
     mov r4, [launch_fxf_stack_ptr]
     call new_task
 
+    ; return 0 to indicate task was launched
+    mov [shell_command_return_value], 0
+
     ; fall-through to launch_fxf_yield_loop
 
 ; loop until the launched task ends
@@ -198,6 +202,7 @@ launch_fxf_yield_loop:
 allocate_error:
     mov r0, out_of_memory_string
     call print_str_to_terminal
+    mov [shell_command_return_value], 2 ; return 2 to indicate allocate failure
     ret
 
 ; entry point for a program started in debug mode

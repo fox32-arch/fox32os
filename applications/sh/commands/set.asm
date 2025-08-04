@@ -1,7 +1,8 @@
 ; set commands
 
 shell_setfrom_command_string: data.strz "setfrom"
-shell_setreg_command_string: data.strz "setreg"
+shell_movi_command_string: data.strz "movi"
+shell_movr_command_string: data.strz "movr"
 shell_getreg_command_string: data.strz "getreg"
 
 shell_setfrom_command:
@@ -16,7 +17,7 @@ shell_setfrom_command:
 
     ret
 
-shell_setreg_command:
+shell_movi_command:
     call shell_parse_arguments
     push r1
     mov r1, 10
@@ -31,6 +32,27 @@ shell_setreg_command:
     mul r0, 4
     add r0, shell_batch_regs
     mov [r0], [shell_setreg_command_value]
+
+    ret
+
+shell_movr_command:
+    call shell_parse_arguments
+    push r1
+    mov r1, 10
+    call string_to_int
+    mov.8 [shell_setreg_command_reg], r0
+    pop r0
+    mov r1, 10
+    call string_to_int
+    mov.8 [shell_setreg_command_value], r0
+
+    movz.8 r0, [shell_setreg_command_reg]
+    mul r0, 4
+    add r0, shell_batch_regs
+    movz.8 r1, [shell_setreg_command_value]
+    mul r1, 4
+    add r1, shell_batch_regs
+    mov [r0], [r1]
 
     ret
 

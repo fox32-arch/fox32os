@@ -73,8 +73,10 @@ shell_label_command:
     mov r0, [shell_batch_label_list_ptr]
     mov r1, [shell_batch_lines_processed]
     mul r1, 8
+    mov r2, [shell_batch_label_list_size]
     call shell_reallocate
     mov [shell_batch_label_list_ptr], r0
+    mov [shell_batch_label_list_size], r1
 
     mov r1, [shell_batch_lines_processed]
     dec r1
@@ -82,7 +84,9 @@ shell_label_command:
     add r0, r1
     mov r10, r0
 
+    push r10
     call shell_parse_arguments
+    pop r10
     call add_label
 
     ret

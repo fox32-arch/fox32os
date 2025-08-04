@@ -6,15 +6,15 @@ shell_parse_command:
 
     mov r0, shell_text_buf_bottom
 
-    ; addreg
-    mov r1, shell_addreg_command_string
+    ; addr
+    mov r1, shell_addr_command_string
     call compare_string
-    ifz jmp shell_addreg_command
+    ifz jmp shell_addr_command
 
-    ; addimm
-    mov r1, shell_addimm_command_string
+    ; addi
+    mov r1, shell_addi_command_string
     call compare_string
-    ifz jmp shell_addimm_command
+    ifz jmp shell_addi_command
 
     ; call
     mov r1, shell_call_command_string
@@ -46,15 +46,15 @@ shell_parse_command:
     call compare_string
     ifz jmp shell_clear_command
 
-    ; cmpimm
-    mov r1, shell_cmpimm_command_string
+    ; cmpi
+    mov r1, shell_cmpi_command_string
     call compare_string
-    ifz jmp shell_cmpimm_command
+    ifz jmp shell_cmpi_command
 
-    ; cmpreg
-    mov r1, shell_cmpreg_command_string
+    ; cmpr
+    mov r1, shell_cmpr_command_string
     call compare_string
-    ifz jmp shell_cmpreg_command
+    ifz jmp shell_cmpr_command
 
     ; copy
     mov r1, shell_copy_command_string
@@ -86,20 +86,25 @@ shell_parse_command:
     call compare_string
     ifz jmp shell_echo_command
 
-    ; echoregd
-    mov r1, shell_echoregd_command_string
+    ; echord
+    mov r1, shell_echord_command_string
     call compare_string
-    ifz jmp shell_echoregd_command
+    ifz jmp shell_echord_command
 
-    ; echoregh
-    mov r1, shell_echoregh_command_string
+    ; echorh
+    mov r1, shell_echorh_command_string
     call compare_string
-    ifz jmp shell_echoregh_command
+    ifz jmp shell_echorh_command
 
-    ; echoregs
-    mov r1, shell_echoregs_command_string
+    ; echors
+    mov r1, shell_echors_command_string
     call compare_string
-    ifz jmp shell_echoregs_command
+    ifz jmp shell_echors_command
+
+    ; echov
+    mov r1, shell_echov_command_string
+    call compare_string
+    ifz jmp shell_echov_command
 
     ; exit
     mov r1, shell_exit_command_string
@@ -146,6 +151,16 @@ shell_parse_command:
     call compare_string
     ifz jmp shell_newdir_command
 
+    ; peek
+    mov r1, shell_peek_command_string
+    call compare_string
+    ifz jmp shell_peek_command
+
+    ; poke
+    mov r1, shell_poke_command_string
+    call compare_string
+    ifz jmp shell_poke_command
+
     ; rdall
     mov r1, shell_rdall_command_string
     call compare_string
@@ -176,25 +191,30 @@ shell_parse_command:
     call compare_string
     ifz jmp shell_setfrom_command
 
-    ; setreg
-    mov r1, shell_setreg_command_string
+    ; movi
+    mov r1, shell_movi_command_string
     call compare_string
-    ifz jmp shell_setreg_command
+    ifz jmp shell_movi_command
+
+    ; movr
+    mov r1, shell_movr_command_string
+    call compare_string
+    ifz jmp shell_movr_command
 
     ; shutdown
     mov r1, shell_shutdown_command_string
     call compare_string
     ifz jmp shell_shutdown_command
 
-    ; subreg
-    mov r1, shell_subreg_command_string
+    ; subr
+    mov r1, shell_subr_command_string
     call compare_string
-    ifz jmp shell_subreg_command
+    ifz jmp shell_subr_command
 
-    ; subimm
-    mov r1, shell_subimm_command_string
+    ; subi
+    mov r1, shell_subi_command_string
     call compare_string
-    ifz jmp shell_subimm_command
+    ifz jmp shell_subi_command
 
     ; type
     mov r1, shell_type_command_string
@@ -207,6 +227,7 @@ shell_parse_command:
     ; invalid command
     mov r0, shell_invalid_command_string
     call print_str_to_terminal
+    mov [shell_command_return_value], 255 ; return 255 to indicate invalid command
 
     ret
 
@@ -230,6 +251,7 @@ shell_invalid_command_string: data.str "invalid command or FXF binary" data.8 10
     #include "commands/help.asm"
     #include "commands/if.asm"
     #include "commands/math.asm"
+    #include "commands/memory.asm"
     #include "commands/newdir.asm"
     #include "commands/rdall.asm"
     #include "commands/rdnext.asm"

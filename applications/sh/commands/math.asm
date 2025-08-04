@@ -1,11 +1,11 @@
 ; math commands
 
-shell_addreg_command_string: data.strz "addreg"
-shell_addimm_command_string: data.strz "addimm"
-shell_subreg_command_string: data.strz "subreg"
-shell_subimm_command_string: data.strz "subimm"
+shell_addr_command_string: data.strz "addr"
+shell_addi_command_string: data.strz "addi"
+shell_subr_command_string: data.strz "subr"
+shell_subi_command_string: data.strz "subi"
 
-shell_addreg_command:
+shell_addr_command:
     call shell_parse_arguments
     push r1
     mov r1, 10
@@ -40,7 +40,7 @@ shell_addreg_command:
 
     ret
 
-shell_addimm_command:
+shell_addi_command:
     call shell_parse_arguments
     push r1
     mov r1, 10
@@ -68,7 +68,7 @@ shell_addimm_command:
 
     ret
 
-shell_subreg_command:
+shell_subr_command:
     call shell_parse_arguments
     push r1
     mov r1, 10
@@ -103,7 +103,7 @@ shell_subreg_command:
 
     ret
 
-shell_subimm_command:
+shell_subi_command:
     call shell_parse_arguments
     push r1
     mov r1, 10

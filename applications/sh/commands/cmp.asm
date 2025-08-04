@@ -1,9 +1,9 @@
 ; cmp command
 
-shell_cmpreg_command_string: data.strz "cmpreg"
-shell_cmpimm_command_string: data.strz "cmpimm"
+shell_cmpr_command_string: data.strz "cmpr"
+shell_cmpi_command_string: data.strz "cmpi"
 
-shell_cmpreg_command:
+shell_cmpr_command:
     call shell_parse_arguments
     push r1
     mov r1, 10
@@ -29,7 +29,7 @@ shell_cmpreg_command:
 
     ret
 
-shell_cmpimm_command:
+shell_cmpi_command:
     call shell_parse_arguments
     push r1
     mov r1, 10
