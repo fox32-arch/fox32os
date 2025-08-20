@@ -160,6 +160,17 @@ handle_widget_click_check_type:
     ifz jmp handle_widget_click_button
     cmp [r0], WIDGET_TYPE_TEXTBOX_SL
     ifz jmp handle_widget_click_textbox_sl
+handle_widget_click_next:
+    ; get pointer to next widget
+    sub r0, 8
+    mov r0, [r0]
+
+    ; if this is the last widget, then exit
+    cmp r0, 0
+    ifz jmp handle_widget_click_done
+
+    ; retry
+    jmp handle_widget_click_check_type
 handle_widget_click_done:
     pop r0
 
@@ -256,16 +267,7 @@ handle_widget_click_button_no_click:
     pop r10
     pop r0
 
-    ; get pointer to next widget
-    sub r0, 8
-    mov r0, [r0]
-
-    ; if this is the last widget, then exit
-    cmp r0, 0
-    ifz jmp handle_widget_click_done
-
-    ; retry
-    jmp handle_widget_click_check_type
+    jmp handle_widget_click_next
 handle_widget_click_textbox_sl:
     push r0
     push r10
@@ -338,16 +340,7 @@ handle_widget_click_textbox_sl_no_click:
     pop r10
     pop r0
 
-    ; get pointer to next widget
-    sub r0, 8
-    mov r0, [r0]
-
-    ; if this is the last widget, then exit
-    cmp r0, 0
-    ifz jmp handle_widget_click_done
-
-    ; retry
-    jmp handle_widget_click_check_type
+    jmp handle_widget_click_next
 
 ; handle key-down events for the active widget
 ; inputs:
