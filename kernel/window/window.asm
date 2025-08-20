@@ -199,6 +199,8 @@ new_window_skip_redraw_title:
     add r0, window_list
     pop r1
     mov [r0], r1
+    mov r0, r1
+    call draw_title_bar_to_window
 
     pop r12
     pop r11
