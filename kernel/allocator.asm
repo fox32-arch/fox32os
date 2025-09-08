@@ -8,7 +8,6 @@
 ; data.32 size - size of block (redundancy check)
 
 const HEADER_SIZE: 20
-const MEMORY_TOP:  0x01FEF800 ; 64KB below the stack
 
 initialize_allocator:
     push r0
