@@ -2,7 +2,7 @@ const ICON_SIZE_16x16: 1024
 const ICON_SIZE_32x32: 4096
 
     ; format: "RES" magic bytes, version, number of resource IDs
-    data.str "RES" data.8 0 data.8 8
+    data.str "RES" data.8 0 data.8 9
 
     ; format: 3 character null-terminated ID, pointer to data, size
     data.strz "ICN" data.32 ICN data.32 35
