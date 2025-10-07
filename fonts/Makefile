@@ -2,8 +2,9 @@ FOX32ASM ?= ../../fox32asm/target/release/fox32asm
 GFX2INC ?= ../../tools/gfx2inc/target/release/gfx2inc
 
 FILES = \
-	casual-b.fnt \
-	casual-t.fnt
+	casual/casual-b.fnt \
+	casual/casual-t.fnt \
+	coral/coral.fnt
 
 all: $(FILES)
 
