@@ -107,6 +107,7 @@ ICONS16 := \
 ICONS32 := \
 	applications/icons/dir.inc \
 	applications/icons/dsk.inc \
+	applications/icons/fnt.inc \
 	applications/icons/fxf.inc \
 	applications/icons/msc.inc \
 	applications/icons/ssc.inc

@@ -9,6 +9,7 @@ const ICON_SIZE_32x32: 4096
     data.strz "IC2" data.32 IC2 data.32 30
     data.strz "dir" data.32 dir data.32 ICON_SIZE_32x32
     data.strz "dsk" data.32 dsk data.32 ICON_SIZE_32x32
+    data.strz "fnt" data.32 fnt data.32 ICON_SIZE_32x32
     data.strz "fxf" data.32 fxf data.32 ICON_SIZE_32x32
     data.strz "mnu" data.32 mnu data.32 ICON_SIZE_16x16
     data.strz "msc" data.32 msc data.32 ICON_SIZE_32x32
@@ -22,6 +23,8 @@ dir:
     #include "dir.inc"
 dsk:
     #include "dsk.inc"
+fnt:
+    #include "fnt.inc"
 fxf:
     #include "fxf.inc"
 mnu:
