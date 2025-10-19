@@ -49,6 +49,32 @@ launch_fxf_no_prefix:
     ifz mov [shell_command_return_value], 1 ; return 1 to indicate file failure
     ifz ret
 
+    ; grab the last part of the file path (excluding extension) to use as the task name
+    mov [launch_fxf_task_name], 0x20202020
+    mov [launch_fxf_task_name_high], 0x20202020
+    mov r0, launch_fxf_name
+    call string_length
+    add r0, launch_fxf_name
+    sub r0, 5
+    mov r1, 1
+    mov r31, 8
+launch_fxf_build_task_name_loop:
+    cmp.8 [r0], '/'
+    ifz rjmp.16 launch_fxf_build_task_name_loop_copy
+    cmp r0, launch_fxf_name
+    iflteq rjmp.16 launch_fxf_build_task_name_loop_copy
+    dec r0
+    inc r1
+    rloop.16 launch_fxf_build_task_name_loop
+launch_fxf_build_task_name_loop_copy:
+    cmp.8 [r0], '/'
+    ifnz rjmp.8 launch_fxf_build_task_name_loop_copy_1
+    inc r0
+    dec r1
+launch_fxf_build_task_name_loop_copy_1:
+    mov r2, r1
+    mov r1, launch_fxf_task_name
+    call copy_memory_bytes
     ; if this is not FXF version 0, then there is a bss section
     mov r0, 3
     mov r1, launch_fxf_struct
@@ -178,6 +204,7 @@ launch_fxf_skip_fill_reti_addr:
     ifnz sub r2, 9
     mov r3, [launch_fxf_binary_ptr]
     mov r4, [launch_fxf_stack_ptr]
+    mov r6, launch_fxf_task_name
     call new_task
 
     ; return 0 to indicate task was launched
@@ -227,6 +254,10 @@ launch_fxf_task_id: data.8 0
 launch_fxf_binary_ptr: data.32 0
 launch_fxf_stack_ptr: data.32 0
 launch_fxf_temp: data.32 0
+
+launch_fxf_task_name: data.fill 0, 4
+launch_fxf_task_name_high: data.fill 0, 4
+launch_fxf_task_name_top: data.8 0
 
 launch_fxf_yield_should_suspend: data.8 0
 launch_fxf_debug_mode: data.8 0
