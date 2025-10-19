@@ -21,6 +21,7 @@ start_event_manager_task:
     mov r4, r10                     ; pointer to task stack block to free when task ends
     sub r4, 256                     ; point to the start of the stack block that we allocated above
     mov r5, 0                       ; don't care about current disk or directory
+    mov r6, event_manager_task_name ; task name
     call new_task
 
     ret
@@ -186,3 +187,5 @@ event_manager_task_mouse_event_inactive_window_was_clicked_no_change:
     mov r8, [old_r8]
     ret
 old_r8: data.32 0
+
+event_manager_task_name: data.strz "eventmgr"

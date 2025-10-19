@@ -26,6 +26,7 @@ launch_fxf_from_open_file:
     push r6
 
     mov [launch_fxf_struct_ptr], r0
+    mov [launch_fxf_name_ptr], launch_fxf_unnamed_str
     jmp launch_fxf_from_open_file_1
 
 ; launch an FXF binary from a file on disk
@@ -55,10 +56,39 @@ launch_fxf_from_disk:
 
     ; open the file
     mov [launch_fxf_struct_ptr], launch_fxf_struct
+    mov [launch_fxf_name_ptr], r0
     mov r2, [launch_fxf_struct_ptr]
     call open
     cmp r0, 0
     ifz jmp launch_fxf_from_disk_file_error
+
+    ; grab the last part of the file path (excluding extension) to use as the task name
+    mov [launch_fxf_task_name], 0x20202020
+    mov [launch_fxf_task_name_high], 0x20202020
+    mov r0, [launch_fxf_name_ptr]
+    call string_length
+    add r0, [launch_fxf_name_ptr]
+    sub r0, 5
+    mov r1, 1
+    mov r31, 8
+launch_fxf_from_disk_build_task_name_loop:
+    cmp.8 [r0], '/'
+    ifz rjmp.16 launch_fxf_from_disk_build_task_name_loop_copy
+    cmp r0, [launch_fxf_name_ptr]
+    iflteq rjmp.16 launch_fxf_from_disk_build_task_name_loop_copy
+    cmp.8 [r0], '.'
+    ifnz inc r1
+    dec r0
+    rloop.16 launch_fxf_from_disk_build_task_name_loop
+launch_fxf_from_disk_build_task_name_loop_copy:
+    cmp.8 [r0], '/'
+    ifnz rjmp.8 launch_fxf_from_disk_build_task_name_loop_copy_1
+    inc r0
+    dec r1
+launch_fxf_from_disk_build_task_name_loop_copy_1:
+    mov r2, r1
+    mov r1, launch_fxf_task_name
+    call copy_memory_bytes
 launch_fxf_from_open_file_1:
     ; if this is not FXF version 0, then there is a bss section
     mov r0, 3
@@ -140,6 +170,7 @@ launch_fxf_continue:
     movz.16 r5, [current_directory]
     sla r5, 16
     mov.8 r5, [current_disk_id]
+    mov r6, launch_fxf_task_name
     call new_task
 
     pop r6
@@ -194,6 +225,13 @@ launch_fxf_task_id: data.8 0
 launch_fxf_binary_ptr: data.32 0
 launch_fxf_stack_ptr: data.32 0
 launch_fxf_bss_size: data.32 0
+
+launch_fxf_name_ptr: data.32 0
+launch_fxf_unnamed_str: data.strz "unnamed#"
+launch_fxf_task_name: data.fill 0, 4
+launch_fxf_task_name_high: data.fill 0, 4
+launch_fxf_task_name_top: data.8 0
+
 launch_fxf_allocate_error_string1: data.strz "Failed to allocate memory for a new task"
 launch_fxf_allocate_error_string2: data.strz "The memory allocator seems to be in an"
 launch_fxf_allocate_error_string3: data.strz "invalid state, a reboot is recommended"

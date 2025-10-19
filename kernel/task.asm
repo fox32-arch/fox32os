@@ -8,11 +8,39 @@
 ; r3: pointer to code block to free when task ends, or zero for none
 ; r4: pointer to stack block to free when task ends, or zero for none
 ; r5: initial disk ID and directory sector (upper 16 bits = directory sector; lower 16 bits = disk ID)
+; r6: pointer to null-terminated task name string (max 8 characters, 9 bytes with null)
 ; outputs:
 ; none
 new_task:
     ; mark this task ID as used
     bse [task_id_bitmap], r0
+
+    ; pad the task name to 8 characters with spaces on the stack
+    push r31
+    push r0
+    mov r0, r6
+    call string_length
+    cmp r0, 8
+    ifgt movz.8 r0, 8
+    mov r31, r0
+    mov r0, rsp
+    add r6, r31
+    dec r6
+    push 0x20202020
+    push 0x20202020
+new_task_name_loop:
+    push.8 [r6]
+    dec r6
+    rloop.8 new_task_name_loop
+
+    ; load the padded task name
+    mov r8, [rsp]   ; task name (word 1)
+    mov r9, [rsp+4] ; task name (word 2)
+
+    ; restore the stack pointer and clobbered regs
+    mov rsp, r0
+    pop r0
+    pop r31
 
     mov r7, r5 ; disk and directory
     mov r6, r4 ; stack block pointer
@@ -223,11 +251,17 @@ get_current_task_id:
     push r4
     push r5
     push r6
+    push r7
+    push r8
+    push r9
 
     mov r0, current_task
     call task_load
     mov r0, r2
 
+    pop r9
+    pop r8
+    pop r7
     pop r6
     pop r5
     pop r4
@@ -243,7 +277,7 @@ get_current_task_id:
 ; r1: number of tasks in the queue
 ; r2: size in bytes of each entry in the queue
 get_task_queue:
-    mov r0, task_queue_bottom
+    mov r0, current_task ; current_task is right above task_queue_bottom
     mov r1, [task_queue_ptr]
     sub r1, r0
     div r1, TASK_SIZE
@@ -260,33 +294,27 @@ is_task_id_used:
     ret
 
 task_load:
-    mov r2, [r0] ; task ID
-    add r0, 4
-    mov r3, [r0] ; instruction pointer
-    add r0, 4
-    mov r4, [r0] ; stack pointer
-    add r0, 4
-    mov r5, [r0] ; code block pointer
-    add r0, 4
-    mov r6, [r0] ; stack block pointer
-    add r0, 4
-    mov r7, [r0] ; active disk and directory
-    add r0, 4
+    mov r2, [r0]    ; task ID
+    mov r3, [r0+4]  ; instruction pointer
+    mov r4, [r0+8]  ; stack pointer
+    mov r5, [r0+12] ; code block pointer
+    mov r6, [r0+16] ; stack block pointer
+    mov r7, [r0+20] ; active disk and directory
+    mov r8, [r0+24] ; task name (word 1)
+    mov r9, [r0+28] ; task name (word 2)
+    add r0, TASK_SIZE
     ret
 
 task_store:
-    mov [r0], r2 ; task ID
-    add r0, 4
-    mov [r0], r3 ; instruction pointer
-    add r0, 4
-    mov [r0], r4 ; stack pointer
-    add r0, 4
-    mov [r0], r5 ; code block pointer
-    add r0, 4
-    mov [r0], r6 ; stack block pointer
-    add r0, 4
-    mov [r0], r7 ; active disk and directory
-    add r0, 4
+    mov [r0], r2    ; task ID
+    mov [r0+4], r3  ; instruction pointer
+    mov [r0+8], r4  ; stack pointer
+    mov [r0+12], r5 ; code block pointer
+    mov [r0+16], r6 ; stack block pointer
+    mov [r0+20], r7 ; active disk and directory
+    mov [r0+24], r8 ; task name (word 1)
+    mov [r0+28], r9 ; task name (word 2)
+    add r0, TASK_SIZE
     ret
 
 task_empty:
@@ -297,9 +325,10 @@ task_empty:
 
 task_panic_str: data.str "Scheduler starved, task queue empty!" data.8 10 data.8 0
 
-const TASK_SIZE: 24
+const TASK_SIZE: 32
 task_id_bitmap: data.32 0
 
+task_queue_ptr: data.32 task_queue_bottom
 current_task:
     data.32 0 ; task ID
     data.32 0 ; instruction pointer
@@ -310,6 +339,5 @@ current_disk_id:
     data.16 0 ; active disk ID
 current_directory:
     data.16 0 ; active directory sector
-
-task_queue_ptr: data.32 task_queue_bottom
-task_queue_bottom: data.fill 0, 640 ; 32 tasks * 5 entries per task * 4 bytes per word = 640
+    data.fill 0, 8 ; task name
+task_queue_bottom: data.fill 0, 1024 ; 32 tasks * 32 bytes per task = 1024
