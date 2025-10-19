@@ -21,24 +21,26 @@ task_loop:
     mov r0, separator
     call print
 
-    ; rip value
-    mov r0, [r10+4]
-    call print_hex
-    mov r0, separator2
+    ; task name
+    mov [name_buffer_low], [r10+24]
+    mov [name_buffer_high], [r10+28]
+    mov r0, name_buffer_low
     call print
-
-    ; rsp value
-    mov r0, [r10+8]
-    call print_hex
-    mov r0, separator2
+    mov r0, separator
     call print
 
     ; base address
     mov r0, [r10+12]
+    cmp r0, 0
+    ifz rjmp base_addr_zero
     call print_hex
     mov r0, nl
     call print
-
+    rjmp next
+base_addr_zero:
+    mov r0, base_na
+    call print
+next:
     add r10, r2
 
     loop task_loop
@@ -47,7 +49,12 @@ task_loop:
 separator2: data.str " "
 separator: data.strz " | "
 space: data.strz " "
-header: data.str "ID | rip value | rsp value | base addr" nl: data.8 10 data.8 0
+base_na: data.str "<kernel>" data.8 10 data.8 0
+header: data.str "ID | name     | base addr" nl: data.8 10 data.8 0
+
+; 8 characters plus null terminator
+name_buffer_low: data.fill 0, 4
+name_buffer_high: data.fill 0, 4 data.8 0
 
 print:
     push r0
