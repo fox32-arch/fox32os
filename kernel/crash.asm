@@ -46,12 +46,19 @@ task_crash_handler:
     mov r0, BACKGROUND_COLOR
     mov r1, 30
     call fill_overlay
-    mov r0, crash_str
+
+    mov r0, current_task
+    mov [crashed_task_name_low], [r0+24]
+    mov [crashed_task_name_high], [r0+28]
+
+    mov r0, crashed_task_name
     mov r1, 8
     mov r2, 0
     mov r3, TEXT_COLOR
     mov r4, BACKGROUND_COLOR
     mov r5, 30
+    call draw_str_to_overlay
+    mov r0, crash_str
     mov r10, [current_task]
     mov r11, [task_crash_handler_return_address]
     call draw_format_str_to_overlay
@@ -133,7 +140,10 @@ task_crash_handler_monitor:
     brk
     reti
 
-crash_str: data.strz "Task %u crashed at 0x%x // E = end task, R = recover, M = monitor"
+crash_str: data.strz " (task %u) crashed at 0x%x // E = end, R = recover, M = monitor"
+crashed_task_name: data.8 '"'
+crashed_task_name_low: data.fill 0, 4
+crashed_task_name_high: data.fill 0, 4 data.8 '"' data.8 0
 task_crash_handler_return_address: data.32 0
 task_crash_handler_old_rsp: data.32 0
     data.fill 0, 512
