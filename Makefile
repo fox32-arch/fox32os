@@ -59,18 +59,18 @@ all: \
 	base_image/system/font \
 	base_image/apps \
 	base_image/user \
-	base_image/system/library/*.lbr \
-	base_image/system/font/*.fnt \
 	fox32os.img #romdisk.img
 
 $(JKL):
 	cd $(NEWSDK) && ./bootstrap.sh
 	cd $(NEWSDK) && ./buildall.sh 4
 
-base_image/system/library:
+base_image/system/library: FORCE
 	mkdir -p base_image/system/library
-base_image/system/font:
+	$(MAKE) -C libraries
+base_image/system/font: FORCE
 	mkdir -p base_image/system/font
+	$(MAKE) -C fonts
 base_image/apps:
 	mkdir -p base_image/apps
 base_image/user:
@@ -85,18 +85,16 @@ base_image/system/boot2.bin: bootloader/boot2.bin
 base_image/system/startup.bat: base_image/system/startup.bat.default
 	cp $< $@
 
-base_image/system/kernel.fxf:
+base_image/system/kernel.fxf: FORCE
 	$(MAKE) -C kernel
-base_image/system/%.fxf: $(wildcard applications/%/**)
+base_image/system/%.fxf: FORCE
 	$(MAKE) -C applications/$*
-base_image/system/icons.res:
+base_image/system/icons.res: FORCE
 	$(MAKE) -C applications/icons
-base_image/system/library/%.lbr: $(wildcard libraries/*/*.asm)
-	$(MAKE) -C libraries
-base_image/system/font/%.fnt: $(wildcard fonts/*.asm) $(wildcard fonts/*.png)
-	$(MAKE) -C fonts
-base_image/apps/%.fxf: $(wildcard applications/%/**)
+base_image/apps/%.fxf: FORCE
 	$(MAKE) -C applications/$*
+
+FORCE: ;
 
 fox32os.img: $(BOOTLOADER) $(FILES) $(wildcard libraries/*/*.asm)
 	$(RYFS) -s $(IMAGE_SIZE) -l boot -b $(BOOTLOADER) create $@.tmp
