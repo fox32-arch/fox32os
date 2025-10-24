@@ -1,6 +1,6 @@
 chgdir /system;
 *bg /user/bg.bmp;
 *barclock;
-*fetcher boot;
+*filer desktop;
 */apps/terminal;
 exit;
