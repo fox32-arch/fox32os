@@ -218,6 +218,11 @@ EXTERN FN CreateDir (
     IN file : ^File,
 ) : ULONG
 
+EXTERN FN GetDirName (
+    IN file : ^File,
+    IN buf : ^UBYTE,
+)
+
 // window flags
 #DEFINE WINDOW_FLAG_ALWAYS_BACKGROUND 1
 #DEFINE WINDOW_FLAG_NO_TITLE_BAR 2

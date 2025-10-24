@@ -295,4 +295,11 @@ CreateDir:
     call create_dir
     mov a3, r0
     ret
+
+GetDirName:
+.global GetDirName
+    // we switched argument order
+    mov r0, a1
+    mov r1, a0
+    jmp get_dir_name
 ]

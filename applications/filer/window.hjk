@@ -5,6 +5,8 @@ STRUCT Icon
     Name : UBYTE[13],
     Pos : Position,
     Widget : ButtonWidget,
+    IsDisk : UBYTE,
+    DiskId : UBYTE,
 END
 
 STRUCT IconWindow

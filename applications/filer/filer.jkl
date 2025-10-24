@@ -69,7 +69,6 @@ END
 
 FN Initialize(
     IN stream_local : ^File,
-    IN path : ^UBYTE,
 )
     text_stream = stream_local
 
@@ -99,6 +98,15 @@ FN HandleMouseClick(
         LEAVE
     END
 
+    IF windows[windowNumber]^.IsDesktopWindow THEN
+        // desktop window should be refreshed when clicked
+        old_num_icons := windows[windowNumber]^.NumIcons
+        RefreshDesktopFiles(windowNumber)
+        IF windows[windowNumber]^.NumIcons != old_num_icons THEN
+            RenderDesktop(windowNumber)
+        END
+    END
+
     HandleWidgetClick(&windows[windowNumber]^.Window, x, y)
 END
 
@@ -125,27 +133,33 @@ FN HandleButtonClick(
         LEAVE
     END
 
-    // build up the new path string
-    // there is probably a much better way to do this
-    nameLen := StringLength(&windows[windowNumber]^.Icon[buttonId].Name[0])
-    pathLen := StringLength(&windows[windowNumber]^.Path[0])
-    concatPath : UBYTE[256]
-    separator : UBYTE[2]
-    IF windows[windowNumber]^.Path[pathLen - 1] == '/' THEN
-        separator[0] = 0
+    IF windows[windowNumber]^.Icon[buttonId].IsDisk THEN
+        diskPath : UBYTE[4]
+        RtlFormat(&diskPath[0], 4, "%d:/", windows[windowNumber]^.Icon[buttonId].DiskId)
+        OpenWindow(&diskPath[0])
     ELSE
-        separator[0] = '/'
-        separator[1] = 0
-    END
-    RtlFormat(&concatPath[0], 256, "%s%s%s",
-        &windows[windowNumber]^.Path[0],
-        &separator[0],
-        &windows[windowNumber]^.Icon[buttonId].Name[0]
-    )
-    IF CompareString(&windows[windowNumber]^.Icon[buttonId].Name[nameLen - 3], "dir") THEN
-        OpenWindow(&concatPath[0])
-    ELSE
-        LaunchFxfFromDisk(&concatPath[0], windows[windowNumber]^.Disk, 0, 0, 0, 0, 0)
+        // build up the new path string
+        // there is probably a much better way to do this
+        nameLen := StringLength(&windows[windowNumber]^.Icon[buttonId].Name[0])
+        pathLen := StringLength(&windows[windowNumber]^.Path[0])
+        concatPath : UBYTE[256]
+        separator : UBYTE[2]
+        IF windows[windowNumber]^.Path[pathLen - 1] == '/' THEN
+            separator[0] = 0
+        ELSE
+            separator[0] = '/'
+            separator[1] = 0
+        END
+        RtlFormat(&concatPath[0], 256, "%s%s%s",
+            &windows[windowNumber]^.Path[0],
+            &separator[0],
+            &windows[windowNumber]^.Icon[buttonId].Name[0]
+        )
+        IF CompareString(&windows[windowNumber]^.Icon[buttonId].Name[nameLen - 3], "dir") THEN
+            OpenWindow(&concatPath[0])
+        ELSE
+            LaunchFxfFromDisk(&concatPath[0], windows[windowNumber]^.Disk, 0, 0, 0, 0, 0)
+        END
     END
 END
 
@@ -153,11 +167,16 @@ FN Main(
     IN stream_local : ^File,
     IN arg0 : ^UBYTE,
 )
-    Initialize(stream_local, arg0)
+    Initialize(stream_local)
     running := TRUE
 
-    desktopWindow := OpenDesktop()
-    testWindow := OpenWindow("0:/")
+    IF arg0 != NULLPTR AND CompareString(arg0, "desktop") THEN
+        OpenDesktop()
+    ELSEIF arg0 != NULLPTR AND arg0[1] == ':' THEN
+        OpenWindow(arg0)
+    ELSE
+        RtlPrint("filer - fox32os file manager\nusage: filer <dir path>\n")
+    END
 
     WHILE running == TRUE DO
         w := 0

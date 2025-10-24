@@ -124,6 +124,8 @@ FN OpenWindow(IN path : ^UBYTE) : UWORD
         CopyMemoryBytes(&files[nameOffset+8], &window^.Icon[i].Name[j+2], 3)
         window^.Icon[i].Name[j+5] = 0
 
+        window^.Icon[i].IsDisk = FALSE
+
         window^.Icon[i].Pos.X = ((i % 5) * 96) + 32
         window^.Icon[i].Pos.Y = ((i / 5) * 64) + 32
 
