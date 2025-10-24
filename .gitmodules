@@ -4,3 +4,6 @@
 [submodule "meta/okameron"]
 	path = meta/okameron
 	url = https://github.com/talonfox/okameron
+[submodule "meta/jackal"]
+	path = meta/jackal
+	url = https://github.com/xrarch/newsdk

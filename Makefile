@@ -1,4 +1,6 @@
 RYFS := meta/ryfs/ryfs.py
+NEWSDK := meta/jackal
+JKL := $(NEWSDK)/bin/jkl.exe
 
 ifeq ($(shell uname), Darwin)
 REALPATH ?= grealpath
@@ -19,6 +21,7 @@ FILES = \
 	base_image/system/sh.fxf \
 	base_image/system/barclock.fxf \
 	base_image/system/fetcher.fxf \
+	base_image/system/filer.fxf \
 	base_image/system/serial.fxf \
 	base_image/system/bg.fxf \
 	base_image/system/format.fxf \
@@ -39,6 +42,7 @@ ROM_FILES = \
 	base_image/system/sh.fxf \
 	base_image/system/barclock.fxf \
 	base_image/system/fetcher.fxf \
+	base_image/system/filer.fxf \
 	base_image/system/serial.fxf \
 	base_image/system/bg.fxf \
 	base_image/system/format.fxf \
@@ -50,6 +54,7 @@ ROM_FILES = \
 	base_image/apps/terminal.fxf
 
 all: \
+	$(JKL) \
 	base_image/system/library \
 	base_image/system/font \
 	base_image/apps \
@@ -57,6 +62,10 @@ all: \
 	base_image/system/library/*.lbr \
 	base_image/system/font/*.fnt \
 	fox32os.img #romdisk.img
+
+$(JKL):
+	cd $(NEWSDK) && ./bootstrap.sh
+	cd $(NEWSDK) && ./buildall.sh 4
 
 base_image/system/library:
 	mkdir -p base_image/system/library
@@ -78,7 +87,7 @@ base_image/system/startup.bat: base_image/system/startup.bat.default
 
 base_image/system/kernel.fxf:
 	$(MAKE) -C kernel
-base_image/system/%.fxf: $(wildcard applications/%/*)
+base_image/system/%.fxf: $(wildcard applications/%/**)
 	$(MAKE) -C applications/$*
 base_image/system/icons.res:
 	$(MAKE) -C applications/icons
@@ -86,7 +95,7 @@ base_image/system/library/%.lbr: $(wildcard libraries/*/*.asm)
 	$(MAKE) -C libraries
 base_image/system/font/%.fnt: $(wildcard fonts/*.asm) $(wildcard fonts/*.png)
 	$(MAKE) -C fonts
-base_image/apps/%.fxf: $(wildcard applications/%/*)
+base_image/apps/%.fxf: $(wildcard applications/%/**)
 	$(MAKE) -C applications/$*
 
 fox32os.img: $(BOOTLOADER) $(FILES) $(wildcard libraries/*/*.asm)

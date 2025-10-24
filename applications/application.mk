@@ -1,6 +1,11 @@
 RYFS := ../../meta/ryfs/ryfs.py
 OKAMERON := ../../meta/okameron/okameron.lua
-JKL := ../../meta/jackal/bin/jkl.exe
+
+JACKAL_ROOT = ../../meta/jackal
+JKL = $(JACKAL_ROOT)/bin/jkl.exe
+XRASM = $(JACKAL_ROOT)/bin/xrasm.exe
+XRLINK = $(JACKAL_ROOT)/bin/xrlink.exe
+RTLLIB = $(JACKAL_ROOT)/Rtl/build/fox32/Rtl.lib
 
 ifeq (, $(shell which fox32asm))
 FOX32ASM ?= ../../../fox32asm/target/release/fox32asm

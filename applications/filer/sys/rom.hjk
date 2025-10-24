@@ -1,0 +1,95 @@
+#INCLUDE "keys.hjk"
+
+EXTERN FN ScancodeToAscii(
+    IN scancode: UBYTE,
+): UBYTE
+EXTERN FN ShiftPressed()
+EXTERN FN ShiftReleased()
+EXTERN FN CapsPressed()
+
+EXTERN FN FillOverlay(
+    IN color: ULONG,
+    IN overlay: UBYTE,
+)
+EXTERN FN DrawStrToOverlay(
+    IN str: ^UBYTE,
+    IN x: UINT,
+    IN y: UINT,
+    IN fgColor: ULONG,
+    IN bgColor: ULONG,
+    IN overlay: UBYTE,
+)
+EXTERN FN DrawFontTileToOverlay(
+    IN tile: UBYTE,
+    IN x: UINT,
+    IN y: UINT,
+    IN fgColor: ULONG,
+    IN bgColor: ULONG,
+    IN overlay: UBYTE,
+)
+EXTERN FN DrawFilledRectangleToOverlay(
+    IN x: UINT,
+    IN y: UINT,
+    IN width: UINT,
+    IN height: UINT,
+    IN color: ULONG,
+    IN overlay: UBYTE,
+)
+
+STRUCT Menu
+    Items : UBYTE
+END
+
+EXTERN FN MenuBarClickEvent(
+    IN rootStruct: ^Menu,
+    IN x: UINT,
+)
+EXTERN FN CloseMenu(
+    IN rootStruct: ^Menu,
+)
+EXTERN FN MenuUpdateEvent(
+    IN rootStruct: ^Menu,
+    IN selectedRootItem: UWORD,
+    IN hoveringItem: UWORD,
+)
+
+EXTERN FN CopyMemoryBytes(
+    IN source: ^VOID,
+    IN destination: ^VOID,
+    IN length: UWORD,
+)
+EXTERN FN CopyString(
+    IN source: ^VOID,
+    IN destination: ^VOID,
+)
+EXTERN FN CompareMemory(
+    IN source: ^VOID,
+    IN destination: ^VOID,
+    IN length: UWORD,
+): UBYTE
+EXTERN FN CompareString(
+    IN source: ^UBYTE,
+    IN destination: ^UBYTE,
+): UBYTE
+EXTERN FN StringLength(
+    IN str: ^UBYTE,
+): UWORD
+
+EXTERN FN IsRomDiskAvailable(): UBYTE
+EXTERN FN IsRamDiskFormatted(): UBYTE
+EXTERN FN GetFileList(
+    IN buffer: ^UBYTE,
+    IN disk_id: UBYTE,
+    IN directory_sector: UWORD,
+): UWORD
+
+// event types
+#DEFINE EVENT_TYPE_MOUSE_CLICK     0x00000000
+#DEFINE EVENT_TYPE_MOUSE_RELEASE   0x00000001
+#DEFINE EVENT_TYPE_KEY_DOWN        0x00000002
+#DEFINE EVENT_TYPE_KEY_UP          0x00000003
+#DEFINE EVENT_TYPE_MENU_BAR_CLICK  0x00000004
+#DEFINE EVENT_TYPE_MENU_UPDATE     0x00000005
+#DEFINE EVENT_TYPE_MENU_CLICK      0x00000006
+#DEFINE EVENT_TYPE_MENU_ACK        0x00000007
+#DEFINE EVENT_TYPE_EMPTY           0xFFFFFFFF

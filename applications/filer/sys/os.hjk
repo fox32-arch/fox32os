@@ -1,0 +1,205 @@
+#INCLUDE "rom.hjk"
+
+// system
+
+EXTERN FN GetCurrentDiskId() : UBYTE
+
+
+
+// task
+
+EXTERN FN LaunchFxfFromDisk(
+    IN path : ^UBYTE,
+    IN diskId : UBYTE,
+    IN arg0 : ^VOID,
+    IN arg1 : ^VOID,
+    IN arg2 : ^VOID,
+    IN arg3 : ^VOID,
+    IN arg4 : ^VOID,
+) : UWORD
+
+EXTERN FN YieldTask()
+
+EXTERN FN EndCurrentTask()
+
+
+
+// memory
+
+/// Allocate `size` bytes of memory, or NULLPTR if there is not sufficient memory. `size` must not be 0.
+EXTERN FN AllocateMemory (
+    IN size : UWORD,
+) : ^VOID
+
+// Free an allocation returned by `AllocateMemory`. `ptr` must not be NULLPTR.
+EXTERN FN FreeMemory (
+    IN ptr : ^VOID,
+)
+
+EXTERN FN HeapUsage () : UWORD
+
+
+
+// window
+
+STRUCT Window
+    FrameBuffer : ^ULONG,
+    EventQueue : ^VOID,
+    EventQueueBottom : ^VOID,
+    Title : ^UBYTE,
+    Width : UINT,
+    Height : UINT,
+    X : UINT,
+    Y : UINT,
+    Overlay : UBYTE,
+    _Reserved1 : UBYTE,
+    Flags : UINT,
+    MenuBar : ^VOID,
+    FirstWidget : ^VOID,
+    ActiveWidget : ^VOID,
+END
+
+STRUCT Position
+    X : ULONG,
+    Y : ULONG,
+END
+
+STRUCT MenuChoice
+    Bar : ^Menu, // pointer to the menu bar table
+    Menu : UWORD, // index of the selected menu
+    Item : UWORD, // index of the selected item in the selected menu
+END
+
+UNION EventBody
+    Pos : Position,
+    Scancode : UBYTE,
+    MenuChoice : MenuChoice,
+    Parameters : ULONG[7],
+END
+
+STRUCT Event
+    Type : ULONG,
+    Body : EventBody,
+END
+
+STRUCT PACKED ButtonWidget
+    Next : ^VOID,
+    Id : UWORD,
+    Type : UWORD,
+    Text : ^UBYTE,
+    FgColor : UWORD,
+    BgColor : UWORD,
+    Width : UINT,
+    Height : UINT,
+    X : UINT,
+    Y : UINT,
+END
+
+EXTERN FN NewWindow (
+    IN window : ^Window,
+    IN title : ^UBYTE,
+    IN width : UINT,
+    IN height : UINT,
+    IN x : UINT,
+    IN y : UINT,
+    IN menu_bar : ^VOID,
+    IN first_widget : ^VOID,
+)
+
+EXTERN FN DestroyWindow (
+    IN window : ^Window,
+)
+
+EXTERN FN GetNextWindowEvent (
+    IN window : ^Window,
+    IN event : ^Event,
+)
+
+EXTERN FN FillWindow (
+    IN window : ^Window,
+    IN color : ULONG,
+)
+
+EXTERN FN StartDraggingWindow (
+    IN window : ^Window,
+)
+
+EXTERN FN DrawWidgetsToWindow (
+    IN window : ^Window,
+)
+
+EXTERN FN HandleWidgetClick (
+    IN window : ^Window,
+    IN x : UINT,
+    IN y : UINT,
+)
+
+EXTERN FN HandleWidgetKeyDown (
+    IN window : ^Window,
+    IN scancode : UBYTE,
+)
+
+EXTERN FN HandleWidgetKeyUp (
+    IN window : ^Window,
+    IN scancode : UBYTE,
+)
+
+
+
+// vfs
+
+STRUCT PACKED File
+    Disk : UBYTE,
+    FirstSector : UINT,
+    SeekOffset : ULONG,
+    Type : UBYTE,
+    _Reserved : ULONG[6],
+END
+
+STRUCT PACKED _Stream
+    _Reserved1 : UBYTE,
+    _Reserved2 : UINT,
+    SeekOffset : ULONG,
+    Type : UBYTE,
+    ReadCall : ^VOID,
+    WriteCall : ^VOID,
+    Size : UWORD,
+    _Reserved : ULONG[3]
+END
+
+EXTERN FN Open (
+    IN file_name : ^UBYTE,
+    IN disk_id : ULONG,
+    IN file : ^File,
+) : ULONG
+
+EXTERN FN Read (
+    IN file : ^File,
+    IN buf : ^UBYTE,
+    IN count : UWORD,
+)
+
+EXTERN FN Write (
+    IN file : ^File,
+    IN buf : ^UBYTE,
+    IN count : UWORD,
+)
+
+EXTERN FN GetSize (
+    IN file : ^File,
+) : UWORD
+
+EXTERN FN Create (
+    IN file_name : ^UBYTE,
+    IN disk_id : ULONG,
+    IN file : ^File,
+    IN size : ULONG,
+) : ULONG
+
+// widget types
+#DEFINE WIDGET_TYPE_BUTTON     0x00000000
+#DEFINE WIDGET_TYPE_TEXTBOX_SL 0x00000001
+#DEFINE WIDGET_TYPE_LABEL      0x00000002
+
+// event types
+#DEFINE EVENT_TYPE_BUTTON_CLICK 0x80000000

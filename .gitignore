@@ -4,6 +4,7 @@
 
 **/boot1.bin
 **/boot2.bin
+**/*.o
 **/*.fxf
 **/*.lbr
 **/*.fnt

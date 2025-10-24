@@ -1,0 +1,540 @@
+#IF ( == BLD_BITS 64 )
+    #DEFINE RTL_MACHINE_WORD_MAX 0xFFFFFFFFFFFFFFFF
+    #DEFINE RTL_MACHINE_WORD_WIDTH 64
+    #DEFINE RTL_MACHINE_WORD_LOG 3
+
+#ELSEIF ( == BLD_BITS 32 )
+    #DEFINE RTL_MACHINE_WORD_MAX 0xFFFFFFFF
+    #DEFINE RTL_MACHINE_WORD_WIDTH 32
+    #DEFINE RTL_MACHINE_WORD_LOG 2
+
+#ELSE
+    #ERROR ( STRCAT "[BLD] Bad bitness: " BLD_BITS )
+#END
+
+#IF ( STRCMP ARCHITECTURE "xr17032" )
+    #DEFINE RTL_PAGE_SHIFT 12
+
+#ELSEIF ( STRCMP ARCHITECTURE "fox32" )
+    #DEFINE RTL_PAGE_SHIFT 12
+
+#ELSE
+    #ERROR ( STRCAT "[BLD] Unknown architecture: " ARCHITECTURE )
+#END
+
+#DEFINE RTL_MACHINE_WORD_SIZE ( << 1 RTL_MACHINE_WORD_LOG )
+
+#DEFINE RTL_PAGE_SIZE ( << 1 RTL_PAGE_SHIFT )
+#DEFINE RTL_PAGE_OFFSET_MASK ( - RTL_PAGE_SIZE 1 )
+#DEFINE RTL_PAGE_NUMBER_MASK [(~RTL_PAGE_OFFSET_MASK)]
+
+#DEFINE RTL_ARCH_STRING ( STRCAT ( STRCAT "\"" ARCHITECTURE ) "\"" )
+
+STRUCT RtlString
+    Data : ^UBYTE,
+    Length : UWORD,
+END
+
+#MACRO RtlInitializeString ( stringstruct, data ) [
+    NOTHING (stringstruct)^.Data = (data)
+    NOTHING (stringstruct)^.Length = RtlMeasureString ( data )
+]
+
+#MACRO RtlEmptyList ( head ) [
+    ((head)^.Next == (head))
+]
+
+#MACRO RtlInitializeList ( head ) [
+    listhead := (head)
+
+    listhead^.Prev = listhead
+    listhead^.Next = listhead
+]
+
+#MACRO RtlInsertAtTailList ( head, entry ) [
+    listhead := (head)
+    listentry := (entry)
+    last := listhead^.Prev
+
+    listentry^.Prev = last
+    listentry^.Next = listhead
+    last^.Next = listentry
+    listhead^.Prev = listentry
+]
+
+#MACRO RtlInsertAtHeadList ( head, entry ) [
+    listhead := (head)
+    listentry := (entry)
+    first := listhead^.Next
+
+    listentry^.Next = first
+    listentry^.Prev = listhead
+    first^.Prev = (entry)
+    listhead^.Next = (entry)
+]
+
+#MACRO RtlRemoveEntryList ( entry ) [
+    listentry := (entry)
+
+    prev := listentry^.Prev
+    next := listentry^.Next
+    prev^.Next = next
+    next^.Prev = prev
+]
+
+STRUCT RtlListEntry
+    Next : ^RtlListEntry,
+    Prev : ^RtlListEntry,
+END
+
+#IF ( == BLD_BITS 64 )
+
+STRUCT RtlUquad
+    Quad : UQUAD,
+END
+
+#MACRO RtlSetUquadToUlong ( destquad, ulong ) [
+    NOTHING (destquad)^.Quad = ulong
+]
+
+#MACRO RtlMoveUquad ( destquad, srcquad ) [
+    NOTHING (destquad)^.Quad = (srcquad)^.Quad
+]
+
+#MACRO RtlAddUlongToUquad ( quad, val ) [
+    NOTHING (quad)^.Quad += (val)
+]
+
+#MACRO RtlAddUquadToUquad ( destquad, srcquad ) [
+    NOTHING (destquad)^.Quad += (srcquad)^.Quad
+]
+
+#MACRO RtlSubUquadFromUquad ( destquad, srcquad ) [
+    NOTHING (destquad)^.Quad -= (srcquad)^.Quad
+]
+
+#MACRO RtlSubUlongFromUquad ( destquad, ulong ) [
+    NOTHING (destquad)^.Quad -= (ulong)
+]
+
+#MACRO RtlUquadEqUquad ( quad1, quad2 ) [
+    ((quad1)^.Quad == (quad2)^.Quad)
+]
+
+#MACRO RtlUquadNeqUquad ( quad1, quad2 ) [
+    ((quad1)^.Quad != (quad2)^.Quad)
+]
+
+#MACRO RtlUquadLtUquad ( quad1, quad2 ) [
+    ((quad1)^.Quad < (quad2)^.Quad)
+]
+
+#MACRO RtlUquadGtUquad ( quad1, quad2 ) [
+    ((quad1)^.Quad > (quad2)^.Quad)
+]
+
+#MACRO RtlUquadLteqUquad ( quad1, quad2 ) [
+    ((quad1)^.Quad <= (quad2)^.Quad)
+]
+
+#MACRO RtlUquadGteqUquad ( quad1, quad2 ) [
+    ((quad1)^.Quad >= (quad2)^.Quad)
+]
+
+#MACRO RtlUlongEqUquad ( val, quad ) [
+    ((val) == (quad)^.Quad)
+]
+
+#MACRO RtlUlongNeqUquad ( val, quad ) [
+    ((val) != (quad)^.Quad)
+]
+
+#MACRO RtlUlongLtUquad ( val, quad ) [
+    ((val) < (quad)^.Quad)
+]
+
+#MACRO RtlUlongGtUquad ( val, quad ) [
+    ((val) > (quad)^.Quad)
+]
+
+#MACRO RtlUlongLteqUquad ( val, quad ) [
+    ((val) <= (quad)^.Quad)
+]
+
+#MACRO RtlUlongGteqUquad ( val, quad ) [
+    ((val) >= (quad)^.Quad)
+]
+
+#ELSE
+
+STRUCT RtlUquad
+    Low : ULONG,
+    High : ULONG,
+END
+
+#MACRO RtlSetUquadToUlong ( destquad, ulong ) [
+    NOTHING (destquad)^.High = 0
+    NOTHING (destquad)^.Low = ulong
+]
+
+#MACRO RtlMoveUquad ( destquad, srcquad ) [
+    NOTHING (destquad)^.High = (srcquad)^.High
+    NOTHING (destquad)^.Low = (srcquad)^.Low
+]
+
+#MACRO RtlAddUlongToUquad ( quad, val ) [
+    value := (val)
+    low := (val) + (quad)^.Low
+    NOTHING (quad)^.Low = low
+    NOTHING (quad)^.High += low < value
+]
+
+#MACRO RtlAddUquadToUquad ( destquad, srcquad ) [
+    srclow := (srcquad)^.Low
+    low := (destquad)^.Low + srclow
+    NOTHING (destquad)^.Low = low
+    NOTHING (destquad)^.High += (low < srclow) + (srcquad)^.High
+]
+
+#MACRO RtlSubUquadFromUquad ( destquad, srcquad ) [
+    srclow := ~(srcquad)^.Low
+    low := (destquad)^.Low + srclow
+    high := (destquad)^.High + (low < srclow) + (~(srcquad)^.High)
+
+    // Inlined RtlAddUlongToUquad ( destquad, 1 )
+
+    low += 1
+    NOTHING (destquad)^.Low = low
+    NOTHING (destquad)^.High = high + (low < 1)
+]
+
+#MACRO RtlSubUlongFromUquad ( quad, ulong ) [
+    value := ~(ulong)
+    low := (quad)^.Low + value
+    high := (quad)^.High + (low < value) - 1
+
+    // Inlined RtlAddUlongToUquad ( destquad, 1 )
+
+    low += 1
+    NOTHING (quad)^.Low = low
+    NOTHING (quad)^.High = high + (low < 1)
+]
+
+#MACRO RtlUquadEqUquad ( quad1, quad2 ) [
+    (NOT (((quad1)^.Low $ (quad2)^.Low) | ((quad1)^.High $ (quad2)^.High)))
+]
+
+#MACRO RtlUquadNeqUquad ( quad1, quad2 ) [
+    (((quad1)^.Low $ (quad2)^.Low) | ((quad1)^.High $ (quad2)^.High))
+]
+
+#MACRO RtlUquadLtUquad ( quad1, quad2 ) [
+    ((quad1)^.High < (quad2)^.High OR
+    ((quad1)^.High == (quad2)^.High AND (quad1)^.Low < (quad2)^.Low))
+]
+
+#MACRO RtlUquadGtUquad ( quad1, quad2 ) [
+    ((quad1)^.High > (quad2)^.High OR
+    ((quad1)^.High == (quad2)^.High AND (quad1)^.Low > (quad2)^.Low))
+]
+
+#MACRO RtlUquadLteqUquad ( quad1, quad2 ) [
+    ((quad1)^.High < (quad2)^.High OR
+    ((quad1)^.High == (quad2)^.High AND (quad1)^.Low <= (quad2)^.Low))
+]
+
+#MACRO RtlUquadGteqUquad ( quad1, quad2 ) [
+    ((quad1)^.High > (quad2)^.High OR
+    ((quad1)^.High == (quad2)^.High AND (quad1)^.Low >= (quad2)^.Low))
+]
+
+#MACRO RtlUlongEqUquad ( val, quad ) [
+    ((quad)^.High == 0 AND (quad)^.Low == (val))
+]
+
+#MACRO RtlUlongNeqUquad ( val, quad ) [
+    ((quad)^.High != 0 OR (quad)^.Low != (val))
+]
+
+#MACRO RtlUlongLtUquad ( val, quad ) [
+    ((quad)^.High != 0 OR (val) < (quad)^.Low)
+]
+
+#MACRO RtlUlongGtUquad ( val, quad ) [
+    ((quad)^.High == 0 AND (val) > (quad)^.Low)
+]
+
+#MACRO RtlUlongLteqUquad ( val, quad ) [
+    ((quad)^.High != 0 OR (val) <= (quad)^.Low)
+]
+
+#MACRO RtlUlongGteqUquad ( val, quad ) [
+    ((quad)^.High == 0 AND (val) >= (quad)^.Low)
+]
+
+#END
+
+FNPTR RtlPrintCallbackF (
+    IN byte : UBYTE,
+    IN context : ^VOID,
+)
+
+EXTERN FN RtlFillMemoryWithUlong (
+    IN dest : ^VOID,
+    IN size : UWORD,
+    IN ulong : ULONG,
+)
+
+EXTERN FN RtlCopyBytes (
+    IN dest : ^VOID,
+    IN src : ^VOID,
+    IN size : UWORD,
+)
+
+EXTERN FN RtlMoveBytes (
+    IN dest : ^VOID,
+    IN src : ^VOID,
+    IN size : UWORD,
+)
+
+EXTERN FN RtlPrintByCallbackByVarTable (
+    IN callback : RtlPrintCallbackF,
+    IN context : ^VOID,
+    IN fmt : ^UBYTE,
+    IN argv : ^^VOID,
+    IN argc : UWORD,
+)
+
+EXTERN FN RtlPrintByCallback (
+    IN callback : RtlPrintCallbackF,
+    IN context : ^VOID,
+    IN fmt : ^UBYTE,
+    ... argv argc
+)
+
+EXTERN FN RtlPrintByVarTable (
+    IN handle : ^VOID,
+    IN fmt : ^UBYTE,
+    IN argv : ^^VOID,
+    IN argc : UWORD,
+)
+
+EXTERN FN RtlPrintByHandle (
+    IN handle : ^VOID,
+    IN fmt : ^UBYTE,
+    ... argv argc
+)
+
+EXTERN FN RtlPrint (
+    IN fmt : ^UBYTE,
+    ... argv argc
+)
+
+EXTERN FN RtlFormatByVarTable (
+    IN dest : ^UBYTE,
+    IN bufsize : UWORD,
+    IN fmt : ^UBYTE,
+    IN argv : ^^VOID,
+    IN argc : UWORD,
+)
+
+EXTERN FN RtlFormat (
+    IN dest : ^UBYTE,
+    IN bufsize : UWORD,
+    IN fmt : ^UBYTE,
+    ... argv argc
+)
+
+EXTERN FN RtlStringToNumber (
+    IN src : ^UBYTE,
+    IN bufsize : UWORD,
+    OUT num : UWORD,
+) : UWORD
+
+EXTERN FN RtlCompareString (
+    IN str1 : ^UBYTE,
+    IN str2 : ^UBYTE,
+) : UWORD
+
+EXTERN FN RtlCompareStringWithMax (
+    IN str1 : ^UBYTE,
+    IN str2 : ^UBYTE,
+    IN count : UWORD,
+) : UWORD
+
+EXTERN FN RtlCompareRtlString (
+    IN str1 : ^RtlString,
+    IN str2 : ^RtlString,
+) : UWORD
+
+EXTERN FN RtlMeasureString (
+    IN str : ^UBYTE,
+) : UWORD
+
+EXTERN FN RtlCopyString (
+    IN dest : ^UBYTE,
+    IN src : ^UBYTE,
+    IN bufsize : UWORD,
+)
+
+EXTERN FN RtlTokenize (
+    IN buffer : ^UBYTE,
+    IN tokenbuffer : ^UBYTE,
+    IN bufsize : UWORD,
+    IN delimiter : UBYTE,
+) : ^UBYTE
+
+EXTERN FN (RtlPrintCallbackF) RtljPrintCallback (
+    IN byte : UBYTE,
+    IN context : ^VOID,
+)
+
+EXTERN FN RtljLockStream (
+    IN handle : ^VOID,
+) : UWORD
+
+EXTERN FN RtljUnlockStream (
+    IN handle : ^VOID,
+    IN lockcontext : UWORD,
+)
+
+
+// Bitmap stuff
+
+
+STRUCT RtlBitmapHeader
+    Data : ^UBYTE,
+    SizeInBits : UWORD,
+END
+
+EXTERN FN RtlInitializeBitmap (
+    IN header : ^RtlBitmapHeader,
+    IN sizeinbits : UWORD,
+    IN data : ^UBYTE,
+)
+
+EXTERN FN RtlDumpBitmap (
+    IN header : ^RtlBitmapHeader,
+)
+
+EXTERN FN RtlClearBitmap (
+    IN header : ^RtlBitmapHeader,
+)
+
+EXTERN FN RtlFindRunBitmap (
+    IN header : ^RtlBitmapHeader,
+    IN runlength : UWORD,
+    IN hint : UWORD,
+) : UWORD
+
+EXTERN FN RtlSetBitsBitmap (
+    IN header : ^RtlBitmapHeader,
+    IN index : UWORD,
+    IN runlength : UWORD,
+)
+
+EXTERN FN RtlClearBitsBitmap (
+    IN header : ^RtlBitmapHeader,
+    IN index : UWORD,
+    IN runlength : UWORD,
+)
+
+EXTERN FN RtlGetBitBitmap (
+    IN header : ^RtlBitmapHeader,
+    IN index : UWORD,
+) : UWORD
+
+EXTERN FN RtlCheckClearBitsBitmap (
+    IN header : ^RtlBitmapHeader,
+    IN index : UWORD,
+    IN runlength : UWORD,
+) : UWORD
+
+
+// Path stuff
+
+
+EXTERN FN RtlGetPathExtension (
+    IN path : ^UBYTE,
+) : ^UBYTE
+
+EXTERN FN RtlGetFileName (
+    IN path : ^UBYTE,
+) : ^UBYTE
+
+
+// Heap stuff
+
+
+FNPTR RtlLessThanF (
+    IN a : ^RtlHeapEntry,
+    IN b : ^RtlHeapEntry,
+) : UWORD
+
+STRUCT RtlHeapEntry
+    Child : ^RtlHeapEntry,
+    Prev : ^RtlHeapEntry,
+    Next : ^RtlHeapEntry,
+END
+
+EXTERN FN RtlInsertIntoHeap (
+    IN comparisonfunc : RtlLessThanF,
+    IN rootptr : ^^RtlHeapEntry,
+    IN entry : ^RtlHeapEntry,
+)
+
+EXTERN FN RtlExtractHeap (
+    IN comparisonfunc : RtlLessThanF,
+    IN rootptr : ^^RtlHeapEntry,
+) : ^RtlHeapEntry
+
+EXTERN FN RtlRemoveFromHeap (
+    IN comparisonfunc : RtlLessThanF,
+    IN rootptr : ^^RtlHeapEntry,
+    IN entry : ^RtlHeapEntry,
+)
+
+
+// AVL stuff
+
+
+#DEFINE RTL_AVL_PARENT_MASK [(~3)]
+#DEFINE RTL_AVL_BALANCE_MASK 3
+
+FNPTR RtlAvlLessThanF (
+    IN a : ^RtlAvlNode,
+    IN b : ^RtlAvlNode,
+) : UWORD
+
+STRUCT RtlAvlNode
+    Parent : ^RtlAvlNode,
+    Left : ^RtlAvlNode,
+    Right : ^RtlAvlNode,
+END
+
+EXTERN FN RtlInitializeAvl (
+    IN root : ^RtlAvlNode,
+)
+
+EXTERN FN RtlInsertAvl (
+    IN root : ^RtlAvlNode,
+    IN node : ^RtlAvlNode,
+    IN comparisonfunc : RtlAvlLessThanF,
+)
+
+EXTERN FN RtlRemoveAvl (
+    IN root : ^RtlAvlNode,
+    IN node : ^RtlAvlNode,
+)
+
+EXTERN FN RtlNextAvl (
+    IN node : ^RtlAvlNode,
+) : ^RtlAvlNode
+
+EXTERN FN RtlPreviousAvl (
+    IN node : ^RtlAvlNode,
+) : ^RtlAvlNode
+
+EXTERN FN RtlFirstAvl (
+    IN root : ^RtlAvlNode,
+) : ^RtlAvlNode
