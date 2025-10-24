@@ -1,0 +1,152 @@
+#DEFINE BLD_BITS 32
+#DEFINE ARCHITECTURE "fox32"
+#INCLUDE "sys/rtl.hjk"
+#INCLUDE "sys/os.hjk"
+
+#INCLUDE "window.hjk"
+
+EXTERN FN Error(IN error_string : ^UBYTE)
+EXTERN windows : ^IconWindow[]
+EXTERN icons_graphics : ^UBYTE
+
+FN RenderDesktop(
+    IN windowNumber : UWORD,
+)
+    window : ^IconWindow = windows[windowNumber]
+    FillOverlay(0x00000000, window^.Window.Overlay)
+
+    i := 0
+    WHILE i < window^.NumIcons DO
+        IF i == window^.ClickIcon THEN
+            window^.Icon[i].Widget.FgColor = 0xFFDDDDDD
+            window^.Icon[i].Widget.BgColor = 0xFF000000
+        ELSE
+            window^.Icon[i].Widget.FgColor = 0xFF000000
+            window^.Icon[i].Widget.BgColor = 0xFFDDDDDD
+        END
+        i += 1
+    END
+
+    IF window^.NumIcons > 0 THEN
+        DrawWidgetsToWindow(&window^.Window)
+    END
+
+    i = 0
+    WHILE i < window^.NumIcons DO
+        extIndex := StringLength(&window^.Icon[i].Name[0]) - 3
+        IF icons_graphics != NULLPTR THEN
+            iconDataPtr := GetResource(icons_graphics, &window^.Icon[i].Name[extIndex], 4096)
+            IF iconDataPtr == NULLPTR THEN
+                iconDataPtr = GetResource(icons_graphics, "msc", 4096)
+            END
+            IF iconDataPtr != NULLPTR THEN
+                SetTilemap(iconDataPtr, 32, 32)
+                DrawTileToOverlay(0, window^.Icon[i].Pos.X, window^.Icon[i].Pos.Y, window^.Window.Overlay)
+                FreeMemory(iconDataPtr)
+            END
+        END
+        i += 1
+    END
+END
+
+FN OpenDesktop() : UWORD
+    w := 0
+    buffer : UBYTE[256]
+    WHILE w < MAX_WINDOWS DO
+        IF windows[w] == NULLPTR THEN BREAK END
+        w += 1
+    END
+    IF w == MAX_WINDOWS THEN
+        // no windows free
+        RETURN NULLPTR
+    END
+
+    windows[w] = AllocateMemory(SIZEOF IconWindow)
+    IF windows[w] == 0 THEN Error("Failed to allocate for desktop window") END
+    windows[w]^.IsDesktopWindow = TRUE
+
+    RtlFormat(&buffer[0], 256, "%d:/user/desktop.dir", GetBootDiskId())
+    CopyString(&buffer[0], &windows[w]^.Path)
+    windows[w]^.Disk = GetBootDiskId()
+
+    // prepare the window
+
+    files : UBYTE[341]
+    window : ^IconWindow = windows[w]
+    tempFile : File
+    directory := Open(&windows[w]^.Path[0], GetBootDiskId(), &tempFile)
+    IF directory == 0 THEN
+        RtlPrint("Creating directory %s\n", &windows[w]^.Path)
+        directory = CreateDir(&windows[w]^.Path[0], GetBootDiskId(), &tempFile)
+    END
+    IF directory == 0 THEN
+        FreeMemory(windows[w])
+        windows[w] = NULLPTR
+        Error("Failed to create directory!")
+    END
+    window^.NumIcons = GetFileList(&files[0], window^.Disk, directory)
+
+    window^.ClickIcon = 0xFF // no icon clicked
+
+    IF window^.NumIcons > 5 THEN
+        window^.Width = 96 * 5
+    ELSE
+        IF window^.NumIcons == 0 THEN
+            window^.Width = 96
+        ELSE
+            window^.Width = window^.NumIcons * 96
+        END
+    END
+    window^.Height = ((window^.NumIcons / 5) + 1) * 64 + 8
+
+    i := 0
+    nameOffset := 0
+    WHILE i < window^.NumIcons DO
+        // copy the file name and shorten it as needed
+        CopyMemoryBytes(&files[nameOffset], &window^.Icon[i].Name[0], 8)
+        j := 7
+        WHILE j > 0 DO
+            IF window^.Icon[i].Name[j] != ' ' THEN BREAK END
+            j -= 1
+            // TODO: handle error if no non-space char found
+        END
+        window^.Icon[i].Name[j+1] = '.'
+        CopyMemoryBytes(&files[nameOffset+8], &window^.Icon[i].Name[j+2], 3)
+        window^.Icon[i].Name[j+5] = 0
+
+        window^.Icon[i].Pos.X = ((i / 5) * 96) + 32
+        window^.Icon[i].Pos.Y = ((i % 5) * 64) + 16
+
+        IF i == window^.NumIcons - 1 THEN
+            window^.Icon[i].Widget.Next = 0
+        ELSE
+            window^.Icon[i].Widget.Next = &window^.Icon[i+1].Widget
+        END
+        window^.Icon[i].Widget.Id = i
+        window^.Icon[i].Widget.Type = WIDGET_TYPE_BUTTON
+        window^.Icon[i].Widget.Text = &window^.Icon[i].Name[0]
+        window^.Icon[i].Widget.FgColor = 0xFF000000
+        window^.Icon[i].Widget.BgColor = 0xFFDDDDDD
+        window^.Icon[i].Widget.Width = 32
+        window^.Icon[i].Widget.Height = 48
+        window^.Icon[i].Widget.X = window^.Icon[i].Pos.X
+        window^.Icon[i].Widget.Y = window^.Icon[i].Pos.Y
+
+        nameOffset += 11
+        i += 1
+    END
+
+    NewWindow(
+        &window^.Window,
+        &window^.Path[0],
+        window^.Width,
+        window^.Height,
+        640 - window^.Width,
+        16,
+        0,
+        &window^.Icon[0].Widget
+    )
+    SetWindowFlags(&window^.Window, WINDOW_FLAG_ALWAYS_BACKGROUND | WINDOW_FLAG_NO_TITLE_BAR)
+    RenderDesktop(w)
+    RETURN w
+END

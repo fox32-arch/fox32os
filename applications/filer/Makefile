@@ -2,7 +2,7 @@ OUTPUT = system/filer.fxf
 
 include ../application.mk
 
-OBJECTS = filer.o sys/os.o sys/rom.o
+OBJECTS = filer.o window.o desktop.o sys/os.o sys/rom.o
 .SUFFIXES: .o .asm .jkl
 
 all: ../../base_image/$(OUTPUT)

@@ -2,6 +2,7 @@
 
 // system
 
+EXTERN FN GetBootDiskId() : UBYTE
 EXTERN FN GetCurrentDiskId() : UBYTE
 
 
@@ -37,6 +38,16 @@ EXTERN FN FreeMemory (
 )
 
 EXTERN FN HeapUsage () : UWORD
+
+
+
+// resource
+
+EXTERN FN GetResource(
+    IN resBinary : ^VOID,
+    IN resourceId : ^UBYTE,
+    IN resourceSize : ULONG,
+) : ^VOID
 
 
 
@@ -108,6 +119,11 @@ EXTERN FN NewWindow (
 
 EXTERN FN DestroyWindow (
     IN window : ^Window,
+)
+
+EXTERN FN SetWindowFlags (
+    IN window : ^Window,
+    IN flags : UINT,
 )
 
 EXTERN FN GetNextWindowEvent (
@@ -195,6 +211,17 @@ EXTERN FN Create (
     IN file : ^File,
     IN size : ULONG,
 ) : ULONG
+
+EXTERN FN CreateDir (
+    IN file_name : ^UBYTE,
+    IN disk_id : ULONG,
+    IN file : ^File,
+) : ULONG
+
+// window flags
+#DEFINE WINDOW_FLAG_ALWAYS_BACKGROUND 1
+#DEFINE WINDOW_FLAG_NO_TITLE_BAR 2
+#DEFINE WINDOW_FLAG_CREATED_FROM_RES 32768
 
 // widget types
 #DEFINE WIDGET_TYPE_BUTTON     0x00000000

@@ -54,6 +54,9 @@ get_size:                  jmp [0x00000D24]
 create:                    jmp [0x00000D28]
 delete:                    jmp [0x00000D2C]
 copy:                      jmp [0x00000D30]
+get_dir_name:              jmp [0x00000D34]
+get_parent_dir:            jmp [0x00000D38]
+create_dir:                jmp [0x00000D3C]
 
 // widget jump table
 draw_widgets_to_window:    jmp [0x00000E10]
@@ -65,6 +68,12 @@ handle_widget_key_up:      jmp [0x00000E1C]
 get_resource:              jmp [0x00000F10]
 
 // implementations
+
+GetBootDiskId:
+.global GetBootDiskId
+    call get_boot_disk_id
+    mov a3, r0
+    ret
 
 GetCurrentDiskId:
 .global GetCurrentDiskId
@@ -152,6 +161,17 @@ HeapUsage:
 
 
 
+GetResource:
+.global GetResource
+    mov r0, a0
+    mov r1, a1
+    mov r2, a2
+    call get_resource
+    mov a3, r0
+    ret
+
+
+
 NewWindow:
 .global NewWindow
     mov r0, a0
@@ -168,6 +188,13 @@ DestroyWindow:
 .global DestroyWindow
     mov r0, a0
     jmp destroy_window
+
+SetWindowFlags:
+.global SetWindowFlags
+    // we switched argument order
+    mov r0, a1
+    mov r1, a0
+    jmp set_window_flags
 
 GetNextWindowEvent:
 .global GetNextWindowEvent
@@ -257,6 +284,15 @@ Create:
     mov r2, a2
     mov r3, a3
     call create
+    mov a3, r0
+    ret
+
+CreateDir:
+.global CreateDir
+    mov r0, a0
+    mov r1, a1
+    mov r2, a2
+    call create_dir
     mov a3, r0
     ret
 ]

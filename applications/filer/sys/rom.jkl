@@ -9,11 +9,15 @@ shift_pressed:                            jmp [0xF0040024]
 shift_released:                           jmp [0xF0040028]
 caps_pressed:                             jmp [0xF004002C]
 
+// generic drawing jump table
+set_tilemap:                              jmp [0xF0041018]
+
 // overlay jump table
 fill_overlay:                             jmp [0xF0043000]
 draw_str_to_overlay:                      jmp [0xF0043004]
 // ...
 draw_font_tile_to_overlay:                jmp [0xF0043014]
+draw_tile_to_overlay:                     jmp [0xF0043018]
 draw_filled_rectangle_to_overlay:         jmp [0xF0043020]
 
 // menu bar jump table
@@ -57,6 +61,13 @@ CapsPressed:
 .global CapsPressed
     jmp caps_pressed
 
+SetTilemap:
+.global SetTilemap
+    mov r0, a0
+    mov r1, a1
+    mov r2, a2
+    jmp set_tilemap
+
 FillOverlay:
 .global FillOverlay
     mov r0, a0
@@ -73,6 +84,13 @@ DrawStrToOverlay:
     call draw_str_to_overlay
     mov a0, r1
     ret
+DrawTileToOverlay:
+.global DrawTileToOverlay
+    mov r0, a0
+    mov r1, a1
+    mov r2, a2
+    mov r3, a3
+    jmp draw_tile_to_overlay
 DrawFontTileToOverlay:
 .global DrawFontTileToOverlay
     mov r0, a0

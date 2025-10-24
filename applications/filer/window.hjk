@@ -1,0 +1,32 @@
+#DEFINE MAX_WINDOWS 16
+#DEFINE DOUBLE_CLICK_TICKS 500
+
+STRUCT Icon
+    Name : UBYTE[13],
+    Pos : Position,
+    Widget : ButtonWidget,
+END
+
+STRUCT IconWindow
+    Window : Window,
+    Width : UINT,
+    Height : UINT,
+    Icon : Icon[31], // RYFS has a max of 31 files per directory
+    NumIcons : UBYTE,
+    Path : UBYTE[256], // 256 is an arbitrary size. should hopefully be enough
+    Disk : UBYTE,
+    ClickTimeMax : ULONG,
+    ClickIcon : UBYTE,
+    IsDesktopWindow : UBYTE,
+END
+
+EXTERN FN RenderWindow(
+    IN windowNumber : UWORD,
+    IN drawEdge : UBYTE,
+)
+EXTERN FN OpenWindow(
+    IN path : ^UBYTE
+) : UWORD
+EXTERN FN CloseWindow(
+    IN windowNumber : UWORD
+)

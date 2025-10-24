@@ -1,0 +1,169 @@
+#DEFINE BLD_BITS 32
+#DEFINE ARCHITECTURE "fox32"
+#INCLUDE "sys/rtl.hjk"
+#INCLUDE "sys/os.hjk"
+
+#INCLUDE "window.hjk"
+#INCLUDE "desktop.hjk"
+
+EXTERN FN Error(IN error_string : ^UBYTE)
+EXTERN windows : ^IconWindow[]
+EXTERN icons_graphics : ^UBYTE
+
+FN RenderWindow(
+    IN windowNumber : UWORD,
+    IN drawEdge : UBYTE,
+)
+    window : ^IconWindow = windows[windowNumber]
+    IF window^.IsDesktopWindow THEN
+        RenderDesktop(windowNumber)
+        LEAVE
+    END
+
+    IF drawEdge THEN
+        DrawFilledRectangleToOverlay(0, 16, window^.Width, window^.Height, 0xFF000000, window^.Window.Overlay)
+    END
+    DrawFilledRectangleToOverlay(1, 17, window^.Width - 2, window^.Height - 2, 0xFFFFFFFF, window^.Window.Overlay)
+
+    tempBuf : UBYTE[16]
+    RtlFormat(&tempBuf[0], 16, "%d files", window^.NumIcons)
+    DrawStrToOverlay(&tempBuf[0], 4, 17, 0xFF000000, 0xFFFFFFFF, window^.Window.Overlay)
+
+    i := 0
+    WHILE i < window^.NumIcons DO
+        IF i == window^.ClickIcon THEN
+            window^.Icon[i].Widget.FgColor = 0xFFDDDDDD
+            window^.Icon[i].Widget.BgColor = 0xFF000000
+        ELSE
+            window^.Icon[i].Widget.FgColor = 0xFF000000
+            window^.Icon[i].Widget.BgColor = 0xFFDDDDDD
+        END
+        i += 1
+    END
+
+    IF window^.NumIcons > 0 THEN
+        DrawWidgetsToWindow(&window^.Window)
+    END
+
+    i = 0
+    WHILE i < window^.NumIcons DO
+        extIndex := StringLength(&window^.Icon[i].Name[0]) - 3
+        IF icons_graphics != NULLPTR THEN
+            iconDataPtr := GetResource(icons_graphics, &window^.Icon[i].Name[extIndex], 4096)
+            IF iconDataPtr == NULLPTR THEN
+                iconDataPtr = GetResource(icons_graphics, "msc", 4096)
+            END
+            IF iconDataPtr != NULLPTR THEN
+                SetTilemap(iconDataPtr, 32, 32)
+                DrawTileToOverlay(0, window^.Icon[i].Pos.X, window^.Icon[i].Pos.Y, window^.Window.Overlay)
+                FreeMemory(iconDataPtr)
+            END
+        END
+        i += 1
+    END
+END
+
+FN OpenWindow(IN path : ^UBYTE) : UWORD
+    w := 0
+    WHILE w < MAX_WINDOWS DO
+        IF windows[w] == NULLPTR THEN BREAK END
+        w += 1
+    END
+    IF w == MAX_WINDOWS THEN
+        // no windows free
+        RETURN NULLPTR
+    END
+
+    windows[w] = AllocateMemory(SIZEOF IconWindow)
+    IF windows[w] == 0 THEN Error("Failed to allocate for new window") END
+    windows[w]^.IsDesktopWindow = FALSE
+
+    CopyString(path, &windows[w]^.Path)
+    windows[w]^.Disk = path[0] - '0' // FIXME: this is stupid
+
+    // prepare the window
+
+    files : UBYTE[341]
+    window : ^IconWindow = windows[w]
+    tempFile : File
+    directory := Open(path, window^.Disk, &tempFile)
+    IF directory == 0 THEN
+        buffer : UBYTE[256]
+        RtlFormat(&buffer[0], 256, "Can't open directory %s", path)
+        FreeMemory(windows[w])
+        windows[w] = NULLPTR
+        Error(&buffer[0])
+    END
+    window^.NumIcons = GetFileList(&files[0], window^.Disk, directory)
+
+    window^.ClickIcon = 0xFF // no icon clicked
+
+    IF window^.NumIcons > 5 THEN
+        window^.Width = 96 * 5
+    ELSE
+        IF window^.NumIcons == 0 THEN
+            window^.Width = 96
+        ELSE
+            window^.Width = window^.NumIcons * 96
+        END
+    END
+    window^.Height = ((window^.NumIcons / 5) + 1) * 64 + 8
+
+    i := 0
+    nameOffset := 0
+    WHILE i < window^.NumIcons DO
+        // copy the file name and shorten it as needed
+        CopyMemoryBytes(&files[nameOffset], &window^.Icon[i].Name[0], 8)
+        j := 7
+        WHILE j > 0 DO
+            IF window^.Icon[i].Name[j] != ' ' THEN BREAK END
+            j -= 1
+            // TODO: handle error if no non-space char found
+        END
+        window^.Icon[i].Name[j+1] = '.'
+        CopyMemoryBytes(&files[nameOffset+8], &window^.Icon[i].Name[j+2], 3)
+        window^.Icon[i].Name[j+5] = 0
+
+        window^.Icon[i].Pos.X = ((i % 5) * 96) + 32
+        window^.Icon[i].Pos.Y = ((i / 5) * 64) + 32
+
+        IF i == window^.NumIcons - 1 THEN
+            window^.Icon[i].Widget.Next = 0
+        ELSE
+            window^.Icon[i].Widget.Next = &window^.Icon[i+1].Widget
+        END
+        window^.Icon[i].Widget.Id = i
+        window^.Icon[i].Widget.Type = WIDGET_TYPE_BUTTON
+        window^.Icon[i].Widget.Text = &window^.Icon[i].Name[0]
+        window^.Icon[i].Widget.FgColor = 0xFF000000
+        window^.Icon[i].Widget.BgColor = 0xFFDDDDDD
+        window^.Icon[i].Widget.Width = 32
+        window^.Icon[i].Widget.Height = 48
+        window^.Icon[i].Widget.X = window^.Icon[i].Pos.X
+        window^.Icon[i].Widget.Y = window^.Icon[i].Pos.Y
+
+        nameOffset += 11
+        i += 1
+    END
+
+    NewWindow(
+        &window^.Window,
+        &window^.Path[0],
+        window^.Width,
+        window^.Height,
+        64 + (w * 20),
+        64 + (w * 20),
+        0,
+        &window^.Icon[0].Widget
+    )
+    RenderWindow(w, TRUE)
+    RETURN w
+END
+
+FN CloseWindow(IN windowNumber : UWORD)
+    IF windows[windowNumber] != NULLPTR THEN
+        DestroyWindow(&windows[windowNumber]^.Window)
+        FreeMemory(windows[windowNumber])
+        windows[windowNumber] = NULLPTR
+    END
+END

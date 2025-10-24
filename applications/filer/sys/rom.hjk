@@ -7,6 +7,12 @@ EXTERN FN ShiftPressed()
 EXTERN FN ShiftReleased()
 EXTERN FN CapsPressed()
 
+EXTERN FN SetTilemap(
+    IN data: ^UBYTE,
+    IN width: UINT,
+    IN height: UINT,
+)
+
 EXTERN FN FillOverlay(
     IN color: ULONG,
     IN overlay: UBYTE,
@@ -17,6 +23,12 @@ EXTERN FN DrawStrToOverlay(
     IN y: UINT,
     IN fgColor: ULONG,
     IN bgColor: ULONG,
+    IN overlay: UBYTE,
+)
+EXTERN FN DrawTileToOverlay(
+    IN tile: ULONG,
+    IN x: UINT,
+    IN y: UINT,
     IN overlay: UBYTE,
 )
 EXTERN FN DrawFontTileToOverlay(

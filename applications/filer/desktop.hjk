@@ -1,0 +1,4 @@
+EXTERN FN RenderDesktop(
+    IN windowNumber : UWORD,
+)
+EXTERN FN OpenDesktop () : UWORD
