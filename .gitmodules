@@ -7,3 +7,6 @@
 [submodule "meta/jackal"]
 	path = meta/jackal
 	url = https://github.com/xrarch/newsdk
+[submodule "applications/hjkl"]
+	path = applications/hjkl
+	url = https://github.com/OliveIsAWord/hjkl

@@ -31,6 +31,7 @@ FILES = \
 	base_image/apps/terminal.fxf \
 	base_image/apps/pride.fxf \
 	base_image/apps/foxpaint.fxf \
+	base_image/apps/hjkl.fxf \
 	base_image/user/bg.bmp \
 	base_image/develop/jkl.fxf \
 	base_image/develop/xrasm.fxf \
@@ -52,7 +53,8 @@ ROM_FILES = \
 	base_image/system/loadfont.fxf \
 	base_image/system/tasks.fxf \
 	base_image/apps/pride.fxf \
-	base_image/apps/terminal.fxf
+	base_image/apps/terminal.fxf \
+	base_image/apps/hjkl.fxf
 
 all: \
 	$(JKL) \
@@ -107,6 +109,15 @@ base_image/system/icons.res: FORCE
 base_image/apps/%.fxf: FORCE
 	$(MAKE) -C applications/$*
 
+applications/hjkl/hjkl.fxf: $(JKL) FORCE
+	$(MAKE) -C applications/hjkl hjkl.fxf \
+		JACKAL=../../$(NEWSDK)/bin/jkl.exe \
+		XRASM=../../$(NEWSDK)/bin/xrasm.exe \
+		XRLINK=../../$(NEWSDK)/bin/xrlink.exe \
+		RTLLIB=../../$(NEWSDK)/Rtl/build/fox32/Rtl.lib
+base_image/apps/hjkl.fxf: applications/hjkl/hjkl.fxf
+	cp $< $@
+
 FORCE: ;
 
 fox32os.img: $(BOOTLOADER) $(FILES) $(wildcard libraries/*/*.asm)
@@ -138,6 +149,7 @@ clean:
 	cd libraries && $(MAKE) clean
 	cd fonts && $(MAKE) clean
 	cd $(NEWSDK) && ./bin/xrbt.exe ./build.xrbt PLATFORM=fox32os CLEANUP=1 all
+	$(MAKE) -C applications/hjkl clean
 	rm -f fox32os.img romdisk.img $(FILES)
 
 .PHONY: clean
