@@ -23,7 +23,7 @@ FN RenderWindow(
     IF drawEdge THEN
         DrawFilledRectangleToOverlay(0, 16, window^.Width, window^.Height, 0xFF000000, window^.Window.Overlay)
     END
-    DrawFilledRectangleToOverlay(1, 17, window^.Width - 2, window^.Height - 2, 0xFFFFFFFF, window^.Window.Overlay)
+    DrawFilledRectangleToOverlay(1, 17, window^.Width - 2, window^.Height - 2, WINDOW_BG_COLOR, window^.Window.Overlay)
 
     tempBuf : UBYTE[16]
     RtlFormat(&tempBuf[0], 16, "%d files", window^.NumIcons)
@@ -32,11 +32,11 @@ FN RenderWindow(
     i := 0
     WHILE i < window^.NumIcons DO
         IF i == window^.ClickIcon THEN
-            window^.Icon[i].Widget.FgColor = 0xFFDDDDDD
-            window^.Icon[i].Widget.BgColor = 0xFF000000
+            window^.Icon[i].Widget.FgColor = UNSELECTED_BG_COLOR
+            window^.Icon[i].Widget.BgColor = SELECTED_BG_COLOR
         ELSE
-            window^.Icon[i].Widget.FgColor = 0xFF000000
-            window^.Icon[i].Widget.BgColor = 0xFFDDDDDD
+            window^.Icon[i].Widget.FgColor = SELECTED_BG_COLOR
+            window^.Icon[i].Widget.BgColor = UNSELECTED_BG_COLOR
         END
         i += 1
     END
@@ -49,11 +49,19 @@ FN RenderWindow(
     WHILE i < window^.NumIcons DO
         extIndex := StringLength(&window^.Icon[i].Name[0]) - 3
         IF icons_graphics != NULLPTR THEN
-            iconDataPtr := GetResource(icons_graphics, &window^.Icon[i].Name[extIndex], 4096)
+            iconDataPtr : ^ULONG = GetResource(icons_graphics, &window^.Icon[i].Name[extIndex], 4096)
             IF iconDataPtr == NULLPTR THEN
                 iconDataPtr = GetResource(icons_graphics, "msc", 4096)
             END
             IF iconDataPtr != NULLPTR THEN
+                // replace transparent pixels with the window background color
+                j := 0
+                WHILE j < 1024 DO
+                    IF iconDataPtr[j] & 0xFF000000 == 0 THEN
+                        iconDataPtr[j] = WINDOW_BG_COLOR
+                    END
+                    j += 1
+                END
                 SetTilemap(iconDataPtr, 32, 32)
                 DrawTileToOverlay(0, window^.Icon[i].Pos.X, window^.Icon[i].Pos.Y, window^.Window.Overlay)
                 FreeMemory(iconDataPtr)
