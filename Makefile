@@ -20,7 +20,6 @@ FILES = \
 	base_image/system/kernel.fxf \
 	base_image/system/sh.fxf \
 	base_image/system/barclock.fxf \
-	base_image/system/fetcher.fxf \
 	base_image/system/filer.fxf \
 	base_image/system/serial.fxf \
 	base_image/system/bg.fxf \
@@ -44,7 +43,6 @@ ROM_FILES = \
 	base_image/system/kernel.fxf \
 	base_image/system/sh.fxf \
 	base_image/system/barclock.fxf \
-	base_image/system/fetcher.fxf \
 	base_image/system/filer.fxf \
 	base_image/system/serial.fxf \
 	base_image/system/bg.fxf \
