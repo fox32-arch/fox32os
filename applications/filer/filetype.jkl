@@ -1,0 +1,72 @@
+#DEFINE BLD_BITS 32
+#DEFINE ARCHITECTURE "fox32"
+#INCLUDE "sys/rtl.hjk"
+#INCLUDE "sys/os.hjk"
+
+#INCLUDE "window.hjk"
+
+EXTERN filetype_data : ^UBYTE
+
+FN LaunchFromFileTypeString(
+    IN fileType : ^UBYTE,
+    IN path : ^UBYTE,
+    IN diskId : UBYTE,
+)
+    buffer : UBYTE[256]
+    RtlFormat(&buffer[0], 256, fileType, path)
+    i := 0
+    arg := 0
+    argPtr : ^UBYTE[5]
+    WHILE i < 5 DO
+        argPtr[i] = NULLPTR
+        i += 1
+    END
+    i = 0
+    argTemp : ^UBYTE = &buffer[0]
+    WHILE TRUE DO
+        c := buffer[i]
+        IF (c == ' ' OR c == 0) AND arg < 5 THEN
+            argPtr[arg] = argTemp
+            arg += 1
+            buffer[i] = 0
+            argTemp = &buffer[i+1]
+        END
+        IF c == 0 THEN
+            BREAK
+        END
+        i += 1
+    END
+    LaunchFxfFromDisk(
+        argPtr[0], diskId,
+        NULLPTR,
+        argPtr[1],
+        argPtr[2],
+        argPtr[3],
+        argPtr[4]
+    )
+END
+
+FN OpenFileByType(
+    IN window : ^IconWindow,
+    IN path : ^UBYTE,
+    IN diskId : UBYTE,
+)
+    pathLen := StringLength(&path[0])
+    IF CompareString(&path[pathLen - 3], "fxf") THEN
+        LaunchFxfFromDisk(&path[0], window^.Disk, 0, 0, 0, 0, 0)
+    ELSE
+        // look for this file extension in the filetype resource file
+        dataPtr : ^UBYTE = GetResource(filetype_data, &path[pathLen - 3], 256)
+        IF dataPtr != NULLPTR THEN
+            LaunchFromFileTypeString(dataPtr, path, diskId)
+            FreeMemory(dataPtr)
+        ELSE
+            // look for the wildcard file extension in the filetype resource file
+            dataPtr = GetResource(filetype_data, "***", 256)
+            IF dataPtr != NULLPTR THEN
+                LaunchFromFileTypeString(dataPtr, path, diskId)
+                FreeMemory(dataPtr)
+            END
+        END
+    END
+END

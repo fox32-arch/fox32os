@@ -1,0 +1,7 @@
+#INCLUDE "window.hjk"
+
+EXTERN FN OpenFileByType(
+    IN window : ^IconWindow,
+    IN path : ^UBYTE,
+    IN diskId : UBYTE,
+)

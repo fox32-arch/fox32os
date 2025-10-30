@@ -12,12 +12,16 @@
 
 #INCLUDE "window.hjk"
 #INCLUDE "desktop.hjk"
+#INCLUDE "filetype.hjk"
 
 text_stream : ^File = NULLPTR
 PUBLIC windows : ^IconWindow[MAX_WINDOWS]
 
 icons_file : File
 PUBLIC icons_graphics : ^UBYTE = NULLPTR
+
+filetype_file : File
+PUBLIC filetype_data : ^UBYTE = NULLPTR
 
 EXTERN FN GetTick() : ULONG
 #ASM [
@@ -77,6 +81,13 @@ FN Initialize(
         icons_file_size := GetSize(&icons_file)
         icons_graphics = AllocateMemory(icons_file_size)
         Read(&icons_file, icons_graphics, icons_file_size)
+    END
+
+    // load file type associations into memory if the resource file exists
+    IF Open("/system/filetype.res", GetBootDiskId(), &filetype_file) THEN
+        filetype_file_size := GetSize(&filetype_file)
+        filetype_data = AllocateMemory(filetype_file_size)
+        Read(&filetype_file, filetype_data, filetype_file_size)
     END
 END
 
@@ -158,7 +169,7 @@ FN HandleButtonClick(
         IF CompareString(&windows[windowNumber]^.Icon[buttonId].Name[nameLen - 3], "dir") THEN
             OpenWindow(&concatPath[0])
         ELSE
-            LaunchFxfFromDisk(&concatPath[0], windows[windowNumber]^.Disk, 0, 0, 0, 0, 0)
+            OpenFileByType(windows[windowNumber], &concatPath[0], windows[windowNumber]^.Disk)
         END
     END
 END
