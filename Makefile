@@ -2,6 +2,12 @@ RYFS := meta/ryfs/ryfs.py
 NEWSDK := meta/jackal
 JKL := $(NEWSDK)/bin/jkl.exe
 
+ifeq (, $(shell which fox32asm))
+FOX32ASM ?= ../fox32asm/target/release/fox32asm
+else
+FOX32ASM ?= fox32asm
+endif
+
 ifeq ($(shell uname), Darwin)
 REALPATH ?= grealpath
 else
