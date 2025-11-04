@@ -74,8 +74,8 @@ all: \
 	fox32os.img #romdisk.img
 
 $(JKL):
-	cd $(NEWSDK) && ./bootstrap.sh
-	cd $(NEWSDK) && ./buildall.sh 4
+	cd $(NEWSDK) && ./bootstrap.sh 2>/dev/null
+	cd $(NEWSDK) && ./buildall.sh 4 2>/dev/null
 
 $(NEWSDK)/build/fox32os/jkl.fxf: $(JKL) FORCE
 	cd $(NEWSDK) && ./bin/xrbt.exe ./build.xrbt PLATFORM=fox32os TRG_XR17032=0 Jackal
