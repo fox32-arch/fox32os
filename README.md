@@ -6,6 +6,8 @@
 
 ## Getting Started
 
+**Quick setup**: See the [build-all repository](https://github.com/fox32-arch/build-all) to quickly get a working fox32os environment.
+
 Prebuilt images of the latest commit are available on the [GitHub Actions page](https://github.com/fox32-arch/fox32os/actions).
 
 Releases available on the [Releases page](https://github.com/fox32-arch/fox32os/releases) are **very outdated** at the moment and should not be used.
