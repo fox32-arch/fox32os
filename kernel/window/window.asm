@@ -872,29 +872,54 @@ search_for_nonempty_window_list_entry_found:
 get_window_with_overlay:
     push r1
     push r2
-    push r3
     push r31
 
     mov r1, window_list
     mov r31, 31
 get_window_with_overlay_loop:
     mov r2, [r1]
-    add r2, 24
-    cmp.8 [r2], r0
+    cmp.8 [r2+24], r0
     ifz jmp get_window_with_overlay_found
     add r1, 4
-    loop get_window_with_overlay_loop
+    rloop get_window_with_overlay_loop
     ; not found, return 0
     mov r0, 0
 
     pop r31
-    pop r3
     pop r2
     pop r1
     ret
 get_window_with_overlay_found:
     ; found the entry, return the pointer to its struct
     mov r0, [r1]
+
+    pop r31
+    pop r2
+    pop r1
+    ret
+
+; get the window struct of the window associated with the highest enabled overlay
+; inputs:
+; none
+; outputs:
+; r0: pointer to window struct, or 0x00000000 if not found
+get_window_with_highest_overlay:
+    push r1
+    push r2
+    push r3
+    push r31
+
+    mov r0, 0 ; highest found so far
+    mov r1, window_list
+    mov r31, 31
+get_window_with_highest_overlay_loop:
+    mov r2, [r1]
+    cmp.8 [r2+24], r0
+    ifgt movz.8 r0, [r2+24]
+    ifgt mov r3, r2
+    inc r1, 4
+    rloop get_window_with_highest_overlay_loop
+    mov r0, r3
 
     pop r31
     pop r3

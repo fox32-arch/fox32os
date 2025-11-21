@@ -137,18 +137,32 @@ event_manager_task_mouse_event_inactive_window_was_clicked:
     ; then assume the click was on an inactive window marked as "always background"
     ; it's probably bad to assume this, more checks would be good
     cmp r0, 0x00000000
-    ifz jmp event_manager_task_mouse_event_inactive_window_was_clicked_no_change
+    ifz jmp event_manager_task_mouse_event_inactive_window_was_clicked_front_without_swap
 
-    ; swap the two, if the "always background" flag is not set for the clicked window
+    ; if the "always background" flag is set for the clicked window, don't swap
     push r1
-    add r1, 26
-    movz.16 r1, [r1]
+    movz.16 r1, [r1+26]
     and r1, WINDOW_FLAG_ALWAYS_BACKGROUND
     cmp r1, 0
     pop r1
-    ifnz jmp event_manager_task_mouse_event_inactive_window_was_clicked_no_change
-    call swap_windows
+    ifnz jmp event_manager_task_mouse_event_inactive_window_was_clicked_front_without_swap
 
+    ; if the "always background" flag is set for the active window, swap the clicked
+    ; window with the window linked to the highest enabled overlay ID
+    push r0
+    movz.16 r0, [r0+26]
+    and r0, WINDOW_FLAG_ALWAYS_BACKGROUND
+    cmp r0, 0
+    pop r0
+    ifnz jmp event_manager_task_mouse_event_inactive_window_was_clicked_front_swap_highest
+    call swap_windows
+event_manager_task_mouse_event_inactive_window_was_clicked_front_swap_highest:
+    ; swap the clicked window with the window linked to the highest enabled overlay ID
+    push r0
+    call get_window_with_highest_overlay
+    call swap_windows
+    pop r0
+event_manager_task_mouse_event_inactive_window_was_clicked_front_without_swap:
     ; mark the clicked window as the active window
     push r0
     mov r0, r1
@@ -158,9 +172,11 @@ event_manager_task_mouse_event_inactive_window_was_clicked:
 
     ; redraw the title bars of both windows
     mov r0, r1
-    call draw_title_bar_to_window
+    cmp r0, 0
+    ifnz call draw_title_bar_to_window
     pop r0
-    call draw_title_bar_to_window
+    cmp r0, 0
+    ifnz call draw_title_bar_to_window
 
     ; set the menu bar for the newly active window
     mov r0, r2
@@ -177,15 +193,5 @@ event_manager_task_mouse_event_inactive_window_was_clicked:
     pop r0
     call add_mouse_event_to_active_window
     ret
-event_manager_task_mouse_event_inactive_window_was_clicked_no_change:
-    mov [old_r8], r8
-    mov r8, r1
-    pop r2
-    pop r1
-    pop r0
-    call add_mouse_event_to_inactive_window
-    mov r8, [old_r8]
-    ret
-old_r8: data.32 0
 
 event_manager_task_name: data.strz "eventmgr"
