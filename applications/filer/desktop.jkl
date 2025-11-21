@@ -203,7 +203,7 @@ FN OpenDesktop() : UWORD
 
     NewWindow(
         &window^.Window,
-        &window^.Path[0],
+        "Desktop",
         window^.Width,
         window^.Height,
         640 - window^.Width,
