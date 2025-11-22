@@ -902,7 +902,7 @@ get_window_with_overlay_found:
 ; inputs:
 ; none
 ; outputs:
-; r0: pointer to window struct, or 0x00000000 if not found
+; r0: pointer to window struct, or 0x00000000 if error
 get_window_with_highest_overlay:
     push r1
     push r2
@@ -911,12 +911,16 @@ get_window_with_highest_overlay:
 
     mov r0, 0 ; highest found so far
     mov r1, window_list
+    mov r3, 0
     mov r31, 31
 get_window_with_highest_overlay_loop:
     mov r2, [r1]
+    cmp r2, 0
+    ifz rjmp.8 get_window_with_highest_overlay_loop_next
     cmp.8 [r2+24], r0
-    ifgt movz.8 r0, [r2+24]
-    ifgt mov r3, r2
+    ifgteq movz.8 r0, [r2+24]
+    ifgteq mov r3, r2
+get_window_with_highest_overlay_loop_next:
     inc r1, 4
     rloop get_window_with_highest_overlay_loop
     mov r0, r3

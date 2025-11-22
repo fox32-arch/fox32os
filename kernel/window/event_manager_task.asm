@@ -160,7 +160,9 @@ event_manager_task_mouse_event_inactive_window_was_clicked_front_swap_highest:
     ; swap the clicked window with the window linked to the highest enabled overlay ID
     push r0
     call get_window_with_highest_overlay
-    call swap_windows
+    ; ensure we actually got a window struct
+    cmp r0, 0
+    ifnz call swap_windows
     pop r0
 event_manager_task_mouse_event_inactive_window_was_clicked_front_without_swap:
     ; mark the clicked window as the active window
