@@ -9,7 +9,7 @@ start_event_manager_task:
     ; allocate 256 bytes for the stack
     mov r0, 256
     call allocate_memory
-    add r0, 256                     ; add 256 so the stach pointer is at the end of the stack block (stack grows down)
+    add r0, 256                     ; add 256 so the stack pointer is at the end of the stack block (stack grows down)
     mov r10, r0
 
     ; then start the task
@@ -81,7 +81,7 @@ event_manager_task_mouse_event:
     ; find which overlay was clicked on
     mov r0, r1
     mov r1, r2
-    call find_overlay_convering_position
+    call find_overlay_covering_position
     cmp r0, 0xFFFFFFFF
     ifz pop r2
     ifz pop r1

@@ -8,23 +8,23 @@
 ; r1: Y coordinate
 ; outputs:
 ; r0: overlay number, or 0xFFFFFFFF if none
-find_overlay_convering_position:
+find_overlay_covering_position:
     push r2
     push r31
 
     mov r31, 29
-find_overlay_convering_position_loop:
+find_overlay_covering_position_loop:
     mov r2, r31
     dec r2
     call check_if_enabled_overlay_covers_position
-    ifz jmp find_overlay_convering_position_found
-    loop find_overlay_convering_position_loop
+    ifz jmp find_overlay_covering_position_found
+    loop find_overlay_covering_position_loop
     ; none found, return 0xFFFFFFFF
     mov r0, 0xFFFFFFFF
     pop r31
     pop r2
     ret
-find_overlay_convering_position_found:
+find_overlay_covering_position_found:
     ; found one, return its overlay number
     mov r0, r2
     pop r31
