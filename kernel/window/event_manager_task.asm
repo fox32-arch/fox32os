@@ -31,9 +31,9 @@ event_manager_task_loop:
 
     ; mouse
     cmp r0, EVENT_TYPE_MOUSE_CLICK
-    ifz call event_manager_task_mouse_event
+    ifz call event_manager_task_mouse_click_event
     cmp r0, EVENT_TYPE_MOUSE_RELEASE
-    ifz call event_manager_task_mouse_event
+    ifz call event_manager_task_mouse_release_event
 
     cmp.8 [active_window_offset], 0xFF
     ifz rjmp event_manager_task_loop_end
@@ -61,6 +61,11 @@ event_manager_task_loop_end:
     call yield_task
     rjmp event_manager_task_loop
 
+event_manager_task_mouse_release_event:
+    mov.8 [event_manager_task_mouse_was_released_flag], 1
+    jmp event_manager_task_mouse_event
+event_manager_task_mouse_click_event:
+    mov.8 [event_manager_task_mouse_was_released_flag], 0
 event_manager_task_mouse_event:
     push r0
     push r1
@@ -98,11 +103,13 @@ event_manager_task_mouse_event:
     call get_window_overlay_number
 
     ; check if the click was inside the active window
-    ; otherwise, activate the clicked window
+    ; otherwise, activate the clicked window if this is not a release event
     pop r1
+    cmp.8 [event_manager_task_mouse_was_released_flag], 0
+    ifnz jmp event_manager_task_mouse_event_add
     cmp r0, r1
     ifnz jmp event_manager_task_mouse_event_inactive_window_was_clicked
-
+event_manager_task_mouse_event_add:
     pop r2
     pop r1
     pop r0
@@ -197,3 +204,4 @@ event_manager_task_mouse_event_inactive_window_was_clicked_front_without_swap:
     ret
 
 event_manager_task_name: data.strz "eventmgr"
+event_manager_task_mouse_was_released_flag: data.8 0
