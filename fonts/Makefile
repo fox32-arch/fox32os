@@ -6,7 +6,7 @@ FILES = \
 	casual/casual-b.fnt \
 	casual/casual-t.fnt \
 	coral/coral.fnt \
-	terlos/terlos.fnt
+	hatlas/hatlas.fnt
 
 all: $(FILES)
 

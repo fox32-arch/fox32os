@@ -8,4 +8,4 @@ These fonts are copied to the `/system/font` directory by default.
 - "Blockcast" by Finley ([`blkcast.fnt`](blockcast/blkcast.png))
 - "Casual" by qRea (bold: [`casual-b.fnt`](casual/casual-b.png), thin: [`casual-t.fnt`](casual/casual-t.png))
 - "Coral Mono" by [aquamarine](https://aquamarine.gay/) ([`coral.fnt`](coral/coral.png))
-- "Terlos" by Finley ([`terlos.fnt`](terlos/terlos.png))
+- "Hatlas" by Finley ([`hatlas.fnt`](hatlas/hatlas.png))
