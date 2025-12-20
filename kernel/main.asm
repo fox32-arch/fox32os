@@ -142,6 +142,10 @@ entry_ok:
     ; initialize the memory allocator
     call initialize_allocator
 
+    ; initialize the menu bar overlay
+    call enable_menu_bar
+    call clear_menu_bar
+
     ; draw the bottom bar
     mov r0, bottom_bar_str_0
     mov r1, 8
