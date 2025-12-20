@@ -2,6 +2,14 @@
 
     opton
 
+    ; get the background color of the menu bar by pulling the first pixel of overlay 30
+    in r0, 0x8000021E
+    mov r0, [r0+24] ; 6 pixels to the right to skip any menu bar corners
+    mov [bg_color], r0
+    not r0
+    or r0, 0xFF000000
+    mov [fg_color], r0
+
 loop:
     ; redraw the window title if the active window has changed
     call get_active_window_struct
@@ -23,8 +31,8 @@ loop:
     cmp r0, 12
     ifgt call afternoon
     mov r2, 0
-    mov r3, 0xFFFFFFFF
-    mov r4, 0xFF3F3F3F
+    mov r3, [fg_color]
+    mov r4, [bg_color]
     mov r5, 30
     call draw_decimal_to_overlay
 
@@ -73,8 +81,8 @@ draw_window_title:
 
     ; draw the text
     mov r2, 0
-    mov r3, 0xFFFFFFFF
-    mov r4, 0xFF3F3F3F
+    mov r3, [fg_color]
+    mov r4, [bg_color]
     mov r5, 30
     call draw_str_to_overlay
 
@@ -93,6 +101,9 @@ minute_less_than_10:
 
 second_counter: data.8 0
 active_window_struct_ptr: data.32 0
+
+bg_color: data.32 0
+fg_color: data.32 0
 
     #include "../../../fox32rom/fox32rom.def"
     #include "../../fox32os.def"
