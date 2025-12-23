@@ -21,6 +21,7 @@ parse_fxf_binary:
     ret
 
 fxf_magic: data.str "FXF"
+app_magic: data.str "APP"
 
     #include "fxf/launch.asm"
     #include "fxf/reloc.asm"
@@ -30,3 +31,5 @@ const FXF_CODE_PTR:    0x00000008
 const FXF_RELOC_SIZE:  0x0000000C
 const FXF_RELOC_PTR:   0x00000010
 const FXF_BSS_SIZE:    0x00000014
+
+const APP_ENTRY_POINT: 0x00000004

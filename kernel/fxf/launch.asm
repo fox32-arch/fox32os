@@ -159,6 +159,12 @@ launch_fxf_continue:
     cmp r0, 0
     ifz jmp launch_fxf_from_disk_reloc_error
 
+    ; check for app header
+    mov r1, app_magic
+    mov r2, 3
+    call compare_memory_bytes
+    ifz mov r0, [r0+APP_ENTRY_POINT] ; grab entry point if the header exists
+
     ; create a new task
     mov r1, r0
     call get_unused_task_id
