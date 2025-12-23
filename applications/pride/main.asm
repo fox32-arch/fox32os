@@ -1,7 +1,15 @@
 ; pride flags :3
 
-    opton
+    #include "../application.inc"
+app_name: data.strz "Trans Pride" ; max 12 chars
+app_desc: data.strz "Transgender Pride Flag" ; max 50 chars
+app_author: data.strz "fox32 contributors (github.com/fox32-arch)" ; max 50 chars
+app_version: data.strz "0.0.0" ; max 8 chars
+app_icon:
+    #include "icon.inc"
 
+    opton
+entry:
     mov r0, window_struct
     mov r1, window_title
     mov r2, 256
