@@ -1,6 +1,6 @@
 ; terminal
 
-    #include "../application.inc"
+    #include "../gui_app.inc"
 app_name: data.strz "Terminal" ; max 12 chars
 app_desc: data.strz "Command Line Terminal" ; max 50 chars
 app_author: data.strz "fox32 contributors (github.com/fox32-arch)" ; max 50 chars
@@ -9,7 +9,7 @@ app_icon:
     #include "icon.inc"
 
     opton
-entry:
+app_entry:
     pop r0
     pop r0
     cmp r0, 0
@@ -172,7 +172,7 @@ close_window:
     cmp r0, 0
     ifnz call free_memory
 
-    call end_current_task
+    call app_exit
     jmp event_loop_end
 
 sh_fxf_missing:

@@ -194,6 +194,13 @@ launch_fxf_skip_fill_reti_addr:
     call get_current_disk_id
     mov.16 r5, r0
     pop r0
+
+    ; check for app header
+    mov r1, launch_fxf_app_magic
+    mov r2, 3
+    call compare_memory_bytes
+    ifz mov r0, [r0+APP_ENTRY_POINT] ; grab entry point if the header exists
+
     mov r1, r0
     call get_unused_task_id
     mov.8 [launch_fxf_task_id], r0
@@ -246,6 +253,9 @@ launch_fxf_add_ext:
     mov r0, fxf_str
     call copy_string
     ret
+
+const APP_ENTRY_POINT: 0x00000004
+launch_fxf_app_magic: data.str "APP"
 
 fxf_str: data.strz ".fxf"
 launch_fxf_name: data.fill 0, 128

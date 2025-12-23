@@ -1,7 +1,8 @@
 FOX32ASM := ../../fox32asm/target/release/fox32asm
 
 FILES = \
-	../base_image/system/library/streamio.lbr
+	../base_image/system/library/streamio.lbr \
+	../base_image/system/library/winmgr.lbr
 
 all: $(FILES)
 

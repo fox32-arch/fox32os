@@ -23,6 +23,8 @@ open_library:
     ; if we reach this point then the library is already open
     ; r0 contains the list offset, ignore the pushed value
     inc rsp, 4
+    mul r0, LIBRARY_SIZE
+    add r0, open_library_list
     inc [r0+4] ; increment ref_count
     mov r0, [r0+8] ; return the jump table pointer
     rjmp.16 open_library_from_disk_ret
@@ -109,9 +111,14 @@ close_library:
     call search_for_library_list_entry_by_jump_table
     cmp r0, 0xFFFFFFFF
     ifz rjmp.16 close_library_ret
+    mul r0, LIBRARY_SIZE
     add r0, open_library_list
 
-    ; free the block of memory
+    dec [r0+4] ; decrement ref_count
+    cmp [r0+4], 0
+    ifnz rjmp.16 close_library_ret
+
+    ; free the block of memory if ref_count is now zero
     push r0
     mov r0, [r0+8] ; r0 = table_ptr
     dec r0, 4      ; r0 = table_ptr - 4 (contains ptr to free)

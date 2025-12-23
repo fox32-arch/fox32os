@@ -1,5 +1,31 @@
 ; window management routines
 
+    opton
+
+jump_table:
+    data.32 new_window
+    data.32 destroy_window
+    data.32 new_window_event
+    data.32 get_next_window_event
+    data.32 draw_title_bar_to_window
+    data.32 move_window
+    data.32 fill_window
+    data.32 get_window_overlay_number
+    data.32 start_dragging_window
+    data.32 new_messagebox
+    data.32 get_active_window_struct
+    data.32 set_window_flags
+    data.32 new_window_from_resource
+    data.32 start_event_manager_task
+    data.32 end_event_manager_task
+
+    data.32 draw_widgets_to_window
+    data.32 handle_widget_click
+    data.32 handle_widget_key_down
+    data.32 handle_widget_key_up
+
+    data.32 0x00000000 ; end jump table
+
 ; window struct:
 ; data.32 framebuffer_ptr    - pointer to this window's framebuffer
 ; data.32 event_queue_ptr    - current event queue pointer
@@ -955,6 +981,11 @@ get_active_window_struct:
     call window_list_offset_to_struct
     ret
 
+memory_error:
+    mov r0, 0
+    call panic
+    rjmp memory_error
+
 window_title_bar_patterns_active:
     ; 1x16 tile
     data.32 0x00000000
@@ -1032,7 +1063,12 @@ window_title_bar_patterns_inactive:
 active_window_offset: data.8 0xFF
 window_list: data.fill 0, 124 ; 31 window structs * 4 bytes each
 
-    #include "window/event.asm"
-    #include "window/event_manager_task.asm"
-    #include "window/messagebox.asm"
-    #include "window/overlay.asm"
+    #include "event.asm"
+    #include "event_manager_task.asm"
+    #include "messagebox.asm"
+    #include "overlay.asm"
+
+    #include "widget/widget.asm"
+
+    #include "../../fox32os.def"
+    #include "../../../fox32rom/fox32rom.def"
