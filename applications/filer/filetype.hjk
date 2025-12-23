@@ -1,5 +1,10 @@
 #INCLUDE "window.hjk"
 
+EXTERN FN FillFxfAppData(
+    IN window : ^IconWindow,
+    IN iconNumber : UWORD,
+)
+
 EXTERN FN OpenFileByType(
     IN window : ^IconWindow,
     IN path : ^UBYTE,

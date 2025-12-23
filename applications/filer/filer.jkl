@@ -109,7 +109,7 @@ FN HandleMouseClick(
         LEAVE
     END
 
-    IF windows[windowNumber]^.IsDesktopWindow THEN
+    IF windows[windowNumber]^.WindowType == WINDOW_TYPE_DESKTOP THEN
         // desktop window should be refreshed when clicked
         old_num_icons := windows[windowNumber]^.NumIcons
         RefreshDesktopFiles(windowNumber)

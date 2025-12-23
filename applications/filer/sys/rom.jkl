@@ -33,6 +33,7 @@ ryfs_get_file_list:                       jmp [0xF004501C]
 
 // memory copy/compare jump table
 copy_memory_bytes:                        jmp [0xF0046000]
+copy_memory_words:                        jmp [0xF0046004]
 copy_string:                              jmp [0xF0046008]
 compare_memory_bytes:                     jmp [0xF004600C]
 compare_string:                           jmp [0xF0046014]
@@ -153,6 +154,12 @@ CopyMemoryBytes:
     mov r1, a1
     mov r2, a2
     jmp copy_memory_bytes
+CopyMemoryWords:
+.global CopyMemoryWords
+    mov r0, a0
+    mov r1, a1
+    mov r2, a2
+    jmp copy_memory_words
 CopyString:
 .global CopyString
     mov r0, a0

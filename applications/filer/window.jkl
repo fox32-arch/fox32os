@@ -5,17 +5,41 @@
 
 #INCLUDE "window.hjk"
 #INCLUDE "desktop.hjk"
+#INCLUDE "filetype.hjk"
 
 EXTERN FN Error(IN error_string : ^UBYTE)
 EXTERN windows : ^IconWindow[]
 EXTERN icons_graphics : ^UBYTE
+
+EXTERN menu_bar : Menu
+#ASM [
+menu_bar:
+.global menu_bar
+    // number of menus
+    .db 1
+    // "items" and "name" table pairs for each menu
+    .dp menu_file_items
+    .dp menu_file_name
+menu_file_name:
+    // length, ASCII string, null
+    .db 4 .ds "File" .db 0
+menu_file_items:
+    // number of menu items
+    .db 3
+    // width of menu, generally 2 greater than the longest menu item
+    .db 7
+    // length, ASCII string, null for each menu item
+    .db 3 .ds "New" .db 0
+    .db 4 .ds "Copy" .db 0
+    .db 5 .ds "Paste" .db 0
+]
 
 FN RenderWindow(
     IN windowNumber : UWORD,
     IN drawEdge : UBYTE,
 )
     window : ^IconWindow = windows[windowNumber]
-    IF window^.IsDesktopWindow THEN
+    IF window^.WindowType == WINDOW_TYPE_DESKTOP THEN
         RenderDesktop(windowNumber)
         LEAVE
     END
@@ -48,7 +72,20 @@ FN RenderWindow(
     i = 0
     WHILE i < window^.NumIcons DO
         extIndex := StringLength(&window^.Icon[i].Name[0]) - 3
-        IF icons_graphics != NULLPTR THEN
+        IF window^.Icon[i].Graphic != NULLPTR THEN
+            tempGraphic : ULONG[32*32]
+            CopyMemoryWords(&window^.Icon[i].Graphic[0], &tempGraphic[0], 32*32)
+            // replace transparent pixels with the window background color
+            j := 0
+            WHILE j < 1024 DO
+                IF tempGraphic[j] & 0xFF000000 == 0 THEN
+                    tempGraphic[j] = WINDOW_BG_COLOR
+                END
+                j += 1
+            END
+            SetTilemap(&tempGraphic[0], 32, 32)
+            DrawTileToOverlay(0, window^.Icon[i].Pos.X, window^.Icon[i].Pos.Y, window^.Window.Overlay)
+        ELSEIF icons_graphics != NULLPTR THEN
             iconDataPtr : ^ULONG = GetResource(icons_graphics, &window^.Icon[i].Name[extIndex], 4096)
             IF iconDataPtr == NULLPTR THEN
                 iconDataPtr = GetResource(icons_graphics, "msc", 4096)
@@ -84,7 +121,7 @@ FN OpenWindow(IN path : ^UBYTE) : UWORD
 
     windows[w] = AllocateMemory(SIZEOF IconWindow)
     IF windows[w] == 0 THEN Error("Failed to allocate for new window") END
-    windows[w]^.IsDesktopWindow = FALSE
+    windows[w]^.WindowType = WINDOW_TYPE_BROWSER
 
     CopyString(path, &windows[w]^.Path)
     windows[w]^.Disk = path[0] - '0' // FIXME: this is stupid
@@ -131,6 +168,14 @@ FN OpenWindow(IN path : ^UBYTE) : UWORD
         window^.Icon[i].Name[j+1] = '.'
         CopyMemoryBytes(&files[nameOffset+8], &window^.Icon[i].Name[j+2], 3)
         window^.Icon[i].Name[j+5] = 0
+        CopyString(&window^.Icon[i].Name[0], &window^.Icon[i].Text[0])
+
+        window^.Icon[i].Graphic = NULLPTR
+
+        // if this is an FXF file, handle APP header if it exists
+        IF CompareMemory(&window^.Icon[i].Name[j+2], "fxf", 3) THEN
+            FillFxfAppData(window, i)
+        END
 
         window^.Icon[i].IsDisk = FALSE
 
@@ -144,7 +189,7 @@ FN OpenWindow(IN path : ^UBYTE) : UWORD
         END
         window^.Icon[i].Widget.Id = i
         window^.Icon[i].Widget.Type = WIDGET_TYPE_BUTTON
-        window^.Icon[i].Widget.Text = &window^.Icon[i].Name[0]
+        window^.Icon[i].Widget.Text = &window^.Icon[i].Text[0]
         window^.Icon[i].Widget.FgColor = 0xFF000000
         window^.Icon[i].Widget.BgColor = 0xFFDDDDDD
         window^.Icon[i].Widget.Width = 32
@@ -173,6 +218,14 @@ END
 FN CloseWindow(IN windowNumber : UWORD)
     IF windows[windowNumber] != NULLPTR THEN
         DestroyWindow(&windows[windowNumber]^.Window)
+        i := 0
+        WHILE i < 31 DO
+            IF windows[windowNumber]^.Icon[i].Graphic != NULLPTR THEN
+                FreeMemory(windows[windowNumber]^.Icon[i].Graphic)
+                windows[windowNumber]^.Icon[i].Graphic = NULLPTR
+            END
+            i += 1
+        END
         FreeMemory(windows[windowNumber])
         windows[windowNumber] = NULLPTR
     END

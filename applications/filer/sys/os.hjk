@@ -201,6 +201,11 @@ EXTERN FN Write (
     IN count : UWORD,
 )
 
+EXTERN FN Seek (
+    IN file : ^File,
+    IN offset : UWORD,
+)
+
 EXTERN FN GetSize (
     IN file : ^File,
 ) : UWORD

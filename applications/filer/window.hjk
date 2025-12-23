@@ -5,21 +5,42 @@
 #DEFINE UNSELECTED_BG_COLOR 0xFFDDDDDD
 #DEFINE WINDOW_BG_COLOR 0xFFFFFFFF
 
+#DEFINE WINDOW_TYPE_BROWSER 0
+#DEFINE WINDOW_TYPE_DESKTOP 1
+#DEFINE WINDOW_TYPE_NEWFILE 2
+
+#DEFINE MAX_PATH_LENGTH 256
+
+#DEFINE FXF_CODE 0x08
+#DEFINE APP_NAME 0x08
+#DEFINE APP_DESC 0x0C
+#DEFINE APP_AUTHOR 0x10
+#DEFINE APP_VERSION 0x14
+#DEFINE APP_ICON 0x18
+
 STRUCT Icon
+    Text : UBYTE[13],
     Name : UBYTE[13],
     Pos : Position,
     Widget : ButtonWidget,
     IsDisk : UBYTE,
     DiskId : UBYTE,
+
+    // APP header data
+    Description : UBYTE[51],
+    Author : UBYTE[51],
+    Version : UBYTE[9],
+    Graphic : ^ULONG,
 END
 
 STRUCT IconWindow
     Window : Window,
+    WindowType : UBYTE,
     Width : UINT,
     Height : UINT,
     Icon : Icon[31], // RYFS has a max of 31 files per directory
     NumIcons : UBYTE,
-    Path : UBYTE[256], // 256 is an arbitrary size. should hopefully be enough
+    Path : UBYTE[MAX_PATH_LENGTH],
     Disk : UBYTE,
     ClickTimeMax : ULONG,
     ClickIcon : UBYTE,

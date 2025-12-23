@@ -4,6 +4,7 @@
 #INCLUDE "sys/os.hjk"
 
 #INCLUDE "window.hjk"
+#INCLUDE "filetype.hjk"
 
 EXTERN FN Error(IN error_string : ^UBYTE)
 EXTERN windows : ^IconWindow[]
@@ -34,7 +35,10 @@ FN RenderDesktop(
     i = 0
     WHILE i < window^.NumIcons DO
         extIndex := StringLength(&window^.Icon[i].Name[0]) - 3
-        IF icons_graphics != NULLPTR THEN
+        IF window^.Icon[i].Graphic != NULLPTR THEN
+            SetTilemap(window^.Icon[i].Graphic, 32, 32)
+            DrawTileToOverlay(0, window^.Icon[i].Pos.X, window^.Icon[i].Pos.Y, window^.Window.Overlay)
+        ELSEIF icons_graphics != NULLPTR THEN
             IF window^.Icon[i].IsDisk THEN
                 iconDataPtr := GetResource(icons_graphics, "dsk", 4096)
                 IF iconDataPtr != NULLPTR THEN
@@ -94,6 +98,7 @@ FN SetDiskName(
         i -= 1
     END
     GetDirName(&tempFile, &windows[windowNumber]^.Icon[iconNumber].Name[0])
+    CopyString(&windows[windowNumber]^.Icon[iconNumber].Name[0], &windows[windowNumber]^.Icon[iconNumber].Text[0])
     windows[windowNumber]^.Icon[iconNumber].IsDisk = TRUE
     windows[windowNumber]^.Icon[iconNumber].DiskId = diskId
 END
@@ -150,6 +155,14 @@ FN RefreshDesktopFiles(
             window^.Icon[i].Name[j+5] = 0
             window^.Icon[i].IsDisk = FALSE
             nameOffset += 11
+
+            CopyString(&window^.Icon[i].Name[0], &window^.Icon[i].Text[0])
+            window^.Icon[i].Graphic = NULLPTR
+
+            // if this is an FXF file, handle APP header if it exists
+            IF CompareMemory(&window^.Icon[i].Name[j+2], "fxf", 3) THEN
+                FillFxfAppData(window, i)
+            END
         END
 
         window^.Icon[i].Pos.X = 640 - (((i / 5) * 96) + 32) - 32
@@ -162,7 +175,7 @@ FN RefreshDesktopFiles(
         END
         window^.Icon[i].Widget.Id = i
         window^.Icon[i].Widget.Type = WIDGET_TYPE_BUTTON
-        window^.Icon[i].Widget.Text = &window^.Icon[i].Name[0]
+        window^.Icon[i].Widget.Text = &window^.Icon[i].Text[0]
         window^.Icon[i].Widget.FgColor = 0xFF000000
         window^.Icon[i].Widget.BgColor = 0xFFDDDDDD
         window^.Icon[i].Widget.Width = 32
@@ -193,7 +206,7 @@ FN OpenDesktop() : UWORD
     RtlFormat(&buffer[0], 256, "%d:/user/desktop.dir", GetBootDiskId())
     CopyString(&buffer[0], &window^.Path)
     window^.Disk = GetBootDiskId()
-    window^.IsDesktopWindow = TRUE
+    window^.WindowType = WINDOW_TYPE_DESKTOP
     window^.ClickIcon = 0xFF // no icon clicked
 
     // prepare the window

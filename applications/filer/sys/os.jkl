@@ -270,6 +270,13 @@ Write:
     mov r2, a1
     jmp write
 
+Seek:
+.global Seek
+    // we switched argument order
+    mov r0, a1
+    mov r1, a0
+    jmp seek
+
 GetSize:
 .global GetSize
     mov r0, a0

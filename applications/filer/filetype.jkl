@@ -7,6 +7,62 @@
 
 EXTERN filetype_data : ^UBYTE
 
+FN FillFxfAppData(
+    IN window : ^IconWindow,
+    IN iconNumber : UWORD,
+)
+    buffer : UBYTE[256]
+    tempFile : File
+    RtlFormat(&buffer[0], 256, "%s/%s", &window^.Path[0], &window^.Icon[iconNumber].Name[0])
+    IF Open(&buffer[0], window^.Disk, &tempFile) == 0 THEN
+        RtlPrint("Failed to check file %s\n", &buffer[0])
+    ELSE
+        Read(&tempFile, &buffer[0], 4)
+        IF CompareMemory(&buffer[0], "FXF", 3) THEN
+            // we have an FXF header! now find the start of the code section
+            codeStart : UWORD[1]
+            Seek(&tempFile, FXF_CODE)
+            Read(&tempFile, &codeStart[0], 4)
+            Seek(&tempFile, codeStart[0])
+            Read(&tempFile, &buffer[0], 4)
+            IF CompareMemory(&buffer[0], "APP", 3) THEN
+                // APP header exists!!
+                nameStart : UWORD[1]
+                descStart : UWORD[1]
+                authorStart : UWORD[1]
+                versionStart : UWORD[1]
+                iconStart : UWORD[1]
+                Seek(&tempFile, codeStart[0] + APP_NAME)
+                Read(&tempFile, &nameStart[0], 4)
+                Read(&tempFile, &descStart[0], 4)
+                Read(&tempFile, &authorStart[0], 4)
+                Read(&tempFile, &versionStart[0], 4)
+                Read(&tempFile, &iconStart[0], 4)
+
+                // FIXME: these should use something equivalent to strncpy instead!!
+                Seek(&tempFile, codeStart[0] + nameStart[0])
+                Read(&tempFile, &buffer[0], 12)
+                CopyString(&buffer[0], &window^.Icon[iconNumber].Text)
+                Seek(&tempFile, codeStart[0] + descStart[0])
+                Read(&tempFile, &buffer[0], 51)
+                CopyString(&buffer[0], &window^.Icon[iconNumber].Description)
+                Seek(&tempFile, codeStart[0] + authorStart[0])
+                Read(&tempFile, &buffer[0], 51)
+                CopyString(&buffer[0], &window^.Icon[iconNumber].Author)
+                Seek(&tempFile, codeStart[0] + versionStart[0])
+                Read(&tempFile, &buffer[0], 9)
+                CopyString(&buffer[0], &window^.Icon[iconNumber].Version)
+
+                IF iconStart[0] THEN
+                    Seek(&tempFile, codeStart[0] + iconStart[0])
+                    window^.Icon[iconNumber].Graphic = AllocateMemory(32*32*4)
+                    Read(&tempFile, window^.Icon[iconNumber].Graphic, 32*32*4)
+                END
+            END
+        END
+    END
+END
+
 FN LaunchFromFileTypeString(
     IN fileType : ^UBYTE,
     IN path : ^UBYTE,

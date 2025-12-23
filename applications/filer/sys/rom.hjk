@@ -70,6 +70,11 @@ EXTERN FN CopyMemoryBytes(
     IN destination: ^VOID,
     IN length: UWORD,
 )
+EXTERN FN CopyMemoryWords(
+    IN source: ^VOID,
+    IN destination: ^VOID,
+    IN length: UWORD,
+)
 EXTERN FN CopyString(
     IN source: ^VOID,
     IN destination: ^VOID,
