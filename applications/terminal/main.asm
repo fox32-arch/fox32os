@@ -1,7 +1,15 @@
 ; terminal
 
-    opton
+    #include "../application.inc"
+app_name: data.strz "Terminal" ; max 12 chars
+app_desc: data.strz "Command Line Terminal" ; max 50 chars
+app_author: data.strz "fox32 contributors (github.com/fox32-arch)" ; max 50 chars
+app_version: data.strz "0.0.0" ; max 8 chars
+app_icon:
+    #include "icon.inc"
 
+    opton
+entry:
     pop r0
     pop r0
     cmp r0, 0
