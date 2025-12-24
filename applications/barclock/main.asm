@@ -2,6 +2,9 @@
 
     opton
 
+#include "../gui_only.inc"
+
+app_entry:
     ; get the background color of the menu bar by pulling the first pixel of overlay 30
     in r0, 0x8000021E
     mov r0, [r0+24] ; 6 pixels to the right to skip any menu bar corners
