@@ -218,5 +218,5 @@ event_manager_task_mouse_event_inactive_window_was_clicked_front_without_swap:
     call add_mouse_event_to_active_window
     ret
 
-event_manager_task_name: data.strz "eventmgr"
+event_manager_task_name: data.strz "winmgr"
 event_manager_task_mouse_was_released_flag: data.8 0

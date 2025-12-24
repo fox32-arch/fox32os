@@ -1,4 +1,5 @@
 chgdir /system;
 *bg /user/bg.bmp;
-*sh;
+*barclock;
+*filer desktop;
 exit;

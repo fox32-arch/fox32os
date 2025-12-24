@@ -49,7 +49,7 @@ next:
 separator2: data.str " "
 separator: data.strz " | "
 space: data.strz " "
-base_na: data.str "<kernel>" data.8 10 data.8 0
+base_na: data.str "N/A" data.8 10 data.8 0
 header: data.str "ID | name     | base addr" nl: data.8 10 data.8 0
 
 ; 8 characters plus null terminator
