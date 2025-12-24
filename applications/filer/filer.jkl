@@ -1,8 +1,22 @@
 #ASM [
+#INCLUDE "startup.asm"
+app_entry:
+    inc rsp, 4
     pop a0 // stream_local
     pop a1 // arg0
     call Main
-    call EndCurrentTask
+    jmp app_exit
+
+app_name: .ds "Filer" .db 0
+.global app_name
+app_desc: .ds "File Manager" .db 0
+.global app_desc
+app_author: .ds "fox32 contributors (github.com/fox32-arch)" .db 0
+.global app_author
+app_version: .ds "0.0.0" .db 0
+.global app_version
+app_icon:
+.global app_icon
 ]
 
 #DEFINE BLD_BITS 32
@@ -51,6 +65,7 @@ FN RtljUnlockStream(
     // dummy function to keep the compiler happy
 END
 
+EXTERN FN app_exit()
 FN Exit()
     w := 0
     WHILE w < MAX_WINDOWS DO
@@ -62,7 +77,7 @@ FN Exit()
     IF icons_graphics != NULLPTR THEN
         FreeMemory(icons_graphics)
     END
-    EndCurrentTask()
+    app_exit()
 END
 
 FN Error(IN error_string : ^UBYTE)
