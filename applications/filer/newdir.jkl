@@ -1,0 +1,132 @@
+#DEFINE BLD_BITS 32
+#DEFINE ARCHITECTURE "fox32"
+#INCLUDE "sys/rtl.hjk"
+#INCLUDE "sys/os.hjk"
+
+#INCLUDE "newdir.hjk"
+#INCLUDE "window.hjk"
+
+PUBLIC new_dir_window : TextWindow
+PUBLIC new_dir_window_open : UBYTE = FALSE
+new_dir_window_parent_num : UWORD
+new_dir_text_buffer : UBYTE[13]
+EXTERN windows : ^IconWindow[]
+
+FN UpdateNewDirWindow()
+    IF new_dir_window_open == FALSE THEN LEAVE END
+    e : Event
+    GetNextWindowEvent(&new_dir_window.Window, &e)
+    IF e.Type == EVENT_TYPE_MOUSE_CLICK THEN
+        x := e.Body.Pos.X
+        y := e.Body.Pos.Y
+        IF y < 16 THEN
+            // user clicked title bar
+            IF x < 8 THEN
+                // user clicked close button
+                DestroyWindow(&new_dir_window.Window)
+                new_dir_window_open = FALSE
+                LEAVE
+            END
+
+            // otherwise, start dragging the window
+            StartDraggingWindow(&new_dir_window.Window)
+            LEAVE
+        END
+        HandleWidgetClick(&new_dir_window.Window, x, y)
+    ELSEIF e.Type == EVENT_TYPE_BUTTON_CLICK THEN
+        // user clicked the OK button, create the folder!
+        concatPath : UBYTE[256]
+        separator : UBYTE[2]
+        pathLen := StringLength(&new_dir_window.Path[0])
+        IF new_dir_window.Path[pathLen - 1] == '/' THEN
+            separator[0] = 0
+        ELSE
+            separator[0] = '/'
+            separator[1] = 0
+        END
+        RtlFormat(&concatPath[0], 256, "%s%s%s",
+            &new_dir_window.Path[0],
+            &separator[0],
+            &new_dir_text_buffer[0]
+        )
+
+        new_dir_file : File
+        IF CreateDir(&concatPath[0], new_dir_window.Disk, &new_dir_file) == 0 THEN
+            RtlPrint("failed to create directory %s\n", &concatPath[0])
+        END
+        DestroyWindow(&new_dir_window.Window)
+        // FIXME: there is currently no way to refresh the list of files in a window
+        // RenderWindow(new_dir_window_parent_num, TRUE)
+        new_dir_window_open = FALSE
+    ELSEIF e.Type == EVENT_TYPE_KEY_DOWN THEN
+        HandleWidgetKeyDown(&new_dir_window.Window, e.Body.Parameters[0])
+    ELSEIF e.Type == EVENT_TYPE_KEY_UP THEN
+        HandleWidgetKeyUp(&new_dir_window.Window, e.Body.Parameters[0])
+    END
+END
+
+FN RenderNewDirWindow()
+    DrawFilledRectangleToOverlay(0, 16, new_dir_window.Width, new_dir_window.Height, 0xFF000000, new_dir_window.Window.Overlay)
+    DrawFilledRectangleToOverlay(1, 17, new_dir_window.Width - 2, new_dir_window.Height - 2, WINDOW_BG_COLOR, new_dir_window.Window.Overlay)
+
+    DrawStrToOverlay("Name:", 4, 17, 0xFF000000, 0xFFFFFFFF, new_dir_window.Window.Overlay)
+    DrawWidgetsToWindow(&new_dir_window.Window)
+END
+
+FN OpenNewDirWindow(
+    IN parentWindowNumber : UWORD,
+    IN path : ^UBYTE,
+)
+    IF new_dir_window_open THEN LEAVE END
+
+    new_dir_window.WindowType = WINDOW_TYPE_NEWFILE
+    new_dir_window_open = TRUE
+    new_dir_window_parent_num = parentWindowNumber
+
+    i := 0
+    WHILE i < 13 DO
+        new_dir_text_buffer[i] = 0
+        i += 1
+    END
+
+    CopyString(path, &new_dir_window.Path)
+    new_dir_window.Disk = path[0] - '0'
+    new_dir_window.Width = 116
+    new_dir_window.Height = 64
+
+    new_dir_window.TextBox.Next = &new_dir_window.OkButton
+    new_dir_window.TextBox.Id = 0
+    new_dir_window.TextBox.Type = WIDGET_TYPE_TEXTBOX_SL
+    new_dir_window.TextBox.Buffer = &new_dir_text_buffer[0]
+    new_dir_window.TextBox.FgColor = 0xFF000000
+    new_dir_window.TextBox.BgColor = 0xFFDDDDDD
+    new_dir_window.TextBox.Width = 108
+    new_dir_window.TextBox.BufferMax = 13
+    new_dir_window.TextBox.X = 4
+    new_dir_window.TextBox.Y = 34
+
+    new_dir_window.OkButton.Next = 0
+    new_dir_window.OkButton.Id = 1
+    new_dir_window.OkButton.Type = WIDGET_TYPE_BUTTON
+    new_dir_window.OkButton.Text = "OK"
+    new_dir_window.OkButton.FgColor = 0xFFFFFFFF
+    new_dir_window.OkButton.BgColor = 0xFF000000
+    new_dir_window.OkButton.Width = 18
+    new_dir_window.OkButton.Height = 8
+    new_dir_window.OkButton.X = 94
+    new_dir_window.OkButton.Y = 58
+
+    NewWindow(
+        &new_dir_window.Window,
+        "New Directory",
+        new_dir_window.Width,
+        new_dir_window.Height,
+        windows[parentWindowNumber]^.Window.X +
+            (windows[parentWindowNumber]^.Width / 2) - (new_dir_window.Width / 2),
+        windows[parentWindowNumber]^.Window.Y +
+            (windows[parentWindowNumber]^.Height / 2) - (new_dir_window.Height / 2),
+        0,
+        &new_dir_window.TextBox
+    )
+    RenderNewDirWindow()
+END

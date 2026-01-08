@@ -9,6 +9,7 @@
 EXTERN FN Error(IN error_string : ^UBYTE)
 EXTERN windows : ^IconWindow[]
 EXTERN icons_graphics : ^UBYTE
+EXTERN menu_bar : Menu
 
 FN RenderDesktop(
     IN windowNumber : UWORD,
@@ -221,7 +222,7 @@ FN OpenDesktop() : UWORD
         window^.Height,
         640 - window^.Width,
         16,
-        0,
+        &menu_bar,
         &window^.Icon[0].Widget
     )
     SetWindowFlags(&window^.Window, WINDOW_FLAG_ALWAYS_BACKGROUND | WINDOW_FLAG_NO_TITLE_BAR)
