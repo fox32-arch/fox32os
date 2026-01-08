@@ -8,7 +8,7 @@
     .dp app_desc
     .dp app_author
     .dp app_version
-    .dp app_icon
+    .dl 0 // no icon
 
 _gui_entry:
     call [0x00000820] // get_boot_disk_id

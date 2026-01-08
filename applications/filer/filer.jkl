@@ -15,8 +15,6 @@ app_author: .ds "fox32 contributors (github.com/fox32-arch)" .db 0
 .global app_author
 app_version: .ds "0.0.0" .db 0
 .global app_version
-app_icon:
-.global app_icon
 ]
 
 #DEFINE BLD_BITS 32
