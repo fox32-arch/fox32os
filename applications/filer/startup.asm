@@ -10,6 +10,9 @@
     .dp app_version
     .dl 0 // no icon
 
+// number of entries to copy from the jump table
+#DEFINE WINMGR_LBR_TABLE_ENTRIES 22
+
 _gui_entry:
     call [0x00000820] // get_boot_disk_id
     mov r1, r0
@@ -19,8 +22,7 @@ _gui_entry:
     ifz mov r0, _winmgr_lbr_missing_str
     ifz call [0xF0040018] // panic
     mov [_winmgr_lbr], r0
-    mov r31, r1
-    srl r31, 2 // 4 bytes per jump table entry
+    mov r31, WINMGR_LBR_TABLE_ENTRIES
     mov r2, _winmgr_lbr_table
 _gui_entry_copy_table_loop:
     mov [r2], [r0]
@@ -61,6 +63,9 @@ _winmgr_lbr_fn_draw_widgets_to_window: .dl 0
 _winmgr_lbr_fn_handle_widget_click: .dl 0
 _winmgr_lbr_fn_handle_widget_key_down: .dl 0
 _winmgr_lbr_fn_handle_widget_key_up: .dl 0
+_winmgr_lbr_fn_get_title_bar_theme: .dl 0
+_winmgr_lbr_fn_set_title_bar_theme: .dl 0
+_winmgr_lbr_fn_set_internal_title_bar_theme: .dl 0
 
 new_window: jmp [_winmgr_lbr_fn_new_window]
 .global new_window
@@ -100,3 +105,9 @@ handle_widget_key_down: jmp [_winmgr_lbr_fn_handle_widget_key_down]
 .global handle_widget_key_down
 handle_widget_key_up: jmp [_winmgr_lbr_fn_handle_widget_key_up]
 .global handle_widget_key_up
+get_title_bar_theme: jmp [_winmgr_lbr_fn_get_title_bar_theme]
+.global get_title_bar_theme
+set_title_bar_theme: jmp [_winmgr_lbr_fn_set_title_bar_theme]
+.global set_title_bar_theme
+set_internal_title_bar_theme: jmp [_winmgr_lbr_fn_set_internal_title_bar_theme]
+.global set_internal_title_bar_theme

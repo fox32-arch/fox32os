@@ -24,6 +24,10 @@ jump_table:
     data.32 handle_widget_key_down
     data.32 handle_widget_key_up
 
+    data.32 get_title_bar_theme
+    data.32 set_title_bar_theme
+    data.32 set_internal_title_bar_theme
+
     data.32 0x00000000 ; end jump table
 
 ; window struct:
@@ -44,10 +48,6 @@ jump_table:
 
 const WINDOW_STRUCT_SIZE: 40 ; 10 words = 40 bytes
 const TITLE_BAR_HEIGHT: 16
-const TITLE_BAR_TEXT_ACTIVE_FOREGROUND: 0xFF000000
-const TITLE_BAR_TEXT_ACTIVE_BACKGROUND: 0xFFFFFFFF
-const TITLE_BAR_TEXT_INACTIVE_FOREGROUND: 0xFF888888
-const TITLE_BAR_TEXT_INACTIVE_BACKGROUND: 0xFF222222
 const WINDOW_FLAG_ALWAYS_BACKGROUND: 1
 const WINDOW_FLAG_NO_TITLE_BAR: 2
 const WINDOW_FLAG_CREATED_FROM_RES:  32768
@@ -632,18 +632,28 @@ draw_title_bar_to_window:
     ; set the tilemap to our 1x16 tile patterns
     movz.8 r0, [active_window_offset]
     call window_list_offset_to_struct
-    cmp r0, r31
-    ifz mov r0, window_title_bar_patterns_active
-    ifnz mov r0, window_title_bar_patterns_inactive
+    mov r2, r0
+    call get_title_bar_theme ; active in [r0], inactive in [r0+4]
+    cmp r2, r31
+    ifz mov r0, [r0]
+    ifnz mov r0, [r0+4]
     mov r1, 1
     mov r2, 16
     call set_tilemap
 
-    push r31
+    ; first tile
+    mov r0, 2
     mov r1, 0
     mov r2, 0
     mov r3, r10
+    call draw_tile_to_overlay
+    inc r1
+    ; middle tile loop
+    push r31
+    mov r2, 0
+    mov r3, r10
     mov r31, r11
+    dec r31, 2
 draw_title_bar_to_window_loop:
     mov r4, r31
     rem r4, 2
@@ -654,42 +664,76 @@ draw_title_bar_to_window_loop:
     inc r1
     loop draw_title_bar_to_window_loop
     pop r31
+    ; last tile
+    mov r0, 2
+    mov r2, 0
+    mov r3, r10
+    call draw_tile_to_overlay
+
+    ; draw the title text
+    call get_title_bar_theme
+    ; active foreground in [r0+8], inactive foreground in [r0+12]
+    mov r1, r0
+    movz.8 r0, [active_window_offset]
+    call window_list_offset_to_struct
+    cmp r0, r31
+    ifz mov r3, [r1+8]
+    ifnz mov r3, [r1+12]
+    mov r4, 0x00000000
+
+    mov r0, r12
+    call string_length
+    mul r0, 8 ; FIXME: HARDCODED FONT WIDTH!!
+    mov r2, r0
+    srl r0, 1
+    mov r1, r11
+    srl r1, 1
+    sub r1, r0
+
+    ; text background tile loop
+    push r1
+    push r3
+    push r4
+    push r31
+    mov r31, r2
+    mov r3, r10
+    mov r2, 0
+    mov r0, 3
+draw_title_bar_to_window_loop_2:
+    call draw_tile_to_overlay
+    inc r1
+    loop draw_title_bar_to_window_loop_2
+    pop r31
+    pop r4
+    pop r3
+    pop r1
+
+    mov r0, r12
+    mov r2, 0
+    mov r5, r10
+    call draw_str_to_overlay
+
+    ; draw the close button
+    mov r0, 2
+    mov r1, 5
+    mov r2, 5
+    mov r3, 6
+    mov r4, 0xFFFFFFFF
+    mov r5, r10
+    call draw_filled_rectangle_to_overlay
+    mov r0, 3
+    mov r1, 6
+    mov r2, 3
+    mov r3, 4
+    mov r4, 0xFF000000
+    mov r5, r10
+    call draw_filled_rectangle_to_overlay
 
     ; restore the old tilemap
     pop r2
     pop r1
     pop r0
     call set_tilemap
-
-    ; draw the title text
-    movz.8 r0, [active_window_offset]
-    call window_list_offset_to_struct
-    cmp r0, r31
-    ifz mov r3, TITLE_BAR_TEXT_ACTIVE_FOREGROUND
-    ifz mov r4, TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    ifnz mov r3, TITLE_BAR_TEXT_INACTIVE_FOREGROUND
-    ifnz mov r4, TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    mov r0, r12
-    mov r1, 8
-    mov r2, 0
-    mov r5, r10
-    call draw_str_to_overlay
-
-    ; draw the close button
-    mov r0, 1
-    mov r1, 4
-    mov r2, 6
-    mov r3, 8
-    mov r4, 0xFFFFFFFF
-    mov r5, r10
-    call draw_filled_rectangle_to_overlay
-    mov r0, 2
-    mov r1, 5
-    mov r2, 4
-    mov r3, 6
-    mov r4, 0xFF000000
-    mov r5, r10
-    call draw_filled_rectangle_to_overlay
 
     pop r31
     pop r12
@@ -986,80 +1030,6 @@ memory_error:
     call panic
     rjmp memory_error
 
-window_title_bar_patterns_active:
-    ; 1x16 tile
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-
-    ; 1x16 tile
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_ACTIVE_BACKGROUND
-    data.32 0x00000000
-
-window_title_bar_patterns_inactive:
-    ; 1x16 tile
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-
-    ; 1x16 tile
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    data.32 0x00000000
-    data.32 TITLE_BAR_TEXT_INACTIVE_BACKGROUND
-    data.32 0x00000000
-
 active_window_offset: data.8 0xFF
 window_list: data.fill 0, 124 ; 31 window structs * 4 bytes each
 
@@ -1067,6 +1037,8 @@ window_list: data.fill 0, 124 ; 31 window structs * 4 bytes each
     #include "event_manager_task.asm"
     #include "messagebox.asm"
     #include "overlay.asm"
+
+    #include "themes/themes.asm"
 
     #include "widget/widget.asm"
 
