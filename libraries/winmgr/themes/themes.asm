@@ -20,12 +20,11 @@ set_internal_title_bar_theme:
     mov [title_bar_theme_ptr], [r0]
     ret
 
-; get the title bar theme tiles
+; get a pointer to the title bar theme struct
 ; inputs:
 ; none
 ; outputs:
 ; r0: pointer to theme struct
-; r1: pointer to inactive title bar tiles
 get_title_bar_theme:
     mov r0, [title_bar_theme_ptr]
     ret
