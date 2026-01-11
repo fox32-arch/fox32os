@@ -7,13 +7,13 @@ XRASM = $(JACKAL_ROOT)/bin/xrasm.exe
 XRLINK = $(JACKAL_ROOT)/bin/xrlink.exe
 RTLLIB = $(JACKAL_ROOT)/Rtl/build/fox32/Rtl.lib
 
-ifeq (, $(shell which fox32asm))
+ifeq (, $(shell which fox32asm 2>/dev/null))
 FOX32ASM ?= ../../../fox32asm/target/release/fox32asm
 else
 FOX32ASM ?= fox32asm
 endif
 
-ifeq (, $(shell which gfx2inc))
+ifeq (, $(shell which gfx2inc 2>/dev/null))
 GFX2INC ?= ../../../tools/gfx2inc/target/release/gfx2inc
 else
 GFX2INC ?= gfx2inc
