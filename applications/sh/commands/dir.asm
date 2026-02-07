@@ -45,9 +45,17 @@ shell_dir_command_loop:
     add r1, 3
     mov.8 [r1], 0
 
-    ; dirs are colored in cyan
+    ; dirs are colored in blue
     cmp [shell_dir_command_type_buffer], [shell_dir_command_dir_type_str]
-    ifz mov r0, shell_dir_command_color_cyan
+    ifz mov r0, shell_dir_command_color_blue
+    ifz call print_str_to_terminal
+    ; fxfs are colored in red
+    cmp [shell_dir_command_type_buffer], [shell_dir_command_fxf_type_str]
+    ifz mov r0, shell_dir_command_color_red
+    ifz call print_str_to_terminal
+    ; bats are colored in yellow
+    cmp [shell_dir_command_type_buffer], [shell_dir_command_bat_type_str]
+    ifz mov r0, shell_dir_command_color_yellow
     ifz call print_str_to_terminal
 
     ; print the file name to the terminal
@@ -72,6 +80,9 @@ shell_dir_command_loop:
     call print_character_to_terminal
 
     ; get and print the file size
+    ; skip if this is a dir
+    cmp [shell_dir_command_type_buffer], [shell_dir_command_dir_type_str]
+    ifz jmp shell_dir_command_skip_file
     ; call ryfs_open instead of open because this uses the internal filename style
     mov r0, shell_dir_command_list_buffer
     add r0, r3
@@ -82,14 +93,17 @@ shell_dir_command_loop:
     call ryfs_open
     pop r3
     cmp r0, 0
-    ifz jmp shell_dir_command_failed_to_open_file
+    ifz jmp shell_dir_command_skip_file
     mov r0, shell_dir_command_temp_file_struct
     call get_size
     call print_decimal_to_terminal
-shell_dir_command_failed_to_open_file:
+shell_dir_command_skip_file:
     ; new line
     mov r0, 10
     call print_character_to_terminal
+    ; reset the color
+    mov r0, shell_dir_command_color_white
+    call print_str_to_terminal
 
     ; point to next file name in the buffer
     add r3, 11
@@ -116,15 +130,26 @@ shell_dir_command_list_buffer: data.fill 0, 341
 shell_dir_command_file_buffer: data.fill 0, 9
 shell_dir_command_type_buffer: data.fill 0, 4
 shell_dir_command_dir_type_str: data.strz "dir"
+shell_dir_command_fxf_type_str: data.strz "fxf"
+shell_dir_command_bat_type_str: data.strz "bat"
 shell_dir_command_file_dir: data.fill 0, 2
 shell_dir_command_file_disk: data.fill 0, 1
 shell_dir_command_temp_file_struct: data.fill 0, 32
 shell_dir_command_header_string:
-    data.8 SET_COLOR data.8 0x20 data.8 1 ; set the color to green
+    data.8 SET_COLOR data.8 0x60 data.8 1 ; set the color to cyan
     data.str "file     type size" data.8 10
 shell_dir_command_color_white:
     data.8 SET_COLOR data.8 0x70 data.8 1 ; set the color to white
     data.8 0
-shell_dir_command_color_cyan:
-    data.8 SET_COLOR data.8 0x60 data.8 1 ; set the color to cyan
+shell_dir_command_color_blue:
+    data.8 SET_COLOR data.8 0x40 data.8 1 ; set the color to blue
+    data.8 0
+shell_dir_command_color_green:
+    data.8 SET_COLOR data.8 0x20 data.8 1 ; set the color to green
+    data.8 0
+shell_dir_command_color_red:
+    data.8 SET_COLOR data.8 0x10 data.8 1 ; set the color to red
+    data.8 0
+shell_dir_command_color_yellow:
+    data.8 SET_COLOR data.8 0x30 data.8 1 ; set the color to yellow
     data.8 0
