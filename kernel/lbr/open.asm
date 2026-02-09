@@ -23,8 +23,11 @@ open_library:
     ; if we reach this point then the library is already open
     ; r0 contains the list offset, ignore the pushed value
     inc rsp, 4
+    mul r0, LIBRARY_SIZE
+    add r0, open_library_list
     inc [r0+4] ; increment ref_count
-    mov r0, [r0+8] ; return the jump table pointer
+    mov r1, [r0+12] ; return the jump table size
+    mov r0, [r0+8] ; and jump table pointer
     rjmp.16 open_library_from_disk_ret
 open_library_from_disk:
     pop r0
@@ -67,6 +70,7 @@ open_library_from_disk:
     mov [r1], r0 ; set file_sector
     mov [r1+4], 1 ; initialize ref_count
     mov [r1+8], [open_library_jump_ptr] ; set table_ptr
+    mov [r1+12], [open_library_jump_size] ; set table_size
     mov r0, [open_library_jump_ptr] ; return jump table pointer
     mov r1, r0
     dec r1, 4
@@ -109,9 +113,14 @@ close_library:
     call search_for_library_list_entry_by_jump_table
     cmp r0, 0xFFFFFFFF
     ifz rjmp.16 close_library_ret
+    mul r0, LIBRARY_SIZE
     add r0, open_library_list
 
-    ; free the block of memory
+    dec [r0+4] ; decrement ref_count
+    cmp [r0+4], 0
+    ifnz rjmp.16 close_library_ret
+
+    ; free the block of memory if ref_count is now zero
     push r0
     mov r0, [r0+8] ; r0 = table_ptr
     dec r0, 4      ; r0 = table_ptr - 4 (contains ptr to free)
@@ -123,6 +132,7 @@ close_library:
     mov [r0], 0
     mov [r0+4], 0
     mov [r0+8], 0
+    mov [r0+12], 0
 close_library_ret:
     pop r0
     ret
@@ -230,10 +240,11 @@ search_for_empty_library_list_entry_found:
     mov r0, r2
     rjmp.16 search_for_empty_library_list_entry_ret
 
-const LIBRARY_SIZE: 12
+const LIBRARY_SIZE: 16
 const MAX_OPEN_LIBRARIES: 32
 ; library struct:
 ; data.32 file_sector - first file sector of this library as returned by `open`
 ; data.32 ref_count   - number of times this library has been opened; will free memory when this reaches zero
 ; data.32 table_ptr   - pointer to this library's jump table
-open_library_list: data.fill 0, 384 ; MAX_OPEN_LIBRARIES library structs * LIBRARY_SIZE bytes = 384
+; data.32 table_size  - size of this library's jump table in bytes
+open_library_list: data.fill 0, 512 ; MAX_OPEN_LIBRARIES library structs * LIBRARY_SIZE bytes = 512

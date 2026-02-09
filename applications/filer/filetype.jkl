@@ -92,6 +92,7 @@ FN LaunchFromFileTypeString(
         END
         i += 1
     END
+    RtlPrint("launching %s\n", argPtr[0])
     LaunchFxfFromDisk(
         argPtr[0], diskId,
         NULLPTR,

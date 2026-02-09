@@ -1,0 +1,6 @@
+EXTERN FN UpdateNewDirWindow()
+EXTERN FN RenderNewDirWindow()
+EXTERN FN OpenNewDirWindow(
+    IN parentWindowNumber : UWORD,
+    IN path : ^UBYTE,
+)

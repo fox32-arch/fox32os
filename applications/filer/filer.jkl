@@ -1,8 +1,20 @@
 #ASM [
+#INCLUDE "startup.asm"
+app_entry:
+    inc rsp, 4
     pop a0 // stream_local
     pop a1 // arg0
     call Main
-    call EndCurrentTask
+    jmp app_exit
+
+app_name: .ds "Filer" .db 0
+.global app_name
+app_desc: .ds "File Manager" .db 0
+.global app_desc
+app_author: .ds "fox32 contributors (github.com/fox32-arch)" .db 0
+.global app_author
+app_version: .ds "0.0.0" .db 0
+.global app_version
 ]
 
 #DEFINE BLD_BITS 32
@@ -13,6 +25,7 @@
 #INCLUDE "window.hjk"
 #INCLUDE "desktop.hjk"
 #INCLUDE "filetype.hjk"
+#INCLUDE "newdir.hjk"
 
 text_stream : ^File = NULLPTR
 PUBLIC windows : ^IconWindow[MAX_WINDOWS]
@@ -22,6 +35,10 @@ PUBLIC icons_graphics : ^UBYTE = NULLPTR
 
 filetype_file : File
 PUBLIC filetype_data : ^UBYTE = NULLPTR
+
+EXTERN menu_bar : Menu
+
+EXTERN new_dir_window_open : UBYTE
 
 EXTERN FN GetTick() : ULONG
 #ASM [
@@ -51,6 +68,7 @@ FN RtljUnlockStream(
     // dummy function to keep the compiler happy
 END
 
+EXTERN FN app_exit()
 FN Exit()
     w := 0
     WHILE w < MAX_WINDOWS DO
@@ -62,7 +80,7 @@ FN Exit()
     IF icons_graphics != NULLPTR THEN
         FreeMemory(icons_graphics)
     END
-    EndCurrentTask()
+    app_exit()
 END
 
 FN Error(IN error_string : ^UBYTE)
@@ -174,6 +192,17 @@ FN HandleButtonClick(
     END
 END
 
+FN HandleMenuClick (
+    IN windowNumber : UWORD,
+    IN menu : UWORD,
+    IN item : UWORD,
+)
+    IF menu == 0 AND item == 0 THEN
+        // "New"
+        OpenNewDirWindow(windowNumber, &windows[windowNumber]^.Path[0])
+    END
+END
+
 FN Main(
     IN stream_local : ^File,
     IN arg0 : ^UBYTE,
@@ -201,9 +230,20 @@ FN Main(
                 HandleMouseClick(w, e.Body.Pos.X, e.Body.Pos.Y)
             ELSEIF e.Type == EVENT_TYPE_BUTTON_CLICK THEN
                 HandleButtonClick(w, e.Body.Parameters[0])
+            ELSEIF e.Type == EVENT_TYPE_MENU_BAR_CLICK THEN
+                MenuBarClickEvent(&menu_bar, e.Body.Pos.X)
+            ELSEIF e.Type == EVENT_TYPE_MENU_UPDATE THEN
+                MenuUpdateEvent(&menu_bar, e.Body.MenuChoice.Menu, e.Body.MenuChoice.Item)
+            ELSEIF e.Type == EVENT_TYPE_MENU_CLICK THEN
+                HandleMenuClick(w, e.Body.MenuChoice.Menu, e.Body.MenuChoice.Item)
+            ELSEIF e.Type == EVENT_TYPE_MENU_ACK THEN
+                CloseMenu(&menu_bar)
             END
             YieldTask()
             w += 1
+        END
+        IF new_dir_window_open THEN
+            UpdateNewDirWindow()
         END
         IF openWindows == 0 THEN
             running = FALSE

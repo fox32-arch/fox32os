@@ -106,6 +106,19 @@ STRUCT PACKED ButtonWidget
     Y : UINT,
 END
 
+STRUCT PACKED SingleLineTextBoxWidget
+    Next : ^VOID,
+    Id : UWORD,
+    Type : UWORD,
+    Buffer : ^UBYTE,
+    FgColor : UWORD,
+    BgColor : UWORD,
+    Width : UINT,
+    BufferMax : UINT,
+    X : UINT,
+    Y : UINT,
+END
+
 EXTERN FN NewWindow (
     IN window : ^Window,
     IN title : ^UBYTE,

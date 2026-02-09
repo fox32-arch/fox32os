@@ -1,6 +1,6 @@
 ; terminal
 
-    #include "../application.inc"
+    #include "../gui_app.inc"
 app_name: data.strz "Terminal" ; max 12 chars
 app_desc: data.strz "Command Line Terminal" ; max 50 chars
 app_author: data.strz "fox32 contributors (github.com/fox32-arch)" ; max 50 chars
@@ -9,7 +9,7 @@ app_icon:
     #include "icon.inc"
 
     opton
-entry:
+app_entry:
     pop r0
     pop r0
     cmp r0, 0
@@ -172,7 +172,7 @@ close_window:
     cmp r0, 0
     ifnz call free_memory
 
-    call end_current_task
+    call app_exit
     jmp event_loop_end
 
 sh_fxf_missing:
@@ -280,17 +280,36 @@ change_color:
     call copy_memory_words
     ret
 
+; foxwitches, enberry, and foxmages color schemes by finley (https://www.finlee.ee)
 color_table:
     ; dark
+    data.32 foxwitches
+    data.32 enberry
     data.32 catppuccin
     data.32 sea
-    data.32 enbee
-    data.32 transwitches
     data.32 c64
     ; light
-    data.32 arctic
-    data.32 fennec
-    data.32 signpad
+    data.32 foxmages
+foxwitches:
+    data.32 0xff1f0403 ; black
+    data.32 0xff9d82ee ; red
+    data.32 0xffbbe4bd ; green
+    data.32 0xffafdfee ; yellow
+    data.32 0xffffc8a4 ; blue
+    data.32 0xffebadda ; magenta
+    data.32 0xffe2e7b4 ; cyan
+    data.32 0xffdce7ee ; white
+    data.32 0x00000000 ; transparent
+enberry:
+    data.32 0xff300615 ; black
+    data.32 0xff8162dd ; red
+    data.32 0xff89cf23 ; green
+    data.32 0xff86daff ; yellow
+    data.32 0xffeb5175 ; blue
+    data.32 0xffe462d2 ; magenta
+    data.32 0xffcc986b ; cyan
+    data.32 0xffe4c9da ; white
+    data.32 0x00000000 ; transparent
 catppuccin:
     data.32 0xff2e1e1e ; black
     data.32 0xffa88bf3 ; red
@@ -321,57 +340,15 @@ c64:
     data.32 0xffccc584 ; cyan
     data.32 0xffde7a86 ; white
     data.32 0x00000000 ; transparent
-
-; color schemes by finley (https://www.finlee.ee)
-enbee:
-    data.32 0xff390e21 ; bg
-    data.32 0xff27a6ff ; col3
-    data.32 0xff35ddec ; col1
-    data.32 0xffaca0eb ; FILLER
-    data.32 0xffaca0eb ; FILLER
-    data.32 0xffaca0eb ; FILLER
-    data.32 0xfff16ccd ; col2
-    data.32 0xffe4f4f6 ; text
-    data.32 0x00000000 ; transparent
-arctic:
-    data.32 0xffffffff ; bg
-    data.32 0xffb2ff6f ; col3
-    data.32 0xff55182f ; col1
-    data.32 0xffaca0eb ; FILLER
-    data.32 0xffaca0eb ; FILLER
-    data.32 0xffaca0eb ; FILLER
-    data.32 0xff6d6d6d ; col2
-    data.32 0xffb5b85d ; text
-    data.32 0x00000000 ; transparent
-fennec:
-    data.32 0xffe4f4f6 ; bg
-    data.32 0xff518bf6 ; col3
-    data.32 0xff343497 ; col1
-    data.32 0xffaca0eb ; FILLER
-    data.32 0xffaca0eb ; FILLER
-    data.32 0xffaca0eb ; FILLER
-    data.32 0xfff16ccd ; col2
-    data.32 0xff390e21 ; text
-    data.32 0x00000000 ; transparent
-transwitches:
-    data.32 0xff3d1813 ; bg
-    data.32 0xffcba960 ; col3
-    data.32 0xffb873aa ; col1
-    data.32 0xffaca0eb ; FILLER
-    data.32 0xffaca0eb ; FILLER
-    data.32 0xffaca0eb ; FILLER
-    data.32 0xfff1e0bb ; col2
-    data.32 0xffe3d0e2 ; text
-    data.32 0x00000000 ; transparent
-signpad:
-    data.32 0xffffffff ; bg
-    data.32 0xff683dd9 ; col3
-    data.32 0xffa67eea ; col1
-    data.32 0xffaca0eb ; FILLER
-    data.32 0xffaca0eb ; FILLER
-    data.32 0xffaca0eb ; FILLER
-    data.32 0xffb266bb ; col2
-    data.32 0xff000000 ; text
+foxmages:
+    data.32 0xffdce7ee ; black
+    data.32 0xff282196 ; red
+    data.32 0xff2c700b ; green
+    data.32 0xff007892 ; yellow
+    data.32 0xff995c35 ; blue
+    data.32 0xff8b2377 ; magenta
+    data.32 0xff808f11 ; cyan
+    data.32 0xff1f0403 ; white
     data.32 0x00000000 ; transparent
 
 window_title: data.strz "Terminal"
@@ -422,16 +399,14 @@ menu_items_window_list:
 menu_items_colors_name:
     data.8 6 data.strz "Colors" ; text length, text, null-terminator
 menu_items_colors_list:
-    data.8 8                                     ; number of items
+    data.8 6                                     ; number of items
     data.8 22                                    ; menu width
+    data.8 22 data.strz "Foxwitches      (dark)" ; text length, text, null-terminator
+    data.8 22 data.strz "Enberry         (dark)" ; text length, text, null-terminator
     data.8 22 data.strz "Catppuccin      (dark)" ; text length, text, null-terminator
     data.8 22 data.strz "Base2Tone Sea   (dark)" ; text length, text, null-terminator
-    data.8 22 data.strz "Enbee           (dark)" ; text length, text, null-terminator
-    data.8 22 data.strz "Transwitches    (dark)" ; text length, text, null-terminator
     data.8 22 data.strz "C64             (dark)" ; text length, text, null-terminator
-    data.8 22 data.strz "Arctic         (light)" ; text length, text, null-terminator
-    data.8 22 data.strz "Fennec         (light)" ; text length, text, null-terminator
-    data.8 22 data.strz "SIGNpad        (light)" ; text length, text, null-terminator
+    data.8 22 data.strz "Foxmages       (light)" ; text length, text, null-terminator
 
     #include "stream.asm"
     #include "text.asm"

@@ -53,24 +53,8 @@ jump_table:
     data.32 free_memory
     data.32 heap_usage
 
-    ; window jump table
-    org.pad 0x00000410
-    data.32 new_window
-    data.32 destroy_window
-    data.32 new_window_event
-    data.32 get_next_window_event
-    data.32 draw_title_bar_to_window
-    data.32 move_window
-    data.32 fill_window
-    data.32 get_window_overlay_number
-    data.32 start_dragging_window
-    data.32 new_messagebox
-    data.32 get_active_window_struct
-    data.32 set_window_flags
-    data.32 new_window_from_resource
-
     ; VFS jump table
-    org.pad 0x00000510
+    org.pad 0x00000410
     data.32 open
     data.32 seek
     data.32 tell
@@ -84,15 +68,8 @@ jump_table:
     data.32 get_parent_dir
     data.32 create_dir
 
-    ; widget jump table
-    org.pad 0x00000610
-    data.32 draw_widgets_to_window
-    data.32 handle_widget_click
-    data.32 handle_widget_key_down
-    data.32 handle_widget_key_up
-
     ; resource jump table
-    org.pad 0x00000710
+    org.pad 0x00000510
     data.32 get_resource
     data.32 get_res_in_fxf
 jump_table_end:
@@ -247,9 +224,6 @@ try_startup_loop_final:
     iflt jmp try_startup_loop
 
 no_other_tasks:
-    ; start the event manager task
-    call start_event_manager_task
-
     ; jump back to it without adding this "task" (not really a task) into the queue.
     ; end_current_task_no_mark_no_free is used specifically because it doesn't mark
     ;   the current task (still set to 0) as unused, and it doesn't free the memory
@@ -395,8 +369,6 @@ get_os_api_version:
     #include "res.asm"
     #include "task.asm"
     #include "vfs/vfs.asm"
-    #include "widget/widget.asm"
-    #include "window/window.asm"
 
 bottom_bar_str_0: data.strz "FOX"
 bottom_bar_str_1: data.strz "32"

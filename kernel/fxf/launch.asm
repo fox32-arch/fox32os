@@ -188,13 +188,8 @@ launch_fxf_continue:
     movz.8 r0, [launch_fxf_task_id]
     ret
 launch_fxf_from_disk_allocate_error:
-    mov r0, launch_fxf_allocate_error_string1
-    mov r1, launch_fxf_allocate_error_string2
-    mov r2, launch_fxf_allocate_error_string3
-    mov r3, 64
-    mov r4, 64
-    mov r5, 336
-    call new_messagebox
+    mov r0, launch_fxf_allocate_error_string
+    call panic
 launch_fxf_from_disk_file_error:
     pop r6 ; remove extra copies of arguments from stack
     pop r5
@@ -238,6 +233,4 @@ launch_fxf_task_name: data.fill 0, 4
 launch_fxf_task_name_high: data.fill 0, 4
 launch_fxf_task_name_top: data.8 0
 
-launch_fxf_allocate_error_string1: data.strz "Failed to allocate memory for a new task"
-launch_fxf_allocate_error_string2: data.strz "The memory allocator seems to be in an"
-launch_fxf_allocate_error_string3: data.strz "invalid state, a reboot is recommended"
+launch_fxf_allocate_error_string: data.strz "Failed to allocate memory for a new task"

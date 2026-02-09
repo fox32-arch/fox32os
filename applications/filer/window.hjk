@@ -44,7 +44,18 @@ STRUCT IconWindow
     Disk : UBYTE,
     ClickTimeMax : ULONG,
     ClickIcon : UBYTE,
-    IsDesktopWindow : UBYTE,
+END
+
+STRUCT TextWindow
+    Window : Window,
+    WindowType : UBYTE,
+    Width : UINT,
+    Height : UINT,
+    TextBox : SingleLineTextBoxWidget,
+    OkButton : ButtonWidget,
+    NumIcons : UBYTE,
+    Path : UBYTE[MAX_PATH_LENGTH],
+    Disk : UBYTE,
 END
 
 EXTERN FN RenderWindow(

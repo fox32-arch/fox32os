@@ -1,7 +1,15 @@
 ; simple paint application
 
-    opton
+    #include "../gui_app.inc"
+app_name: data.strz "FoxPaint" ; max 12 chars
+app_desc: data.strz "Little Painting Program" ; max 50 chars
+app_author: data.strz "fox32 contributors (github.com/fox32-arch)" ; max 50 chars
+app_version: data.strz "0.0.0" ; max 8 chars
+app_icon:
+    #include "icon.inc"
 
+    opton
+app_entry:
     mov r0, canvas_window_struct
     mov r1, canvas_window_title
     mov r2, 512
@@ -355,7 +363,7 @@ close_canvas_window:
     call destroy_window
     mov r0, tools_window_struct
     call destroy_window
-    call end_current_task
+    call app_exit
 
 drag_or_close_tools_window:
     cmp r1, 8

@@ -1,6 +1,6 @@
 ; pride flags :3
 
-    #include "../application.inc"
+    #include "../gui_app.inc"
 app_name: data.strz "Trans Pride" ; max 12 chars
 app_desc: data.strz "Transgender Pride Flag" ; max 50 chars
 app_author: data.strz "fox32 contributors (github.com/fox32-arch)" ; max 50 chars
@@ -9,7 +9,7 @@ app_icon:
     #include "icon.inc"
 
     opton
-entry:
+app_entry:
     mov r0, window_struct
     mov r1, window_title
     mov r2, 256
@@ -73,7 +73,7 @@ drag_or_close_window:
 close_window:
     mov r0, window_struct
     call destroy_window
-    call end_current_task
+    call app_exit
 
 window_title: data.strz "Trans Pride!"
 window_struct: data.fill 0, 40

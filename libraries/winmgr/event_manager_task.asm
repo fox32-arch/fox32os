@@ -1,11 +1,17 @@
 ; task that manages window events
 
+event_manager_task_running: data.8 0
+
 ; start a task which handles passing system events into the correct window event queue
 ; inputs:
 ; none
 ; outputs:
 ; none
 start_event_manager_task:
+    inc.8 [event_manager_task_running]
+    cmp.8 [event_manager_task_running], 1
+    ifnz ret ; return if this isn't the first initialization
+
     ; allocate 256 bytes for the stack
     mov r0, 256
     call allocate_memory
@@ -26,7 +32,16 @@ start_event_manager_task:
 
     ret
 
+end_event_manager_task:
+    cmp.8 [event_manager_task_running], 0
+    ifz brk
+    dec.8 [event_manager_task_running]
+    jmp yield_task
+
 event_manager_task_loop:
+    cmp.8 [event_manager_task_running], 0
+    ifz call end_current_task
+
     call get_next_event
 
     ; mouse
@@ -203,5 +218,5 @@ event_manager_task_mouse_event_inactive_window_was_clicked_front_without_swap:
     call add_mouse_event_to_active_window
     ret
 
-event_manager_task_name: data.strz "eventmgr"
+event_manager_task_name: data.strz "winmgr"
 event_manager_task_mouse_was_released_flag: data.8 0

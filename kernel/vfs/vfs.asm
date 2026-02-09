@@ -1,6 +1,6 @@
 ; virtual filesystem routines
 
-const TEMP_SECTOR_BUF: 0x01FFF808
+const TEMP_SECTOR_BUF: 0x0000003C ; fox32rom buffer
 
 ; file struct for file:
 ;   file_disk:         1 byte

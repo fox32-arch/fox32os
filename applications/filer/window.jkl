@@ -208,7 +208,7 @@ FN OpenWindow(IN path : ^UBYTE) : UWORD
         window^.Height,
         64 + (w * 20),
         64 + (w * 20),
-        0,
+        &menu_bar,
         &window^.Icon[0].Widget
     )
     RenderWindow(w, TRUE)

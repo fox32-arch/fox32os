@@ -22,6 +22,14 @@
     cmp r0, 0
     ifz jmp file_error
 
+    ; create /system/library
+    mov r0, library_dir_str
+    mov r1, [disk]
+    mov r2, file_struct
+    call create_dir
+    cmp r0, 0
+    ifz jmp file_error
+
     ; create /apps
     mov r0, apps_dir_str
     mov r1, [disk]
@@ -155,29 +163,34 @@ usage_error_str: data.str "usage: sysdisk <disk ID>" data.8 10 data.8 0
 stream: data.32 0
 disk: data.32 0
 system_dir_str: data.strz "/system"
+library_dir_str: data.strz "/system/library"
 apps_dir_str: data.strz "/apps"
 user_dir_str: data.strz "/user"
 file_struct: data.fill 0, 32
 dest_file_struct: data.fill 0, 32
 
-const NUM_FILES: 8
+const NUM_FILES: 10
 files_to_copy:
     data.32 boot2_path
     data.32 kernel_path
     data.32 startup_bat_path
+    data.32 winmgr_lbr_path
     data.32 sh_path
     data.32 format_path
     data.32 ted_path
     data.32 sysdisk_path
+    data.32 filer_path
     data.32 terminal_path
 
 boot2_path: data.strz "/system/boot2.bin"
 kernel_path: data.strz "/system/kernel.fxf"
 startup_bat_path: data.strz "/system/startup.bat"
+winmgr_lbr_path: data.strz "/system/library/winmgr.lbr"
 sh_path: data.strz "/system/sh.fxf"
 format_path: data.strz "/system/format.fxf"
 ted_path: data.strz "/system/ted.fxf"
 sysdisk_path: data.strz "/system/sysdisk.fxf"
+filer_path: data.strz "/system/filer.fxf"
 terminal_path: data.strz "/apps/terminal.fxf"
 
     #include "../../../fox32rom/fox32rom.def"
