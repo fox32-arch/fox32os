@@ -10,3 +10,9 @@ EXTERN FN OpenFileByType(
     IN path : ^UBYTE,
     IN diskId : UBYTE,
 )
+
+EXTERN FN AppendNameToPath(
+    IN path : ^UBYTE,
+    IN name : ^UBYTE,
+    IN buffer : ^UBYTE,
+)

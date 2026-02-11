@@ -127,3 +127,24 @@ FN OpenFileByType(
         END
     END
 END
+
+FN AppendNameToPath(
+    IN path : ^UBYTE,
+    IN name : ^UBYTE,
+    IN buffer : ^UBYTE,
+)
+    nameLen := StringLength(name)
+    pathLen := StringLength(path)
+    separator : UBYTE[2]
+    IF path[pathLen - 1] == '/' THEN
+        separator[0] = 0
+    ELSE
+        separator[0] = '/'
+        separator[1] = 0
+    END
+    RtlFormat(&buffer[0], 256, "%s%s%s",
+        &path[0],
+        &separator[0],
+        &name[0]
+    )
+END

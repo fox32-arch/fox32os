@@ -8,6 +8,7 @@
 #DEFINE WINDOW_TYPE_BROWSER 0
 #DEFINE WINDOW_TYPE_DESKTOP 1
 #DEFINE WINDOW_TYPE_NEWFILE 2
+#DEFINE WINDOW_TYPE_GETINFO 3
 
 #DEFINE MAX_PATH_LENGTH 256
 
@@ -54,6 +55,16 @@ STRUCT TextWindow
     TextBox : SingleLineTextBoxWidget,
     OkButton : ButtonWidget,
     NumIcons : UBYTE,
+    Path : UBYTE[MAX_PATH_LENGTH],
+    Disk : UBYTE,
+END
+
+STRUCT InfoWindow
+    Window : Window,
+    WindowType : UBYTE,
+    Width : UINT,
+    Height : UINT,
+    Icon : Icon,
     Path : UBYTE[MAX_PATH_LENGTH],
     Disk : UBYTE,
 END

@@ -1,0 +1,9 @@
+#INCLUDE "window.hjk"
+
+EXTERN FN UpdateGetInfoWindow()
+EXTERN FN RenderGetInfoWindow()
+EXTERN FN OpenGetInfoWindow(
+    IN parentWindowNumber : UWORD,
+    IN icon : ^Icon,
+    IN path : ^UBYTE,
+)

@@ -3,7 +3,7 @@ OUTPUT_RES = system/filetype.res
 
 include ../application.mk
 
-OBJECTS = filer.o filetype.o window.o desktop.o newdir.o sys/os.o sys/rom.o
+OBJECTS = filer.o filetype.o window.o desktop.o newdir.o getinfo.o sys/os.o sys/rom.o
 .SUFFIXES: .o .asm .jkl
 
 all: ../../base_image/$(OUTPUT) ../../base_image/$(OUTPUT_RES)

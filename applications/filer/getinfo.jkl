@@ -1,0 +1,135 @@
+#DEFINE BLD_BITS 32
+#DEFINE ARCHITECTURE "fox32"
+#INCLUDE "sys/rtl.hjk"
+#INCLUDE "sys/os.hjk"
+
+#INCLUDE "getinfo.hjk"
+#INCLUDE "window.hjk"
+
+PUBLIC get_info_window : InfoWindow
+PUBLIC get_info_window_open : UBYTE = FALSE
+PUBLIC get_info_window_path : ^UBYTE = NULLPTR
+EXTERN windows : ^IconWindow[]
+EXTERN icons_graphics : ^UBYTE
+
+FN UpdateGetInfoWindow()
+    IF get_info_window_open == FALSE THEN LEAVE END
+    e : Event
+    GetNextWindowEvent(&get_info_window.Window, &e)
+    IF e.Type == EVENT_TYPE_MOUSE_CLICK THEN
+        x := e.Body.Pos.X
+        y := e.Body.Pos.Y
+        IF y < 16 THEN
+            // user clicked title bar
+            IF x < 8 THEN
+                // user clicked close button
+                DestroyWindow(&get_info_window.Window)
+                get_info_window_open = FALSE
+                get_info_window_path = NULLPTR
+                LEAVE
+            END
+
+            // otherwise, start dragging the window
+            StartDraggingWindow(&get_info_window.Window)
+            LEAVE
+        END
+    END
+END
+
+FN RenderGetInfoWindow()
+    DrawFilledRectangleToOverlay(0, 16, get_info_window.Width, get_info_window.Height, 0xFF000000, get_info_window.Window.Overlay)
+    DrawFilledRectangleToOverlay(1, 17, get_info_window.Width - 2, get_info_window.Height - 2, WINDOW_BG_COLOR, get_info_window.Window.Overlay)
+
+    IF get_info_window.Icon.Graphic != NULLPTR THEN
+        tempGraphic : ULONG[32*32]
+        CopyMemoryWords(&get_info_window.Icon.Graphic[0], &tempGraphic[0], 32*32)
+        // replace transparent pixels with the window background color
+        j := 0
+        WHILE j < 1024 DO
+            IF tempGraphic[j] & 0xFF000000 == 0 THEN
+                tempGraphic[j] = WINDOW_BG_COLOR
+            END
+            j += 1
+        END
+        SetTilemap(&tempGraphic[0], 32, 32)
+        DrawTileToOverlay(0, 4, 17, get_info_window.Window.Overlay)
+    ELSEIF icons_graphics != NULLPTR THEN
+        iconDataPtr : ^ULONG = GetResource(icons_graphics, &get_info_window.Icon.Name[StringLength(&get_info_window.Icon.Name[0]) - 3], 4096)
+        IF iconDataPtr == NULLPTR THEN
+            iconDataPtr = GetResource(icons_graphics, "msc", 4096)
+        END
+        IF iconDataPtr != NULLPTR THEN
+            // replace transparent pixels with the window background color
+            j := 0
+            WHILE j < 1024 DO
+                IF iconDataPtr[j] & 0xFF000000 == 0 THEN
+                    iconDataPtr[j] = WINDOW_BG_COLOR
+                END
+                j += 1
+            END
+            SetTilemap(iconDataPtr, 32, 32)
+            DrawTileToOverlay(0, 4, 17, get_info_window.Window.Overlay)
+            FreeMemory(iconDataPtr)
+        END
+    END
+
+    buffer : UBYTE[256]
+    textPtr : ^UBYTE = NULLPTR
+    RtlFormat(&buffer[0], 256, "%s (%s)", &get_info_window.Icon.Text[0], &get_info_window.Icon.Version[0])
+    IF get_info_window.Icon.Version[0] != 0 THEN textPtr = &buffer[0] ELSE textPtr = &get_info_window.Icon.Text[0] END
+    DrawStrToOverlay(textPtr, 38, 17, 0xFF000000, 0xFFFFFFFF, get_info_window.Window.Overlay)
+
+    upperSectionEnd := 33
+    DrawStrToOverlay(&get_info_window.Icon.Description[0], 38, upperSectionEnd, 0xFF000000, 0xFFFFFFFF, get_info_window.Window.Overlay)
+    IF get_info_window.Icon.Description[0] != 0 THEN upperSectionEnd += 16 END
+    DrawStrToOverlay(&get_info_window.Icon.Author[0], 38, upperSectionEnd, 0xFF000000, 0xFFFFFFFF, get_info_window.Window.Overlay)
+    upperSectionEnd += 16
+    DrawFilledRectangleToOverlay(0, upperSectionEnd, get_info_window.Width, 1, 0xFF000000, get_info_window.Window.Overlay)
+    DrawStrToOverlay(&get_info_window.Path[0], 4, upperSectionEnd + 1, 0xFF000000, 0xFFFFFFFF, get_info_window.Window.Overlay)
+
+    infoFile : File
+    Open(&get_info_window.Path[0], get_info_window.Disk, &infoFile) // TODO: handle errors
+    RtlFormat(&buffer[0], 256, "%d bytes", GetSize(&infoFile))
+    DrawStrToOverlay(&buffer[0], 4, upperSectionEnd + 17, 0xFF000000, 0xFFFFFFFF, get_info_window.Window.Overlay)
+END
+
+FN OpenGetInfoWindow(
+    IN parentWindowNumber : UWORD,
+    IN icon : ^Icon,
+    IN path : ^UBYTE,
+)
+    IF get_info_window_open THEN LEAVE END
+
+    get_info_window.WindowType = WINDOW_TYPE_GETINFO
+    get_info_window_open = TRUE
+
+    CopyString(path, &get_info_window.Path)
+    CopyMemoryBytes(icon, &get_info_window.Icon, SIZEOF Icon)
+    get_info_window.Disk = path[0] - '0'
+    path_width := StringLength(path) * 8
+    desc_width := StringLength(&get_info_window.Icon.Description[0]) * 8 + 38 // add 38 to account for the shifted text
+    author_width := StringLength(&get_info_window.Icon.Author[0]) * 8 + 38 // add 38 to account for the shifted text
+    max_width := path_width
+    IF author_width > max_width THEN max_width = author_width
+    ELSEIF desc_width > max_width THEN max_width = desc_width END
+    IF max_width >= 128 THEN
+        get_info_window.Width = max_width + 8
+    ELSE
+        get_info_window.Width = 128
+    END
+    get_info_window.Height = 86
+
+    NewWindow(
+        &get_info_window.Window,
+        "File Info",
+        get_info_window.Width,
+        get_info_window.Height,
+        windows[parentWindowNumber]^.Window.X +
+            (windows[parentWindowNumber]^.Width / 2) - (get_info_window.Width / 2),
+        windows[parentWindowNumber]^.Window.Y +
+            (windows[parentWindowNumber]^.Height / 2) - (get_info_window.Height / 2),
+        0,
+        0
+    )
+    RenderGetInfoWindow()
+END

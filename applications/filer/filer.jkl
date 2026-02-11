@@ -26,6 +26,7 @@ app_version: .ds "0.0.0" .db 0
 #INCLUDE "desktop.hjk"
 #INCLUDE "filetype.hjk"
 #INCLUDE "newdir.hjk"
+#INCLUDE "getinfo.hjk"
 
 text_stream : ^File = NULLPTR
 PUBLIC windows : ^IconWindow[MAX_WINDOWS]
@@ -39,6 +40,7 @@ PUBLIC filetype_data : ^UBYTE = NULLPTR
 EXTERN menu_bar : Menu
 
 EXTERN new_dir_window_open : UBYTE
+EXTERN get_info_window_open : UBYTE
 
 EXTERN FN GetTick() : ULONG
 #ASM [
@@ -168,22 +170,9 @@ FN HandleButtonClick(
         OpenWindow(&diskPath[0])
     ELSE
         // build up the new path string
-        // there is probably a much better way to do this
-        nameLen := StringLength(&windows[windowNumber]^.Icon[buttonId].Name[0])
-        pathLen := StringLength(&windows[windowNumber]^.Path[0])
         concatPath : UBYTE[256]
-        separator : UBYTE[2]
-        IF windows[windowNumber]^.Path[pathLen - 1] == '/' THEN
-            separator[0] = 0
-        ELSE
-            separator[0] = '/'
-            separator[1] = 0
-        END
-        RtlFormat(&concatPath[0], 256, "%s%s%s",
-            &windows[windowNumber]^.Path[0],
-            &separator[0],
-            &windows[windowNumber]^.Icon[buttonId].Name[0]
-        )
+        nameLen := StringLength(&windows[windowNumber]^.Icon[buttonId].Name[0])
+        AppendNameToPath(&windows[windowNumber]^.Path[0], &windows[windowNumber]^.Icon[buttonId].Name[0], &concatPath[0])
         IF CompareString(&windows[windowNumber]^.Icon[buttonId].Name[nameLen - 3], "dir") THEN
             OpenWindow(&concatPath[0])
         ELSE
@@ -200,6 +189,13 @@ FN HandleMenuClick (
     IF menu == 0 AND item == 0 THEN
         // "New"
         OpenNewDirWindow(windowNumber, &windows[windowNumber]^.Path[0])
+    ELSEIF menu == 0 AND item == 1 THEN
+        // "Get Info"
+        concatPath : UBYTE[256]
+        IF windows[windowNumber]^.ClickIcon == 0xFF OR windows[windowNumber]^.ClickIcon >= windows[windowNumber]^.NumIcons THEN LEAVE END
+        IF windows[windowNumber]^.Icon[windows[windowNumber]^.ClickIcon].IsDisk THEN LEAVE END // TODO: support getting disk info
+        AppendNameToPath(&windows[windowNumber]^.Path[0], &windows[windowNumber]^.Icon[windows[windowNumber]^.ClickIcon].Name[0], &concatPath[0])
+        OpenGetInfoWindow(windowNumber, &windows[windowNumber]^.Icon[windows[windowNumber]^.ClickIcon], &concatPath[0])
     END
 END
 
@@ -244,6 +240,9 @@ FN Main(
         END
         IF new_dir_window_open THEN
             UpdateNewDirWindow()
+        END
+        IF get_info_window_open THEN
+            UpdateGetInfoWindow()
         END
         IF openWindows == 0 THEN
             running = FALSE
