@@ -166,8 +166,8 @@ FN RefreshDesktopFiles(
             END
         END
 
-        window^.Icon[i].Pos.X = 640 - (((i / 5) * 96) + 32) - 32
-        window^.Icon[i].Pos.Y = ((i % 5) * 64) + 20
+        window^.Icon[i].Pos.X = 640 - (((i / 7) * 96) + 32) - 32
+        window^.Icon[i].Pos.Y = ((i % 7) * 64) + 20
 
         IF i == window^.NumIcons - 1 THEN
             window^.Icon[i].Widget.Next = 0
