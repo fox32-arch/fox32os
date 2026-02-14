@@ -13,7 +13,15 @@ FN FillFxfAppData(
 )
     buffer : UBYTE[256]
     tempFile : File
-    RtlFormat(&buffer[0], 256, "%s/%s", &window^.Path[0], &window^.Icon[iconNumber].Name[0])
+    pathLen := StringLength(&window^.Path[0])
+    separator : UBYTE[2]
+    IF window^.Path[pathLen - 1] == '/' THEN
+        separator[0] = 0
+    ELSE
+        separator[0] = '/'
+        separator[1] = 0
+    END
+    RtlFormat(&buffer[0], 256, "%s%s%s", &window^.Path[0], &separator[0], &window^.Icon[iconNumber].Name[0])
     IF Open(&buffer[0], window^.Disk, &tempFile) == 0 THEN
         RtlPrint("Failed to check file %s\n", &buffer[0])
     ELSE
@@ -92,7 +100,6 @@ FN LaunchFromFileTypeString(
         END
         i += 1
     END
-    RtlPrint("launching %s\n", argPtr[0])
     LaunchFxfFromDisk(
         argPtr[0], diskId,
         NULLPTR,
