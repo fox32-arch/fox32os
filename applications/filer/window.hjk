@@ -27,6 +27,9 @@ STRUCT Icon
     IsDisk : UBYTE,
     DiskId : UBYTE,
 
+    IsLink : UBYTE,
+    LinkPath : UBYTE[MAX_PATH_LENGTH],
+
     // APP header data
     Description : UBYTE[51],
     Author : UBYTE[51],

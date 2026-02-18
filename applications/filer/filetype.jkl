@@ -15,13 +15,18 @@ FN FillFxfAppData(
     tempFile : File
     pathLen := StringLength(&window^.Path[0])
     separator : UBYTE[2]
-    IF window^.Path[pathLen - 1] == '/' THEN
-        separator[0] = 0
+    IF window^.Icon[iconNumber].IsLink THEN
+        pathLen = StringLength(&window^.Icon[iconNumber].LinkPath[0])
+        CopyString(&window^.Icon[iconNumber].LinkPath[0], &buffer[0])
     ELSE
-        separator[0] = '/'
-        separator[1] = 0
+        IF window^.Path[pathLen - 1] == '/' THEN
+            separator[0] = 0
+        ELSE
+            separator[0] = '/'
+            separator[1] = 0
+        END
+        RtlFormat(&buffer[0], 256, "%s%s%s", &window^.Path[0], &separator[0], &window^.Icon[iconNumber].Name[0])
     END
-    RtlFormat(&buffer[0], 256, "%s%s%s", &window^.Path[0], &separator[0], &window^.Icon[iconNumber].Name[0])
     IF Open(&buffer[0], window^.Disk, &tempFile) == 0 THEN
         RtlPrint("Failed to check file %s\n", &buffer[0])
     ELSE
@@ -112,12 +117,18 @@ END
 
 FN OpenFileByType(
     IN window : ^IconWindow,
+    IN iconNumber : UWORD,
     IN path : ^UBYTE,
     IN diskId : UBYTE,
 )
     pathLen := StringLength(&path[0])
-    IF CompareString(&path[pathLen - 3], "fxf") THEN
-        LaunchFxfFromDisk(&path[0], window^.Disk, 0, 0, 0, 0, 0)
+    IF window^.Icon[iconNumber].IsLink AND NOT CompareString(&path[0], &window^.Icon[iconNumber].LinkPath[0]) THEN
+        // recursively open the linked file
+        OpenFileByType(window, iconNumber, &window^.Icon[iconNumber].LinkPath[0], diskId)
+    ELSEIF CompareString(&path[pathLen - 3], "dir") THEN
+        OpenWindow(&path[0])
+    ELSEIF CompareString(&path[pathLen - 3], "fxf") THEN
+        LaunchFxfFromDisk(&path[0], diskId, 0, 0, 0, 0, 0)
     ELSE
         // look for this file extension in the filetype resource file
         dataPtr : ^UBYTE = GetResource(filetype_data, &path[pathLen - 3], 256)

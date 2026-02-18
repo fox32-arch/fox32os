@@ -10,6 +10,7 @@ shift_released:                           jmp [0xF0040028]
 caps_pressed:                             jmp [0xF004002C]
 
 // generic drawing jump table
+draw_tile_generic:                        jmp [0xF0041014]
 set_tilemap:                              jmp [0xF0041018]
 
 // overlay jump table
@@ -84,6 +85,19 @@ DrawStrToOverlay:
     mov r5, [rsp+8]
     call draw_str_to_overlay
     mov a0, r1
+    ret
+DrawTileGeneric:
+.global DrawTileGeneric
+    push r8
+    push r9
+    mov r0, a0
+    mov r1, a1
+    mov r2, a2
+    mov r8, a3
+    mov r9, [rsp+12]
+    call draw_tile_generic
+    pop r9
+    pop r8
     ret
 DrawTileToOverlay:
 .global DrawTileToOverlay

@@ -7,6 +7,7 @@ EXTERN FN FillFxfAppData(
 
 EXTERN FN OpenFileByType(
     IN window : ^IconWindow,
+    IN iconNumber : UWORD,
     IN path : ^UBYTE,
     IN diskId : UBYTE,
 )

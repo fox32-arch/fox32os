@@ -37,6 +37,8 @@ PUBLIC icons_graphics : ^UBYTE = NULLPTR
 filetype_file : File
 PUBLIC filetype_data : ^UBYTE = NULLPTR
 
+EXTERN link_icon : UBYTE[256]
+
 EXTERN menu_bar : Menu
 
 EXTERN new_dir_window_open : UBYTE
@@ -101,6 +103,11 @@ FN Initialize(
         icons_file_size := GetSize(&icons_file)
         icons_graphics = AllocateMemory(icons_file_size)
         Read(&icons_file, icons_graphics, icons_file_size)
+        linkIconPtr := GetResource(icons_graphics, "lnk", 256)
+        IF linkIconPtr != NULLPTR THEN
+            CopyMemoryBytes(linkIconPtr, &link_icon[0], 256)
+            FreeMemory(linkIconPtr)
+        END
     END
 
     // load file type associations into memory if the resource file exists
@@ -173,11 +180,7 @@ FN HandleButtonClick(
         concatPath : UBYTE[256]
         nameLen := StringLength(&windows[windowNumber]^.Icon[buttonId].Name[0])
         AppendNameToPath(&windows[windowNumber]^.Path[0], &windows[windowNumber]^.Icon[buttonId].Name[0], &concatPath[0])
-        IF CompareString(&windows[windowNumber]^.Icon[buttonId].Name[nameLen - 3], "dir") THEN
-            OpenWindow(&concatPath[0])
-        ELSE
-            OpenFileByType(windows[windowNumber], &concatPath[0], windows[windowNumber]^.Disk)
-        END
+        OpenFileByType(windows[windowNumber], buttonId, &concatPath[0], windows[windowNumber]^.Disk)
     END
 END
 

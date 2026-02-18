@@ -5,11 +5,14 @@
 
 #INCLUDE "window.hjk"
 #INCLUDE "filetype.hjk"
+#INCLUDE "linkfile.hjk"
 
 EXTERN FN Error(IN error_string : ^UBYTE)
 EXTERN windows : ^IconWindow[]
 EXTERN icons_graphics : ^UBYTE
 EXTERN menu_bar : Menu
+
+EXTERN link_icon : UBYTE[256]
 
 FN RenderDesktop(
     IN windowNumber : UWORD,
@@ -58,6 +61,10 @@ FN RenderDesktop(
                     FreeMemory(iconDataPtr)
                 END
             END
+        END
+        IF window^.Icon[i].IsLink THEN
+            SetTilemap(&link_icon[0], 8, 8)
+            DrawTileToOverlay(0, window^.Icon[i].Pos.X, window^.Icon[i].Pos.Y + 22, window^.Window.Overlay)
         END
         i += 1
     END
@@ -160,8 +167,13 @@ FN RefreshDesktopFiles(
             CopyString(&window^.Icon[i].Name[0], &window^.Icon[i].Text[0])
             window^.Icon[i].Graphic = NULLPTR
 
+            // if this is a link file, load the original file's attributes
+            IF CompareMemory(&window^.Icon[i].Name[j+2], "lnk", 3) THEN
+                LinkToFile(window, i)
+            END
+
             // if this is an FXF file, handle APP header if it exists
-            IF CompareMemory(&window^.Icon[i].Name[j+2], "fxf", 3) THEN
+            IF CompareMemory(&window^.Icon[i].Name[StringLength(&window^.Icon[i].Name[0]) - 3], "fxf", 3) THEN
                 FillFxfAppData(window, i)
             END
         END

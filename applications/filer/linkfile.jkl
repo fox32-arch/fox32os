@@ -1,0 +1,51 @@
+#DEFINE BLD_BITS 32
+#DEFINE ARCHITECTURE "fox32"
+#INCLUDE "sys/rtl.hjk"
+#INCLUDE "sys/os.hjk"
+
+#INCLUDE "linkfile.hjk"
+
+PUBLIC link_icon : UBYTE[256]
+
+FN LinkToFile(
+    IN window : ^IconWindow,
+    IN iconNumber : UWORD,
+)
+    buffer : UBYTE[256]
+    tempFile : File
+    pathLen := StringLength(&window^.Path[0])
+    separator : UBYTE[2]
+    IF window^.Path[pathLen - 1] == '/' THEN
+        separator[0] = 0
+    ELSE
+        separator[0] = '/'
+        separator[1] = 0
+    END
+    RtlFormat(&buffer[0], 256, "%s%s%s", &window^.Path[0], &separator[0], &window^.Icon[iconNumber].Name[0])
+    IF Open(&buffer[0], window^.Disk, &tempFile) == 0 THEN
+        RtlPrint("Failed to open link file %s\n", &buffer[0])
+    ELSE
+        size := GetSize(&tempFile)
+        IF size == 0 THEN LEAVE END
+        IF size >= 256 THEN size = 255 END
+        Read(&tempFile, &window^.Icon[iconNumber].LinkPath[0], size)
+        i := size
+        WHILE i > 0 DO
+            IF window^.Icon[iconNumber].LinkPath[i] == 13 OR window^.Icon[iconNumber].LinkPath[i] == 10 THEN
+                window^.Icon[iconNumber].LinkPath[i] = 0
+            END
+            i -= 1
+        END
+        window^.Icon[iconNumber].LinkPath[size] = 0
+        window^.Icon[iconNumber].IsLink = TRUE
+
+        j := StringLength(&window^.Icon[iconNumber].LinkPath[0])
+        WHILE TRUE DO
+            IF window^.Icon[iconNumber].LinkPath[j] == '/' THEN j += 1 BREAK END
+            IF j > 0 THEN j -= 1 END
+            IF j == 0 THEN BREAK END
+        END
+        CopyString(&window^.Icon[iconNumber].LinkPath[j], &window^.Icon[iconNumber].Name[0])
+        CopyString(&window^.Icon[iconNumber].Name[0], &window^.Icon[iconNumber].Text[0])
+    END
+END

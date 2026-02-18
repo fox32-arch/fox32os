@@ -25,6 +25,13 @@ EXTERN FN DrawStrToOverlay(
     IN bgColor: ULONG,
     IN overlay: UBYTE,
 )
+EXTERN FN DrawTileGeneric(
+    IN tile: ULONG,
+    IN x: UINT,
+    IN y: UINT,
+    IN framebuffer: ^ULONG,
+    IN framebufferWidth: UWORD,
+)
 EXTERN FN DrawTileToOverlay(
     IN tile: ULONG,
     IN x: UINT,

@@ -1,0 +1,6 @@
+#INCLUDE "window.hjk"
+
+EXTERN FN LinkToFile(
+    IN window : ^IconWindow,
+    IN iconNumber : UWORD,
+)
