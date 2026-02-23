@@ -50,6 +50,8 @@ arg_loop:
     mov r1, bg_file
     mov r2, [file_input]
     call read
+    ; Yield before parsing
+    call save_state_and_yield_task
     ; Parse the file
     mov r0, [file_input]
     mov r1, FRAMEBUFFER
