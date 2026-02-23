@@ -39,7 +39,7 @@ FILES = \
 	base_image/apps/pride.fxf \
 	base_image/apps/foxpaint.fxf \
 	base_image/apps/hjkl.fxf \
-	base_image/user/bg.bmp \
+	base_image/user/bg.qoi \
 	base_image/develop/jkl.fxf \
 	base_image/develop/xrasm.fxf \
 	base_image/develop/xrlink.fxf
