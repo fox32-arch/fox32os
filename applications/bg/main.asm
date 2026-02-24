@@ -69,12 +69,7 @@ arg_loop:
     ; Parse the file
     call parse_image
     ; exit
-    mov r0, [file_input]
-    cmp r0, 0
-    ifnz call free_memory
-    mov r0, [_qoi_lbr]
-    call close_library
-    call end_current_task
+    jmp tail
 
 parse_image:
     ; Attempt QOI
