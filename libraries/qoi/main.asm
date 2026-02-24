@@ -7,12 +7,17 @@ jump_table:
     data.32 qoi_encode
     data.32 0x00000000 ; end jump table
 
+;;;;;;;; Constants
+const QOI_BAD_MAGIC: 0x1
+const QOI_ALLOC_FAILURE: 0x2
+
 ;;;;;;;; Decodes a QOI Image and emits the output to the specified destination
 ; r0: Raw QOI File Data
 ; r1: Output Buffer (0x0 = Allocate Buffer, other value will write to the specified address)
 ;;; Output
-; r0: Width & Height
-; r1: Output Buffer (if input was 0x0)
+; r0: Width & Height (0-15: Width, 16-31: Height)
+; r1: in(r0) > 0:  Output Buffer
+;     out(r0) = 0: Error Code
 qoi_decode:
     push r31
     push r2
@@ -38,6 +43,7 @@ qoi_decode:
     mov r5, [r0]
     cmp r5, 0x66696f71 ; "qoif"
     ifnz movz.8 r0, 0
+    ifnz movz r1, QOI_BAD_MAGIC
     ifnz jmp qoi_decode.tail
 
     ; Clear the LUT before we start decoding the image
@@ -77,6 +83,7 @@ qoi_decode.lut_clear_loop:
     pop r0
     cmp r1, 0
     ifz mov r0, 0
+    ifz movz r1, QOI_ALLOC_FAILURE
     ifz jmp qoi_decode.tail
 qoi_decode.skip_alloc:
     push r1
