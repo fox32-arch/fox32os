@@ -12,6 +12,7 @@
 **/*.rsf
 **/bg.inc
 **/bg.bmp
+**/bg.qoi
 **/icons.inc
 **/icon.inc
 **/fox32os.img
