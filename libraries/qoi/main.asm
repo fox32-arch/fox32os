@@ -78,6 +78,7 @@ qoi_decode.lut_clear_loop:
     ifnz jmp qoi_decode.skip_alloc
     push r0
     mov r0, r31
+    sla r0, 2
     call allocate_memory
     mov r1, r0
     pop r0
