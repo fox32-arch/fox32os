@@ -49,10 +49,13 @@ bmp_decode:
     iflt rjmp bmp_decode.tail
     ; Ensure that the BMP has no compression
     mov.32 r4, [r0+30]
+    cmp r4, 3
+    ifz rjmp bmp_decode.skip_compression_check
     cmp r4, 0
     ifnz movz.8 r0, 0
     ifnz movz.8 r1, BMP_COMPRESSION_UNSUPPORTED
     ifnz rjmp bmp_decode.tail
+bmp_decode.skip_compression_check:
     ; Retrieve the width and height
     mov.32 r2, [r0+18]
     mov.32 r3, [r0+22]

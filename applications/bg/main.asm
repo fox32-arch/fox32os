@@ -6,6 +6,7 @@ const FRAMEBUFFER: 0x02000000
 start:
     push r0
     push r1
+    ; QOI Library
     call get_boot_disk_id
     mov r1, r0
     mov r0, _qoi_lbr_path
@@ -14,6 +15,19 @@ start:
     ifz mov r0, _qoi_lbr_fail
     ifz call panic
     mov [_qoi_lbr], r0
+    pop r1
+    pop r0
+    push r0
+    push r1
+    ; BMP Library
+    call get_boot_disk_id
+    mov r1, r0
+    mov r0, _bmp_lbr_path
+    call open_library
+    cmp r0, 0
+    ifz mov r0, _bmp_lbr_fail
+    ifz call panic
+    mov [_bmp_lbr], r0
     pop r1
     pop r0
     mov r19, start
@@ -53,13 +67,7 @@ arg_loop:
     ; Yield before parsing
     call save_state_and_yield_task
     ; Parse the file
-    mov r0, [file_input]
-    mov r1, FRAMEBUFFER
-    mov r2, [_qoi_lbr]
-    call [r2]
-    cmp r0, 0
-    ifz mov r1, parse_error_qoi
-    ifz jmp parse_error
+    call parse_image
     ; exit
     mov r0, [file_input]
     cmp r0, 0
@@ -68,37 +76,64 @@ arg_loop:
     call close_library
     call end_current_task
 
+parse_image:
+    ; Attempt QOI
+    mov r0, [file_input]
+    mov r1, FRAMEBUFFER
+    mov r2, [_qoi_lbr]
+    call [r2]
+    cmp r0, 0
+    ifnz ret
+    ifz call should_error_out
+    ; Attempt BMP
+    mov r0, [file_input]
+    mov r1, FRAMEBUFFER
+    mov r2, [_bmp_lbr]
+    call [r2]
+    cmp r0, 0
+    ifnz ret
+    jmp interpret_error
+
+should_error_out:
+    cmp r1, 1
+    ifnz jmp interpret_error
+    ret
+
+interpret_error:
+    cmp r1, 1
+    ifz mov r1, parse_error_bad_magic
+    ifz jmp parse_error
+    cmp r1, 2
+    ifz mov r1, parse_error_alloc
+    ifz jmp parse_error
+    cmp r1, 3
+    ifz mov r1, parse_error_bpp
+    ifz jmp parse_error
+    cmp r1, 4
+    ifz mov r1, parse_error_neg
+    ifz jmp parse_error
+    cmp r1, 5
+    ifz mov r1, parse_error_compress
+    ifz jmp parse_error
+    mov r1, parse_error_unknown
+    jmp parse_error
+
 usage_error:
     mov r0, usage_str
     call print
-    mov r0, [file_input]
-    cmp r0, 0
-    ifnz call free_memory
-    mov r0, [_qoi_lbr]
-    call close_library
-    call end_current_task
+    jmp tail
 
 file_not_found_error:
     mov r0, file_not_found_error_str
     call print
-    mov r0, [file_input]
-    cmp r0, 0
-    ifnz call free_memory
-    mov r0, [_qoi_lbr]
-    call close_library
-    call end_current_task
+    jmp tail
 
 parse_error:
     mov r0, parse_error_str
     call print
     mov r0, r1
     call print
-    mov r0, [file_input]
-    cmp r0, 0
-    ifnz call free_memory
-    mov r0, [_qoi_lbr]
-    call close_library
-    call end_current_task
+    jmp tail
 
 ; print a null terminated string to the stream
 ; inputs:
@@ -134,17 +169,36 @@ strlen_end:
     pop r1
     ret
 
+tail:
+    mov r0, [file_input]
+    cmp r0, 0
+    ifnz call free_memory
+    mov r0, [_qoi_lbr]
+    cmp r0, 0
+    ifnz call close_library
+    mov r0, [_bmp_lbr]
+    cmp r0, 0
+    ifnz call close_library
+    call end_current_task
+
 bg_file: data.fill 42, 32
 file_input: data.32 0
 
 usage_str: data.str "usage: bg <image>" data.8 10 data.8 0
 file_not_found_error_str: data.str "error: file not found" data.8 10 data.8 0
 parse_error_str: data.str "image parse error: " data.8 0
-parse_error_qoi: data.str "internal qoi error" data.8 10 data.8 0
+parse_error_unknown: data.str "unknown internal error" data.8 10 data.8 0
+parse_error_bad_magic: data.str "bad magic number" data.8 10 data.8 0
 parse_error_alloc: data.str "memory allocation failure" data.8 10 data.8 0
+parse_error_bpp: data.str "bpp unsupported (only 24-bit and 32-bit may be used)" data.8 10 data.8 0
+parse_error_neg: data.str "negative heights are unsupported" data.8 10 data.8 0
+parse_error_compress: data.str "compression method not supported" data.8 10 data.8 0
 _qoi_lbr_path: data.str "/system/library/qoi.lbr" data.8 0
 _qoi_lbr: data.32 0
-_qoi_lbr_fail: data.str "QOI Library couldn't be found!" data.8 10 data.8 0
+_qoi_lbr_fail: data.str "/system/library/qoi.lbr is absent!" data.8 10 data.8 0
+_bmp_lbr_path: data.str "/system/library/bmp.lbr" data.8 0
+_bmp_lbr: data.32 0
+_bmp_lbr_fail: data.str "/system/library/bmp.lbr is absent!" data.8 10 data.8 0
 
     #include "../../../fox32rom/fox32rom.def"
     #include "../../fox32os.def"
