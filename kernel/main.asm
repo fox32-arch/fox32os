@@ -116,6 +116,9 @@ entry_ok:
     mov [0x00000408], task_crash_handler ; exception 0x02 - page fault read
     mov [0x0000040C], task_crash_handler ; exception 0x03 - page fault write
 
+    ; install interrupt handlers
+    mov [0x000003FC], kernel_vsync_handler ; interrupt 0xFF
+
     ; initialize the memory allocator
     call initialize_allocator
 
@@ -362,6 +365,46 @@ get_os_api_version:
     mov r0, FOX32OS_API_VERSION
     ret
 
+const DEFAULT_CURSOR_FRAMEBUFFER_PTR: 0x00000020
+set_default_cursor:
+    push r0
+    push r1
+    push r2
+
+    mov r0, 8
+    mov r1, 12
+    mov r2, 31
+    call resize_overlay
+    mov r0, [DEFAULT_CURSOR_FRAMEBUFFER_PTR]
+    mov r1, 31
+    call set_overlay_framebuffer_pointer
+
+    pop r2
+    pop r1
+    pop r0
+    ret
+
+; inputs:
+; r0: number of frames to keep the busy cursor (0 for infinite)
+set_busy_cursor:
+    push r0
+    push r1
+    push r2
+
+    mov r0, 18
+    mov r1, 12
+    mov r2, 31
+    call resize_overlay
+    mov r0, busy_cursor
+    mov r1, 31
+    call set_overlay_framebuffer_pointer
+
+    pop r2
+    pop r1
+    pop r0
+    mov [cursor_change_counter], r0
+    ret
+
     #include "allocator.asm"
     #include "crash.asm"
     #include "fxf/fxf.asm"
@@ -369,6 +412,10 @@ get_os_api_version:
     #include "res.asm"
     #include "task.asm"
     #include "vfs/vfs.asm"
+    #include "vsync.asm"
+
+busy_cursor:
+    #include "cursor/busy.inc"
 
 bottom_bar_str_0: data.strz "FOX"
 bottom_bar_str_1: data.strz "32"

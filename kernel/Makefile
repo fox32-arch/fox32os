@@ -4,7 +4,16 @@ else
 FOX32ASM ?= fox32asm
 endif
 
+ifeq (, $(shell which gfx2inc 2>/dev/null))
+GFX2INC ?= ../../tools/gfx2inc/target/release/gfx2inc
+else
+GFX2INC ?= gfx2inc
+endif
+
 all: ../base_image/system/kernel.fxf
 
-../base_image/system/kernel.fxf: main.asm $(wildcard *.asm */*.asm)
+cursor/busy.inc: cursor/busy.png
+	$(GFX2INC) 18 12 $< $@
+
+../base_image/system/kernel.fxf: main.asm cursor/busy.inc $(wildcard *.asm */*.asm)
 	$(FOX32ASM) $< $@

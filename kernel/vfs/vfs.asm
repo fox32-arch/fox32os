@@ -361,12 +361,18 @@ read:
     pop r1
     cmp.8 r3, 0x00
     ifz pop r3
-    ifz jmp ryfs_read
+    ifz jmp ryfs_read_1
     cmp.8 r3, 0x01
     ifz pop r3
     ifz jmp stream_read
     pop r3
     ret
+ryfs_read_1:
+    push r0
+    mov r0, 5
+    call set_busy_cursor
+    pop r0
+    jmp ryfs_read
 stream_read:
     push r0
     push r1
@@ -433,6 +439,10 @@ write:
     pop r3
     ret
 call_ryfs_write:
+    push r0
+    mov r0, 5
+    call set_busy_cursor
+    pop r0
     ; `ryfs_write`, despite being written in okameron, clobbers r2 for some reason?
     push r2
     call ryfs_write
