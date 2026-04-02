@@ -192,7 +192,7 @@ FN HandleMenuClick (
     IF menu == 0 AND item == 0 THEN
         // "New"
         OpenNewDirWindow(windowNumber, &windows[windowNumber]^.Path[0])
-    ELSEIF menu == 0 AND item == 1 THEN
+    ELSEIF menu == 0 AND item == 2 THEN
         // "Get Info"
         concatPath : UBYTE[256]
         IF windows[windowNumber]^.ClickIcon == 0xFF OR windows[windowNumber]^.ClickIcon >= windows[windowNumber]^.NumIcons THEN LEAVE END

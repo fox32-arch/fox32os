@@ -28,11 +28,12 @@ menu_file_name:
     .db 4 .ds "File" .db 0
 menu_file_items:
     // number of menu items
-    .db 2
+    .db 3
     // width of menu, generally 2 greater than the longest menu item
     .db 13
     // length, ASCII string, null for each menu item
     .db 6  .ds "New..." .db 0
+    .db 0 // separator
     .db 11 .ds "Get Info..." .db 0
 ]
 
