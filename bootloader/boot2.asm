@@ -48,7 +48,7 @@ entry:
     ifz rjmp.16 error
     mov [r24], r0
 
-    ; open /system/boot2.bin
+    ; open /system/kernel.fxf
     movz.16 r0, load_file_name
     pop r2
     pop r1
@@ -94,11 +94,45 @@ error:
     pop r0
     jmp [0xF0040018] ; panic
 
+print_char:
+    out 0, r0
+    ret
 print:
     out 0, [r0]
     inc r0
     cmp.8 [r0], 0x00
     ifnz rjmp.8 print
+    ret
+
+print_dec:
+    push r0
+    push r10                 ; r10: original stack pointer
+    push r11                 ; temp 1
+    push r12                 ; temp 2
+    push r13                 ; temp 3
+    mov r10, rsp
+    mov r12, r0
+
+    push.8 0x00              ; end the string with a terminator
+print_dec_loop:
+    push r12
+    div r12, 10
+    pop r13
+    rem r13, 10
+    mov r11, r13
+    add r11, '0'
+    push.8 r11
+    cmp r12, 0
+    ifnz jmp print_dec_loop
+    mov r0, rsp              ; point to start of string in the stack
+    call print
+
+    mov rsp, r10
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r0
     ret
 
 ; relocate a FXF binary
@@ -115,6 +149,7 @@ fxf_reloc:
     mov r1, [r0+12] ; FXF_RELOC_SIZE
     srl r1, 2
     mov r31, r1
+    push r31
 
     ; get the pointer to the table
     mov r1, [r0+16] ; FXF_RELOC_PTR
@@ -140,6 +175,14 @@ fxf_reloc_loop:
     inc r1, 4
     loop fxf_reloc_loop
 
+    ; print number of relocations
+    mov r0, '['
+    call print_char
+    pop r0
+    call print_dec
+    mov r0, relocs_str
+    call print
+
     ; return relocation address
     mov r0, r5
 
@@ -150,6 +193,7 @@ load_file_name: data.strz "kernel  fxf"
 
 splash_str: data.strz "boot2 load "
 reloc_str: data.strz "reloc "
+relocs_str: data.strz " relocs] "
 booting_str: data.str "jump" data.8 10 data.8 0
 
 load_file_struct: data.fill 0, 32
