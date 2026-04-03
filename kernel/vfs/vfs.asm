@@ -770,12 +770,12 @@ vfs_compare_string_equal:
     ret
 
     ; named streams
-    #include "vfs/disk0.asm"
-    #include "vfs/disk1.asm"
-    #include "vfs/disk2.asm"
-    #include "vfs/disk3.asm"
-    #include "vfs/fb.asm"
-    #include "vfs/ofb.asm"
-    #include "vfs/ramdisk.asm"
-    #include "vfs/romdisk.asm"
-    #include "vfs/serial.asm"
+    #include "vfs/stream/disk0.asm"
+    #include "vfs/stream/disk1.asm"
+    #include "vfs/stream/disk2.asm"
+    #include "vfs/stream/disk3.asm"
+    #include "vfs/stream/fb.asm"
+    #include "vfs/stream/ofb.asm"
+    #include "vfs/stream/ramdisk.asm"
+    #include "vfs/stream/romdisk.asm"
+    #include "vfs/stream/serial.asm"
