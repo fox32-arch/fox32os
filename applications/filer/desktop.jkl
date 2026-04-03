@@ -150,6 +150,13 @@ FN RefreshDesktopFiles(
     nameOffset := 0
     WHILE i < window^.NumIcons DO
         IF i >= num_disks THEN
+            // if this is the pointer to the parent dir, skip it
+            IF CompareMemory(&files[nameOffset], "^       dir", 11) THEN
+                nameOffset += 11
+                window^.NumIcons -= 1
+                CONTINUE
+            END
+
             // copy the file name and shorten it as needed
             CopyMemoryBytes(&files[nameOffset], &window^.Icon[i].Name[0], 8)
             j := 7

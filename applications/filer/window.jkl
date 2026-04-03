@@ -147,23 +147,17 @@ FN OpenWindow(IN path : ^UBYTE) : UWORD
         Error(&buffer[0])
     END
     window^.NumIcons = GetFileList(&files[0], window^.Disk, directory)
-
     window^.ClickIcon = 0xFF // no icon clicked
-
-    IF window^.NumIcons > 5 THEN
-        window^.Width = 96 * 5
-    ELSE
-        IF window^.NumIcons == 0 THEN
-            window^.Width = 96
-        ELSE
-            window^.Width = window^.NumIcons * 96
-        END
-    END
-    window^.Height = ((window^.NumIcons / 5) + 1) * 64 + 8
 
     i := 0
     nameOffset := 0
     WHILE i < window^.NumIcons DO
+        // if this is the pointer to the parent dir, skip it
+        IF CompareMemory(&files[nameOffset], "^       dir", 11) THEN
+            nameOffset += 11
+            window^.NumIcons -= 1
+            CONTINUE
+        END
         // copy the file name and shorten it as needed
         CopyMemoryBytes(&files[nameOffset], &window^.Icon[i].Name[0], 8)
         j := 7
@@ -211,6 +205,17 @@ FN OpenWindow(IN path : ^UBYTE) : UWORD
         nameOffset += 11
         i += 1
     END
+
+    IF window^.NumIcons > 5 THEN
+        window^.Width = 96 * 5
+    ELSE
+        IF window^.NumIcons == 0 THEN
+            window^.Width = 96
+        ELSE
+            window^.Width = window^.NumIcons * 96
+        END
+    END
+    window^.Height = ((window^.NumIcons / 5) + 1) * 64 + 8
 
     NewWindow(
         &window^.Window,
