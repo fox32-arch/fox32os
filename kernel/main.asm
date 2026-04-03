@@ -126,46 +126,12 @@ entry_ok:
     call enable_menu_bar
     call clear_menu_bar
 
-    ; draw the bottom bar
-    mov r0, bottom_bar_str_0
-    mov r1, 8
-    mov r2, 448
+    ; draw the splash string
+    mov r0, splash_str
+    mov r1, 16
+    mov r2, 464
     mov r3, TEXT_COLOR
     mov r4, 0x00000000
-    call draw_str_to_background
-    mov r0, bottom_bar_patterns
-    mov r1, 1
-    mov r2, 16
-    call set_tilemap
-    mov r1, 0
-    mov r2, 464
-    mov r31, 640
-draw_bottom_bar_loop:
-    mov r4, r31
-    rem r4, 2
-    cmp r4, 0
-    ifz mov r0, 0
-    ifnz mov r0, 1
-    call draw_tile_to_background
-    inc r1
-    loop draw_bottom_bar_loop
-    mov r0, 10
-    mov r1, 464
-    mov r2, 20
-    mov r3, 16
-    mov r4, 0xFFFFFFFF
-    call draw_filled_rectangle_to_background
-    mov r0, bottom_bar_str_1
-    mov r1, 12
-    mov r2, 464
-    mov r3, 0xFF000000
-    mov r4, 0xFFFFFFFF
-    call draw_str_to_background
-    mov r0, bottom_bar_str_2
-    mov r1, 488
-    mov r2, 464
-    mov r3, 0xFF000000
-    mov r4, 0xFFFFFFFF
     mov r10, FOX32OS_VERSION_MAJOR
     mov r11, FOX32OS_VERSION_MINOR
     mov r12, FOX32OS_VERSION_PATCH
@@ -417,49 +383,11 @@ set_busy_cursor:
 busy_cursor:
     #include "cursor/busy.inc"
 
-bottom_bar_str_0: data.strz "FOX"
-bottom_bar_str_1: data.strz "32"
-bottom_bar_str_2: data.strz " OS version %u.%u.%u "
-startup_error_str: data.strz "fox32 - OS version %u.%u.%u - sh.fxf is missing?"
-memory_error_str: data.strz "fox32 - OS version %u.%u.%u - not enough memory to perform operation!"
-api_error_str: data.strz "fox32 - OS version %u.%u.%u - fox32rom API version too low!"
+splash_str: data.strz "fox32os version %u.%u.%u"
+startup_error_str: data.strz "fox32os version %u.%u.%u - sh.fxf is missing?"
+memory_error_str: data.strz "fox32os version %u.%u.%u - not enough memory to perform operation!"
+api_error_str: data.strz "fox32os version %u.%u.%u - fox32rom API version too low!"
 kernelception_error_str: data.strz "Error: kernelception?"
-bottom_bar_patterns:
-    ; 1x16 tile
-    data.32 0xFF674764
-    data.32 0xFFFFFFFF
-    data.32 0xFF674764
-    data.32 0xFFFFFFFF
-    data.32 0xFF674764
-    data.32 0xFFFFFFFF
-    data.32 0xFF674764
-    data.32 0xFFFFFFFF
-    data.32 0xFF674764
-    data.32 0xFFFFFFFF
-    data.32 0xFF674764
-    data.32 0xFFFFFFFF
-    data.32 0xFF674764
-    data.32 0xFFFFFFFF
-    data.32 0xFF674764
-    data.32 0xFFFFFFFF
-
-    ; 1x16 tile
-    data.32 0xFFFFFFFF
-    data.32 0xFF674764
-    data.32 0xFFFFFFFF
-    data.32 0xFF674764
-    data.32 0xFFFFFFFF
-    data.32 0xFF674764
-    data.32 0xFFFFFFFF
-    data.32 0xFF674764
-    data.32 0xFFFFFFFF
-    data.32 0xFF674764
-    data.32 0xFFFFFFFF
-    data.32 0xFF674764
-    data.32 0xFFFFFFFF
-    data.32 0xFF674764
-    data.32 0xFFFFFFFF
-    data.32 0xFF674764
 
 boot_disk_id: data.8 0
 sh_fxf: data.strz "/system/sh.fxf"
