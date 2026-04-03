@@ -144,11 +144,6 @@ entry_ok:
     sub r2, jump_table
     call copy_memory_bytes
 
-    ; check if a disk is inserted as disk 1
-    ; if so, skip checking startup.bat and just run disk 1
-    in r31, 0x80001001
-    cmp r31, 0
-    ifnz jmp boot_disk_1
 try_startup:
     mov r0, serial_stream
     mov r2, serial_stream_struct
@@ -199,62 +194,6 @@ no_other_tasks:
     ;   block.
     ; this does not return.
     call end_current_task_no_mark_no_free
-
-; try loading the raw contents of disk 1 as an FXF binary
-; if disk 1 is not inserted, then fail
-boot_disk_1:
-    ; check if a disk is inserted as disk 1
-    in r31, 0x80001001
-    cmp r31, 0
-    ifz jmp startup_error
-
-    ; a disk is inserted, load it!!
-
-    ; allocate memory for the startup file
-    ; r31 contains disk size
-    mov r0, r31
-    call allocate_memory
-    cmp r0, 0
-    ifz jmp memory_error
-
-    div r31, 512
-    inc r31
-
-    mov r2, r0         ; destination pointer
-    mov r5, r0
-    mov r0, 0          ; sector counter
-    mov r3, 0x80003001 ; command to read a sector from disk 1 into memory
-    mov r4, 0x80002000 ; command to set the location of the buffer
-boot_disk_1_loop:
-    out r4, r2         ; set the memory buffer location
-    out r3, r0         ; read the current sector into memory
-    inc r0             ; increment sector counter
-    add r2, 512        ; increment the destination pointer
-    loop boot_disk_1_loop
-
-    mov r1, r5
-    mov r0, r5
-    call parse_fxf_binary
-    cmp r0, 0
-    ifz jmp disk_1_is_not_fxf
-    mov r3, r1
-    mov r1, r0
-    mov r0, 0
-    mov r2, rsp
-    sub r2, 4
-    mov r4, 0 ; don't attempt to free any stack block if the task ends
-    movz.16 r5, [current_directory]
-    sla r5, 16
-    mov.8 r5, [current_disk_id]
-    call new_task
-    jmp no_other_tasks
-
-; disk 1 was found to not be a valid FXF binary
-; free the memory allocated for it and instead just keep it mounted as a disk
-disk_1_is_not_fxf:
-    mov r0, r5
-    call free_memory
-    jmp try_startup
 
 startup_error:
     mov r0, BACKGROUND_COLOR
