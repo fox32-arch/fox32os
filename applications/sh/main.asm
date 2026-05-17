@@ -357,9 +357,13 @@ shell_clear_buffer:
     ; set the text buffer pointer to the start of the text buffer
     mov [shell_text_buf_ptr], shell_text_buf_bottom
 
-    ; set the first character as null
+    ; zero the buffer
     mov r0, [shell_text_buf_ptr]
+    mov r31, SHELL_TEXT_BUF_SIZE
+shell_clear_buffer_loop:
     mov.8 [r0], 0
+    inc r0
+    rloop shell_clear_buffer_loop
 
     pop r0
     ret
@@ -441,6 +445,7 @@ print_decimal_to_terminal_print:
     pop r0
     ret
 
+const SHELL_TEXT_BUF_SIZE: 512
 shell_text_buf_bottom: data.fill 0, 512
 shell_text_buf_top:
 shell_text_buf_ptr:    data.32 0 ; pointer to the current input character
