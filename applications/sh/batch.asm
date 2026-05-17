@@ -55,6 +55,13 @@ shell_run_batch_loop:
     mov r2, shell_batch_file_char_buffer
     call read
 
+    ; if we're at the start of the line, skip past any spaces
+    cmp [shell_text_buf_ptr], shell_text_buf_bottom
+    ifnz rjmp shell_run_batch_loop_next
+    movz.8 r0, [shell_batch_file_char_buffer]
+    cmp.8 r0, ' '
+    ifz rjmp shell_run_batch_loop
+shell_run_batch_loop_next:
     ; if it isn't a semicolon or linefeed, push it to the command buffer
     ; if it is a semicolon, run the command
     movz.8 r0, [shell_batch_file_char_buffer]
@@ -81,6 +88,13 @@ shell_run_batch_ff:
     mov r2, shell_batch_file_char_buffer
     call read
 
+    ; if we're at the start of the line, skip past any spaces
+    cmp [shell_text_buf_ptr], shell_text_buf_bottom
+    ifnz rjmp shell_run_batch_loop_next
+    movz.8 r0, [shell_batch_file_char_buffer]
+    cmp.8 r0, ' '
+    ifz rjmp shell_run_batch_ff
+
     ; if it isn't a semicolon or linefeed, push it to the command buffer
     ; if it is a semicolon, check for a label
     movz.8 r0, [shell_batch_file_char_buffer]
@@ -102,8 +116,13 @@ shell_run_batch_ff_check_label:
     mov r0, shell_text_buf_bottom
     mov r1, shell_label_command_string
     call compare_string
-    ifnz jmp shell_run_batch_ff_next
-
+    ifz jmp shell_run_batch_ff_found_label
+    mov r0, shell_text_buf_bottom
+    mov r1, shell_label_command_string_2
+    call compare_string
+    ifz jmp shell_run_batch_ff_found_label
+    jmp shell_run_batch_ff_next
+shell_run_batch_ff_found_label:
     ; we're at a label, now compare the actual label
     mov r0, [shell_args_ptr]
     mov r1, shell_batch_label_to_look_for

@@ -6,6 +6,7 @@ shell_callff_command_string: data.strz "callff"
 shell_callrw_command_string: data.strz "callrw"
 shell_ret_command_string: data.strz "ret"
 shell_label_command_string: data.strz "label"
+shell_label_command_string_2: data.strz ":"
 
 shell_ff_command:
     call shell_parse_arguments

@@ -145,6 +145,10 @@ shell_parse_command:
     mov r1, shell_label_command_string
     call compare_string
     ifz jmp shell_label_command
+    ; :
+    mov r1, shell_label_command_string_2
+    call compare_string
+    ifz jmp shell_label_command
 
     ; newdir
     mov r1, shell_newdir_command_string
@@ -173,6 +177,10 @@ shell_parse_command:
 
     ; rem
     mov r1, shell_rem_command_string
+    call compare_string
+    ifz ret
+    ; #
+    mov r1, shell_comment_command_string
     call compare_string
     ifz ret
 
@@ -232,6 +240,7 @@ shell_parse_command:
     ret
 
 shell_rem_command_string: data.strz "rem"
+shell_comment_command_string: data.strz "#"
 shell_invalid_command_string: data.str "invalid command or FXF binary" data.8 10 data.8 0
 
     ; all commands
