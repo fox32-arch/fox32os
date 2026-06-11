@@ -29,7 +29,7 @@ get_title_bar_theme:
     mov r0, [title_bar_theme_ptr]
     ret
 
-title_bar_theme_ptr: data.32 window_title_bar_transparent_theme
+title_bar_theme_ptr: data.32 window_title_bar_orange_theme
 
 theme_list:
     data.32 window_title_bar_transparent_theme

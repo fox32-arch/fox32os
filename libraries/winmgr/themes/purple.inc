@@ -21,7 +21,7 @@ window_title_bar_patterns_active_purple:
     data.32 0xFF5A3757
     data.32 0xFF674764
     data.32 0xFF5A3757
-    data.32 0xFF000000
+    data.32 0xFF674764
     ; tile 1 (pattern)
     data.32 0xFF000000
     data.32 0xFF5A3757
@@ -38,7 +38,7 @@ window_title_bar_patterns_active_purple:
     data.32 0xFF674764
     data.32 0xFF5A3757
     data.32 0xFF674764
-    data.32 0xFF000000
+    data.32 0xFF5A3757
     ; tile 2 (ends)
     data.32 0xFF000000
     data.32 0xFF000000
@@ -72,7 +72,7 @@ window_title_bar_patterns_active_purple:
     data.32 0xFF674764
     data.32 0xFF674764
     data.32 0xFF674764
-    data.32 0xFF000000
+    data.32 0xFF674764
 
 window_title_bar_patterns_inactive_purple:
     ; tile 0 (pattern)
@@ -91,7 +91,7 @@ window_title_bar_patterns_inactive_purple:
     data.32 0x00000000
     data.32 0xFF674764
     data.32 0x00000000
-    data.32 0xFF000000
+    data.32 0xFF674764
     ; tile 1 (pattern)
     data.32 0xFF000000
     data.32 0x00000000
@@ -108,7 +108,7 @@ window_title_bar_patterns_inactive_purple:
     data.32 0xFF674764
     data.32 0x00000000
     data.32 0xFF674764
-    data.32 0xFF000000
+    data.32 0x00000000
     ; tile 2 (ends)
     data.32 0xFF000000
     data.32 0xFF000000
@@ -142,4 +142,4 @@ window_title_bar_patterns_inactive_purple:
     data.32 0xFF674764
     data.32 0xFF674764
     data.32 0xFF674764
-    data.32 0xFF000000
+    data.32 0xFF674764

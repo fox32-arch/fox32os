@@ -164,13 +164,12 @@ new_window:
     call set_overlay_framebuffer_pointer
     mov r0, r11
     call enable_overlay
-    mov r0, 0xFFFFFFFF
-    mov r1, r11
-    call fill_overlay
     pop r0
-
-    ; then, draw the title bar
-    call draw_title_bar_to_window
+    push r0
+    mov r1, r0
+    mov r0, 0xFFFFFFFF
+    call fill_window
+    pop r0
 
     ; then, draw the menu bar
     push r0
@@ -547,20 +546,44 @@ swap_windows:
 ; outputs:
 ; none
 fill_window:
+    push r0
     push r1
     push r2
+    push r3
+    push r4
+    push r5
+    push r10
 
-    mov r2, r1
+    mov r10, r1
 
-    add r1, 24
-    movz.8 r1, [r1]
-    call fill_overlay
-
-    mov r0, r2
+    push r0
+    mov r0, r10
     call draw_title_bar_to_window
 
+    mov r0, 0
+    mov r1, 16
+    movz.16 r2, [r10+16]
+    movz.16 r3, [r10+18]
+    mov r4, 0xFF000000
+    movz.8 r5, [r10+24]
+    call draw_filled_rectangle_to_overlay
+
+    mov r0, 1
+    mov r1, 17
+    movz.16 r2, [r10+16]
+    dec r2, 2
+    movz.16 r3, [r10+18]
+    dec r3, 2
+    pop r4
+    call draw_filled_rectangle_to_overlay
+
+    pop r10
+    pop r5
+    pop r4
+    pop r3
     pop r2
     pop r1
+    pop r0
     ret
 
 ; get the overlay used by a window

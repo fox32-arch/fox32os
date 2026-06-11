@@ -21,7 +21,7 @@ window_title_bar_patterns_active_transparent:
     data.32 0x00000000
     data.32 0xFFFFFFFF
     data.32 0x00000000
-    data.32 0xFF000000
+    data.32 0xFFFFFFFF
     ; tile 1 (pattern)
     data.32 0xFF000000
     data.32 0x00000000
@@ -38,7 +38,7 @@ window_title_bar_patterns_active_transparent:
     data.32 0xFFFFFFFF
     data.32 0x00000000
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0x00000000
     ; tile 2 (ends)
     data.32 0xFF000000
     data.32 0xFF000000
@@ -72,7 +72,7 @@ window_title_bar_patterns_active_transparent:
     data.32 0xFFFFFFFF
     data.32 0xFFFFFFFF
     data.32 0xFFFFFFFF
-    data.32 0xFF000000
+    data.32 0xFFFFFFFF
 
 window_title_bar_patterns_inactive_transparent:
     ; tile 0
@@ -91,7 +91,7 @@ window_title_bar_patterns_inactive_transparent:
     data.32 0x00000000
     data.32 0xFF222222
     data.32 0x00000000
-    data.32 0xFF000000
+    data.32 0xFF222222
     ; tile 1
     data.32 0xFF000000
     data.32 0x00000000
@@ -108,7 +108,7 @@ window_title_bar_patterns_inactive_transparent:
     data.32 0xFF222222
     data.32 0x00000000
     data.32 0xFF222222
-    data.32 0xFF000000
+    data.32 0x00000000
     ; tile 2
     data.32 0xFF000000
     data.32 0xFF000000
@@ -142,4 +142,4 @@ window_title_bar_patterns_inactive_transparent:
     data.32 0xFF222222
     data.32 0xFF222222
     data.32 0xFF222222
-    data.32 0xFF000000
+    data.32 0xFF222222
