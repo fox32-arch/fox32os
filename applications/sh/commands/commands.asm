@@ -229,6 +229,8 @@ shell_parse_command:
     call compare_string
     ifz jmp shell_type_command
 
+    ; attempt to run a batch script
+    call launch_bat
     ; attempt to run a FXF binary
     call launch_fxf
 

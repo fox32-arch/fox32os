@@ -1,4 +1,73 @@
-; FXF launcher helper routines
+; BAT and FXF launcher helper routines
+
+; launch a batch script from a shell entry
+; inputs:
+; r0: pointer to BAT binary name
+; outputs:
+; none, does not return if task started successfully
+; returns if BAT file not found
+launch_bat:
+    push r0
+
+    ; copy the name into the launch_bat_name buffer
+    mov r1, launch_bat_name
+    call copy_string
+    mov r0, launch_bat_name
+    call string_length
+    add r0, launch_bat_name
+    dec r0, 4
+    cmp [r0], 0x7461622E
+    ifnz call launch_bat_add_ext
+
+    ; open the file
+    call get_current_disk_id
+    mov r1, r0
+    mov r0, launch_bat_name
+    mov r2, launch_fxf_struct
+    call open
+    cmp r0, 0
+    ifz mov [shell_command_return_value], 1 ; return 1 to indicate file failure
+    ifz pop r0
+    ifz ret
+
+    call shell_parse_arguments
+    mov r6, r2
+    mov r5, r1
+    mov r4, r0
+    mov r3, launch_bat_name
+    mov r2, [shell_stream_struct_ptr]
+    call get_boot_disk_id
+    mov r1, r0
+    mov r0, launch_bat_sh_path
+    ;brk
+    call launch_fxf_from_disk
+    mov.8 [launch_fxf_task_id], r0
+
+    ; return 0 to indicate task was launched
+    mov [shell_command_return_value], 0
+
+    ; yield until the script is done
+    pop r0
+launch_bat_yield_loop:
+    movz.8 r0, [launch_fxf_task_id]
+    call is_task_id_used
+    ifz pop r0 ; pop our return address
+    ifz jmp shell_task_return
+    call yield_task
+    rjmp launch_bat_yield_loop
+
+launch_bat_add_ext:
+    mov r0, launch_bat_name
+    call string_length
+    add r0, launch_bat_name
+    mov r1, r0
+    mov r0, bat_str
+    call copy_string
+    ret
+
+launch_bat_sh_path: data.strz "/system/sh.fxf"
+launch_bat_name: data.fill 0, 128
+bat_str: data.strz ".bat"
 
 ; FIXME: this should really use the `launch_fxf_from_open_file` routine
 ;        it will need some work to ensure things like the debug prefix works though
