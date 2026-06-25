@@ -243,7 +243,7 @@ shell_parse_command:
 
 shell_rem_command_string: data.strz "rem"
 shell_comment_command_string: data.strz "#"
-shell_invalid_command_string: data.str "invalid command or FXF binary" data.8 10 data.8 0
+shell_invalid_command_string: data.str "invalid command or BAT/FXF file" data.8 10 data.8 0
 
     ; all commands
     #include "commands/call.asm"
