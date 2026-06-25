@@ -1,7 +1,7 @@
 #DEFINE BLD_BITS 32
 #DEFINE ARCHITECTURE "fox32"
-#INCLUDE "sys/rtl.hjk"
-#INCLUDE "sys/os.hjk"
+#INCLUDE "<inc>/rtl.hjk"
+#INCLUDE "<inc>/os.hjk"
 
 #INCLUDE "linkfile.hjk"
 

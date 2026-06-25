@@ -43,7 +43,8 @@ FILES = \
 	base_image/user/bg.qoi \
 	base_image/develop/jkl.fxf \
 	base_image/develop/xrasm.fxf \
-	base_image/develop/xrlink.fxf
+	base_image/develop/xrlink.fxf \
+	base_image/develop/lib/fox.lib
 
 ROM_FILES = \
 	base_image/system/boot2.bin \
@@ -64,7 +65,8 @@ ROM_FILES = \
 	base_image/apps/pride.fxf \
 	base_image/apps/terminal.fxf \
 	base_image/apps/hjkl.fxf \
-	base_image/apps/settings.fxf
+	base_image/apps/settings.fxf \
+	base_image/develop/lib/fox.lib
 
 all: \
 	$(JKL) \
@@ -72,7 +74,7 @@ all: \
 	base_image/system/font \
 	base_image/apps \
 	base_image/user \
-	base_image/develop \
+	base_image/develop/lib \
 	fox32os.img #romdisk.img
 
 $(JKL):
@@ -96,8 +98,8 @@ base_image/apps:
 	mkdir -p base_image/apps
 base_image/user/desktop:
 	mkdir -p base_image/user/desktop
-base_image/develop:
-	mkdir -p base_image/develop
+base_image/develop/lib:
+	mkdir -p base_image/develop/lib
 
 bootloader/boot1.bin: bootloader/boot1.asm $(wildcard bootloader/*.asm)
 	$(FOX32ASM) $< $@
@@ -109,14 +111,16 @@ base_image/system/startup.bat: base_image/system/startup.bat.default
 	cp $< $@
 base_image/develop/%.fxf: $(NEWSDK)/build/fox32os/%.fxf
 	cp $< $@
+base_image/develop/lib/fox.lib: $(NEWSDK)/build/fox32os/jkl.fxf $(NEWSDK)/build/fox32os/xrasm.fxf $(NEWSDK)/build/fox32os/xrlink.fxf
+	cd jkl && $(MAKE)
 
 base_image/system/kernel.fxf: FORCE
 	$(MAKE) -C kernel
-base_image/system/%.fxf: FORCE
+base_image/system/%.fxf: base_image/develop/lib/fox.lib FORCE
 	$(MAKE) -C applications/$*
 base_image/system/icons.res: FORCE
 	$(MAKE) -C applications/icons
-base_image/apps/%.fxf: FORCE
+base_image/apps/%.fxf: base_image/develop/lib/fox.lib FORCE
 	$(MAKE) -C applications/$*
 
 applications/hjkl/hjkl.fxf: $(JKL) FORCE
@@ -139,6 +143,7 @@ fox32os.img: $(BOOTLOADER) $(FILES) $(wildcard libraries/*/*.asm)
 	$(RYFS) newdir -q $@.tmp user.dir
 	$(RYFS) newdir -q -d user $@.tmp desktop.dir
 	$(RYFS) newdir -q $@.tmp develop.dir
+	$(RYFS) newdir -q -d develop $@.tmp lib.dir
 	for file in base_image/system/library/*.lbr; do $(RYFS) add -q -d /system/library $@.tmp $$file; done
 	for file in base_image/system/font/*.fnt; do $(RYFS) add -q -d /system/font $@.tmp $$file; done
 	for file in base_image/user/desktop/*; do $(RYFS) add -q -d /user/desktop $@.tmp $$file; done
@@ -154,6 +159,7 @@ romdisk.img: $(BOOTLOADER) $(ROM_FILES) $(wildcard libraries/*/*.asm)
 	$(RYFS) newdir -q $@.tmp user.dir
 	$(RYFS) newdir -q -d user $@.tmp desktop.dir
 	$(RYFS) newdir -q $@.tmp develop.dir
+	$(RYFS) newdir -q -d develop $@.tmp lib.dir
 	for file in base_image/system/library/*.lbr; do $(RYFS) add -q -d /system/library $@.tmp $$file; done
 	for file in base_image/user/desktop/*; do $(RYFS) add -q -d /user/desktop $@.tmp $$file; done
 	$(foreach file, $(ROM_FILES), $(RYFS) add -q -d $(patsubst %/,%,$(dir $(shell $(REALPATH) --relative-to base_image/ $(file)))) $@.tmp $(file);)
@@ -162,8 +168,10 @@ romdisk.img: $(BOOTLOADER) $(ROM_FILES) $(wildcard libraries/*/*.asm)
 clean:
 	cd libraries && $(MAKE) clean
 	cd fonts && $(MAKE) clean
+	cd jkl && $(MAKE) clean
 	cd $(NEWSDK) && ./bin/xrbt.exe ./build.xrbt PLATFORM=fox32os CLEANUP=1 all
 	$(MAKE) -C applications/hjkl clean
+	$(MAKE) -C applications/filer clean
 	rm -f fox32os.img romdisk.img $(FILES)
 
 .PHONY: clean

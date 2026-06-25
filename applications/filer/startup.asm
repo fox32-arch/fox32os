@@ -111,3 +111,74 @@ set_title_bar_theme: jmp [_winmgr_lbr_fn_set_title_bar_theme]
 .global set_title_bar_theme
 set_internal_title_bar_theme: jmp [_winmgr_lbr_fn_set_internal_title_bar_theme]
 .global set_internal_title_bar_theme
+
+NewWindow:
+.global NewWindow
+    mov r0, a0
+    mov r1, a1
+    mov r2, a2
+    mov r3, a3
+    mov r4, [rsp+4]
+    mov r5, [rsp+8]
+    mov r6, [rsp+12]
+    mov r7, [rsp+16]
+    jmp new_window
+
+DestroyWindow:
+.global DestroyWindow
+    mov r0, a0
+    jmp destroy_window
+
+SetWindowFlags:
+.global SetWindowFlags
+    // we switched argument order
+    mov r0, a1
+    mov r1, a0
+    jmp set_window_flags
+
+GetNextWindowEvent:
+.global GetNextWindowEvent
+    mov r0, a0
+    call get_next_window_event
+    mov [r8], r0
+    mov [r8+4], r1
+    mov [r8+8], r2
+    mov [r8+12], r3
+    // TODO: do r4-r7 even tho no event uses them
+    ret
+
+FillWindow:
+.global FillWindow
+    // we switched argument order
+    mov r0, a1
+    mov r1, a0
+    jmp fill_window
+
+StartDraggingWindow:
+.global StartDraggingWindow
+    mov r0, a0
+    jmp start_dragging_window
+
+DrawWidgetsToWindow:
+.global DrawWidgetsToWindow
+    mov r0, a0
+    jmp draw_widgets_to_window
+
+HandleWidgetClick:
+.global HandleWidgetClick
+    mov r0, a0
+    mov r1, a1
+    mov r2, a2
+    jmp handle_widget_click
+
+HandleWidgetKeyDown:
+.global HandleWidgetKeyDown
+    mov r0, a0
+    mov r1, a1
+    jmp handle_widget_key_down
+
+HandleWidgetKeyUp:
+.global HandleWidgetKeyUp
+    mov r0, a0
+    mov r1, a1
+    jmp handle_widget_key_up
