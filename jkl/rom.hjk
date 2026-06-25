@@ -1,4 +1,4 @@
-#INCLUDE "keys.hjk"
+#INCLUDE "<inc>/keys.hjk"
 
 EXTERN FN ScancodeToAscii(
     IN scancode: UBYTE,

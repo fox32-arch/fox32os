@@ -44,7 +44,18 @@ FILES = \
 	base_image/develop/jkl.fxf \
 	base_image/develop/xrasm.fxf \
 	base_image/develop/xrlink.fxf \
-	base_image/develop/lib/fox.lib
+	base_image/develop/lib/fox.lib \
+	base_image/develop/lib/os.hjk \
+	base_image/develop/lib/rom.hjk \
+	base_image/develop/lib/rtl.hjk \
+	base_image/develop/lib/keys.hjk \
+	base_image/develop/lib/guistart.asm
+
+# files that shouldn't be removed on `make clean`
+CONST_FILES = \
+	base_image/develop/demos/readme.txt \
+	base_image/develop/demos/make.bat \
+	base_image/develop/demos/window.jkl
 
 ROM_FILES = \
 	base_image/system/boot2.bin \
@@ -65,8 +76,7 @@ ROM_FILES = \
 	base_image/apps/pride.fxf \
 	base_image/apps/terminal.fxf \
 	base_image/apps/hjkl.fxf \
-	base_image/apps/settings.fxf \
-	base_image/develop/lib/fox.lib
+	base_image/apps/settings.fxf
 
 all: \
 	$(JKL) \
@@ -143,11 +153,13 @@ fox32os.img: $(BOOTLOADER) $(FILES) $(wildcard libraries/*/*.asm)
 	$(RYFS) newdir -q $@.tmp user.dir
 	$(RYFS) newdir -q -d user $@.tmp desktop.dir
 	$(RYFS) newdir -q $@.tmp develop.dir
+	$(RYFS) newdir -q -d develop $@.tmp demos.dir
 	$(RYFS) newdir -q -d develop $@.tmp lib.dir
 	for file in base_image/system/library/*.lbr; do $(RYFS) add -q -d /system/library $@.tmp $$file; done
 	for file in base_image/system/font/*.fnt; do $(RYFS) add -q -d /system/font $@.tmp $$file; done
 	for file in base_image/user/desktop/*; do $(RYFS) add -q -d /user/desktop $@.tmp $$file; done
 	$(foreach file, $(FILES), $(RYFS) add -q -d $(patsubst %/,%,$(dir $(shell $(REALPATH) --relative-to base_image/ $(file)))) $@.tmp $(file);)
+	$(foreach file, $(CONST_FILES), $(RYFS) add -q -d $(patsubst %/,%,$(dir $(shell $(REALPATH) --relative-to base_image/ $(file)))) $@.tmp $(file);)
 	mv $@.tmp $@
 
 romdisk.img: $(BOOTLOADER) $(ROM_FILES) $(wildcard libraries/*/*.asm)
@@ -159,10 +171,12 @@ romdisk.img: $(BOOTLOADER) $(ROM_FILES) $(wildcard libraries/*/*.asm)
 	$(RYFS) newdir -q $@.tmp user.dir
 	$(RYFS) newdir -q -d user $@.tmp desktop.dir
 	$(RYFS) newdir -q $@.tmp develop.dir
+	$(RYFS) newdir -q -d develop $@.tmp demos.dir
 	$(RYFS) newdir -q -d develop $@.tmp lib.dir
 	for file in base_image/system/library/*.lbr; do $(RYFS) add -q -d /system/library $@.tmp $$file; done
 	for file in base_image/user/desktop/*; do $(RYFS) add -q -d /user/desktop $@.tmp $$file; done
 	$(foreach file, $(ROM_FILES), $(RYFS) add -q -d $(patsubst %/,%,$(dir $(shell $(REALPATH) --relative-to base_image/ $(file)))) $@.tmp $(file);)
+	$(foreach file, $(CONST_FILES), $(RYFS) add -q -d $(patsubst %/,%,$(dir $(shell $(REALPATH) --relative-to base_image/ $(file)))) $@.tmp $(file);)
 	mv $@.tmp $@
 
 clean:

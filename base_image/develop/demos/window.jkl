@@ -1,0 +1,67 @@
+#ASM [
+#INCLUDE "<inc>/guistart.asm"
+app_entry:
+    inc rsp, 4
+    pop a0 // stream_local
+    call Main
+    call EndCurrentTask
+
+app_name: .ds "Window Demo" .db 0
+.global app_name
+app_desc: .ds "Window Demo Application" .db 0
+.global app_desc
+app_author: .ds "fox32 contributors (github.com/fox32-arch)" .db 0
+.global app_author
+app_version: .ds "0.0.0" .db 0
+.global app_version
+]
+
+#DEFINE BLD_BITS 32
+#DEFINE ARCHITECTURE "fox32"
+#INCLUDE "<inc>/rtl.hjk"
+
+#INCLUDE "<inc>/rom.hjk"
+#INCLUDE "<inc>/os.hjk"
+
+stream : ^File = NULLPTR
+window : Window
+
+FN (RtlPrintCallbackF) RtljPrintCallback(
+    IN byte : UBYTE,
+    IN context : ^VOID,
+)
+    buffer : UBYTE[1]
+    buffer[0] = byte
+    Write(stream, &buffer[0], 1)
+END
+FN RtljLockStream(IN handle : ^VOID) : UWORD
+    // dummy function to keep the compiler happy
+END
+FN RtljUnlockStream(
+    IN handle : ^VOID,
+    IN lockcontext : UWORD,
+)
+    // dummy function to keep the compiler happy
+END
+
+FN Main(IN stream_local : ^File)
+    stream = stream_local
+    RtlPrint("hello world!!\n")
+
+    NewWindow(&window, "hello", 64, 64, 64, 64, 0, 0)
+    DrawStrToOverlay(
+        "hi chat",
+        4, 20,
+        0xFF000000, 0xFFFFFFFF,
+        window.Overlay
+    )
+    WHILE TRUE DO
+        e : Event
+        GetNextWindowEvent(&window, &e)
+        IF e.Type == EVENT_TYPE_MOUSE_RELEASE THEN
+            DestroyWindow(&window)
+            BREAK
+        END
+        YieldTask()
+    END
+END

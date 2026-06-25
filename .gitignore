@@ -6,6 +6,8 @@
 **/boot2.bin
 **/*.o
 **/*.lib
+base_image/**/*.hjk
+base_image/**/*.asm
 **/*.fxf
 **/*.lbr
 **/*.fnt

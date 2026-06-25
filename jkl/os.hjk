@@ -1,4 +1,4 @@
-#INCLUDE "rom.hjk"
+#INCLUDE "<inc>/rom.hjk"
 
 // system
 

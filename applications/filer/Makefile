@@ -9,7 +9,7 @@ OBJECTS = filer.o filetype.o window.o desktop.o newdir.o getinfo.o linkfile.o $(
 all: ../../base_image/$(OUTPUT) ../../base_image/$(OUTPUT_RES)
 
 ../../base_image/$(OUTPUT): $(OBJECTS)
-	target=fox32 $(XRLINK) link $@ $(OBJECTS) $(RTLLIB)
+	target=fox32 $(XRLINK) link $@ $(OBJECTS)
 .jkl.asm:
 	$(JKL) target=fox32 $< $@
 .asm.o:
