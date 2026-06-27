@@ -4,7 +4,7 @@ app_entry:
     inc rsp, 4
     pop a0 // stream_local
     call Main
-    call EndCurrentTask
+    jmp app_exit
 
 app_name: .ds "Window Demo" .db 0
 .global app_name
