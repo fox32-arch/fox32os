@@ -28,7 +28,19 @@ FN LinkToFile(
         size := GetSize(&tempFile)
         IF size == 0 THEN LEAVE END
         IF size >= 256 THEN size = 255 END
-        Read(&tempFile, &window^.Icon[iconNumber].LinkPath[0], size)
+        linkPathBuffer : UBYTE[MAX_PATH_LENGTH]
+        //Read(&tempFile, &window^.Icon[iconNumber].LinkPath[0], size)
+        Read(&tempFile, &linkPathBuffer[0], size)
+        IF linkPathBuffer[1] != ':' THEN
+            // link path doesn't specify a disk, so glue it on
+            // FIXME: this sucks
+            window^.Icon[iconNumber].LinkPath[0] = GetBootDiskId() + '0'
+            window^.Icon[iconNumber].LinkPath[1] = ':'
+            CopyString(&linkPathBuffer[0], &window^.Icon[iconNumber].LinkPath[2])
+            size += 2
+        ELSE
+            CopyString(&linkPathBuffer[0], &window^.Icon[iconNumber].LinkPath[0])
+        END
         i := size
         WHILE i > 0 DO
             IF window^.Icon[iconNumber].LinkPath[i] == 13 OR window^.Icon[iconNumber].LinkPath[i] == 10 THEN
