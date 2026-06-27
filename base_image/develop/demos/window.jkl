@@ -48,9 +48,9 @@ FN Main(IN stream_local : ^File)
     stream = stream_local
     RtlPrint("hello world!!\n")
 
-    NewWindow(&window, "hello", 64, 64, 64, 64, 0, 0)
+    NewWindow(&window, "hello", 128, 64, 64, 64, 0, 0)
     DrawStrToOverlay(
-        "hi chat",
+        "hello world!!",
         4, 20,
         0xFF000000, 0xFFFFFFFF,
         window.Overlay
