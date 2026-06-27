@@ -26,6 +26,8 @@ app_version: .ds "0.0.0" .db 0
 stream : ^File = NULLPTR
 window : Window
 
+EXTERN FN app_exit()
+
 FN (RtlPrintCallbackF) RtljPrintCallback(
     IN byte : UBYTE,
     IN context : ^VOID,
@@ -44,23 +46,49 @@ FN RtljUnlockStream(
     // dummy function to keep the compiler happy
 END
 
+FN HandleMouseClick(
+    IN windowNumber : UWORD,
+    IN x : UINT,
+    IN y : UINT,
+)
+    IF y < 16 THEN
+        // user clicked title bar
+        IF x < 8 THEN
+            // user clicked close button
+            DestroyWindow(&window)
+            app_exit() // close winmgr.lbr and exit
+            LEAVE
+        END
+
+        // otherwise, start dragging the window
+        StartDraggingWindow(&window)
+        LEAVE
+    END
+END
+
 FN Main(IN stream_local : ^File)
     stream = stream_local
     RtlPrint("hello world!!\n")
 
-    NewWindow(&window, "hello", 128, 64, 64, 64, 0, 0)
+    NewWindow(
+        &window, // window struct pointer
+        "hello", // title bar string
+        128, 64, // width, height
+        64, 64,  // initial X, initial Y
+        0,       // menu bar struct pointer
+        0        // widget struct pointer
+    )
     DrawStrToOverlay(
-        "hello world!!",
-        4, 20,
-        0xFF000000, 0xFFFFFFFF,
-        window.Overlay
+        "hello world!!",        // string
+        4, 20,                  // X, Y
+        0xFF000000, 0xFFFFFFFF, // foreground, background
+        window.Overlay          // overlay to draw to
     )
     WHILE TRUE DO
         e : Event
         GetNextWindowEvent(&window, &e)
-        IF e.Type == EVENT_TYPE_MOUSE_RELEASE THEN
-            DestroyWindow(&window)
-            BREAK
+        IF e.Type == EVENT_TYPE_MOUSE_CLICK THEN
+            HandleMouseClick(&window, e.Body.Pos.X, e.Body.Pos.Y)
         END
         YieldTask()
     END
