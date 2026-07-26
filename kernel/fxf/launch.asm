@@ -1,5 +1,7 @@
 ; FXF launching routines
 
+const NEW_TASK_STACK_SIZE: 65536
+
 ; launch an FXF binary from an already opened file
 ; inputs:
 ; r0: pointer to file struct
@@ -126,8 +128,8 @@ launch_fxf_continue:
     mov r1, [launch_fxf_binary_ptr]
     call ryfs_read_whole_file
 
-    ; allocate a 64KiB stack
-    mov r0, 65536
+    ; allocate memory for the stack
+    mov r0, NEW_TASK_STACK_SIZE
     call allocate_memory
     cmp r0, 0
     ifz jmp launch_fxf_from_disk_allocate_error
@@ -142,13 +144,14 @@ launch_fxf_continue:
     mov r5, rsp
     icl
     mov rsp, [launch_fxf_stack_ptr]
-    add rsp, 65536 ; point to the end of the stack (stack grows down!!)
+    add rsp, NEW_TASK_STACK_SIZE ; point to the end of the stack (stack grows down!!)
     push r4
     push r3
     push r2
     push r1
     push r0
-    sub rsp, 65516
+    sub rsp, NEW_TASK_STACK_SIZE
+    add rsp, 20 ; 20 bytes on the stack
     mov [launch_fxf_stack_ptr], rsp
     mov rsp, r5
     ise
@@ -170,7 +173,8 @@ launch_fxf_continue:
     call get_unused_task_id
     mov.8 [launch_fxf_task_id], r0
     mov r2, [launch_fxf_stack_ptr]
-    add r2, 65516 ; point to the end of the stack (stack grows down!!)
+    add r2, NEW_TASK_STACK_SIZE ; point to the end of the stack (stack grows down!!)
+    sub r2, 20 ; 20 bytes on the stack
     mov r3, [launch_fxf_binary_ptr]
     mov r4, [launch_fxf_stack_ptr]
     movz.16 r5, [current_directory]
