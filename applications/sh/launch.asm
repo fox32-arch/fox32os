@@ -1,5 +1,7 @@
 ; BAT and FXF launcher helper routines
 
+const NEW_TASK_STACK_SIZE: 65536
+
 ; launch a batch script from a shell entry
 ; inputs:
 ; r0: pointer to BAT binary name
@@ -180,8 +182,8 @@ launch_fxf_continue:
     mov r1, [launch_fxf_binary_ptr]
     call ryfs_read_whole_file
 
-    ; allocate a 64KiB stack
-    mov r0, 65536
+    ; allocate memory for the stack
+    mov r0, NEW_TASK_STACK_SIZE
     call allocate_memory
     cmp r0, 0
     ifz jmp allocate_error
@@ -194,7 +196,8 @@ launch_fxf_continue:
     push r1
     push r0
     mov r1, [launch_fxf_stack_ptr]
-    add r1, 65024 ; point to the end of the stack - argument string space
+    add r1, NEW_TASK_STACK_SIZE
+    sub r1, 512 ; point to the end of the stack - argument string space
     mov r31, 4
 launch_fxf_copy_args_loop:
     pop r0
@@ -207,7 +210,8 @@ launch_fxf_copy_args_loop:
 launch_fxf_copy_args_done:
     loop launch_fxf_copy_args_loop
     mov r0, [launch_fxf_stack_ptr]
-    add r0, 65024 ; point to the end of the stack - argument string space
+    add r0, NEW_TASK_STACK_SIZE
+    sub r0, 512 ; point to the end of the stack - argument string space
     mov r1, 0
     mov r31, 4
 launch_fxf_get_arg_ptrs_loop:
@@ -226,7 +230,8 @@ launch_fxf_get_arg_ptrs_loop:
     ; during this then that probably wouldn't end well
     icl
     mov rsp, [launch_fxf_stack_ptr]
-    add rsp, 65024 ; point to the end of the stack - argument string space
+    add rsp, NEW_TASK_STACK_SIZE
+    sub rsp, 512 ; point to the end of the stack - argument string space
     push r3
     push r2
     push r1
@@ -274,7 +279,8 @@ launch_fxf_skip_fill_reti_addr:
     call get_unused_task_id
     mov.8 [launch_fxf_task_id], r0
     mov r2, [launch_fxf_stack_ptr]
-    add r2, 65004 ; point to the end of the stack (stack grows down!!)
+    add r2, NEW_TASK_STACK_SIZE
+    sub r2, 532 ; point to the end of the stack (stack grows down!!)
     ; if we are in debug mode, there are 9 extra bytes on top of the stack
     cmp.8 [launch_fxf_debug_mode], 0
     ifnz sub r2, 9
