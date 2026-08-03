@@ -18,7 +18,7 @@ const ICON_SIZE_32x32: 4096
     data.strz "ssc" data.32 ssc data.32 ICON_SIZE_32x32
 
 ICN:
-    data.strz "icons by https://twistedlogic.space"
+    data.strz "icons by @spicymerlot.bsky.social"
 IC2:
     data.strz "icons by https://www.finlee.ee"
 lnk:
