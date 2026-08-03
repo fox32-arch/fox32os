@@ -40,7 +40,9 @@ FILES = \
 	base_image/apps/foxpaint.fxf \
 	base_image/apps/hjkl.fxf \
 	base_image/apps/settings.fxf \
-	base_image/user/bg.qoi \
+	base_image/user/bg/fox1.qoi \
+	base_image/user/bg/fox2.qoi \
+	base_image/user/bg/fox3.qoi \
 	base_image/develop/jkl.fxf \
 	base_image/develop/xrasm.fxf \
 	base_image/develop/xrlink.fxf \
@@ -106,6 +108,8 @@ base_image/system/font: FORCE
 	$(MAKE) -C fonts
 base_image/apps:
 	mkdir -p base_image/apps
+base_image/user/bg:
+	mkdir -p base_image/user/bg
 base_image/user/desktop:
 	mkdir -p base_image/user/desktop
 base_image/develop/lib:
@@ -151,12 +155,14 @@ fox32os.img: $(BOOTLOADER) $(FILES) $(wildcard libraries/*/*.asm)
 	$(RYFS) newdir -q -d system $@.tmp font.dir
 	$(RYFS) newdir -q $@.tmp apps.dir
 	$(RYFS) newdir -q $@.tmp user.dir
+	$(RYFS) newdir -q -d user $@.tmp bg.dir
 	$(RYFS) newdir -q -d user $@.tmp desktop.dir
 	$(RYFS) newdir -q $@.tmp develop.dir
 	$(RYFS) newdir -q -d develop $@.tmp demos.dir
 	$(RYFS) newdir -q -d develop $@.tmp lib.dir
 	for file in base_image/system/library/*.lbr; do $(RYFS) add -q -d /system/library $@.tmp $$file; done
 	for file in base_image/system/font/*.fnt; do $(RYFS) add -q -d /system/font $@.tmp $$file; done
+	for file in base_image/user/bg/*; do $(RYFS) add -q -d /user/bg $@.tmp $$file; done
 	for file in base_image/user/desktop/*; do $(RYFS) add -q -d /user/desktop $@.tmp $$file; done
 	$(foreach file, $(FILES), $(RYFS) add -q -d $(patsubst %/,%,$(dir $(shell $(REALPATH) --relative-to base_image/ $(file)))) $@.tmp $(file);)
 	$(foreach file, $(CONST_FILES), $(RYFS) add -q -d $(patsubst %/,%,$(dir $(shell $(REALPATH) --relative-to base_image/ $(file)))) $@.tmp $(file);)
@@ -169,6 +175,7 @@ romdisk.img: $(BOOTLOADER) $(ROM_FILES) $(wildcard libraries/*/*.asm)
 	$(RYFS) newdir -q -d system $@.tmp font.dir
 	$(RYFS) newdir -q $@.tmp apps.dir
 	$(RYFS) newdir -q $@.tmp user.dir
+	$(RYFS) newdir -q -d user $@.tmp bg.dir
 	$(RYFS) newdir -q -d user $@.tmp desktop.dir
 	$(RYFS) newdir -q $@.tmp develop.dir
 	$(RYFS) newdir -q -d develop $@.tmp demos.dir

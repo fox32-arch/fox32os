@@ -8,14 +8,12 @@
 **/*.lib
 base_image/**/*.hjk
 base_image/**/*.asm
+base_image/**/*.qoi
 **/*.fxf
 **/*.lbr
 **/*.fnt
 **/*.res
 **/*.rsf
-**/bg.inc
-**/bg.bmp
-**/bg.qoi
 **/icons.inc
 **/icon.inc
 **/fox32os.img

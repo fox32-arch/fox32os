@@ -1,5 +1,5 @@
 chgdir /system;
-*bg /user/bg.qoi;
+*bg /user/bg/fox1.qoi;
 *barclock;
 *filer desktop;
 exit;
