@@ -157,16 +157,12 @@ menu_click_event:
     ; r2 contains the clicked root menu
     ; r3 contains the clicked menu item
 
-    ; file
-    cmp r2, 0
-    ifz call file_menu_click_event
-
     ; canvas
-    cmp r2, 1
+    cmp r2, 0
     ifz call canvas_menu_click_event
 
     ; brush
-    cmp r2, 2
+    cmp r2, 1
     ifz call brush_menu_click_event
 
     ret
@@ -178,16 +174,6 @@ menu_ack_event:
     call close_menu
 
     pop r0
-    ret
-
-file_menu_click_event:
-    ; r2 contains the clicked root menu
-    ; r3 contains the clicked menu item
-
-    ; open image
-    cmp r3, 0
-    ifz call open_image
-
     ret
 
 canvas_menu_click_event:
@@ -207,10 +193,10 @@ canvas_menu_click_event:
 brush_menu_click_event:
     ; r2 contains the clicked root menu
     ; r3 contains the clicked menu item
-	
-	; 1x1
-	cmp r3, 0
-	ifz mov.8 [brush_size], 1
+
+    ; 1x1
+    cmp r3, 0
+    ifz mov.8 [brush_size], 1
 
     ; 2x2
     cmp r3, 1
@@ -219,19 +205,19 @@ brush_menu_click_event:
     ; 4x4
     cmp r3, 2
     ifz mov.8 [brush_size], 4
-	
-	; 6x6
-	cmp r3, 3
-	ifz mov.8 [brush_size], 6
+
+    ; 6x6
+    cmp r3, 3
+    ifz mov.8 [brush_size], 6
 
     ; 8x8
     cmp r3, 4
     ifz mov.8 [brush_size], 8
 
-	; 12x12
-	cmp r3, 5
-	ifz mov.8 [brush_size], 12
-	
+    ; 12x12
+    cmp r3, 5
+    ifz mov.8 [brush_size], 12
+
     ; 16x16
     cmp r3, 6
     ifz mov.8 [brush_size], 16
@@ -247,18 +233,18 @@ tools_button_click_event:
     cmp r1, 0
     ifz mov [color], 0xFF000000
 
-	; dark grey
-	cmp r1, 1
-	ifz mov [color], 0xFF555555
+    ; dark grey
+    cmp r1, 1
+    ifz mov [color], 0xFF555555
 
-	; light grey
-	cmp r1, 2
-	ifz mov [color], 0xFFAAAAAA
-	
+    ; light grey
+    cmp r1, 2
+    ifz mov [color], 0xFFAAAAAA
+
     ; white
     cmp r1, 3
     ifz mov [color], 0xFFFFFFFF
-		
+
     ; red
     cmp r1, 4
     ifz mov [color], 0xFF0000FF
@@ -270,18 +256,18 @@ tools_button_click_event:
     ; blue
     cmp r1, 6
     ifz mov [color], 0xFFFF0000
-	
-	; yellow
-	cmp r1, 7
-	ifz mov [color], 0xFF00FFFF
-	
-	; magenta
-	cmp r1, 8
-	ifz mov [color], 0xFFFF00FF
-	
-	; cyan
-	cmp r1, 9
-	ifz mov [color], 0xFFFFFF00
+
+    ; yellow
+    cmp r1, 7
+    ifz mov [color], 0xFF00FFFF
+
+    ; magenta
+    cmp r1, 8
+    ifz mov [color], 0xFFFF00FF
+
+    ; cyan
+    cmp r1, 9
+    ifz mov [color], 0xFFFFFF00
 
     ; redraw the "color" text in the clicked color
     mov r0, tools_window_struct
@@ -311,29 +297,6 @@ draw_pixel:
     call draw_filled_rectangle_to_overlay
 
     ret
-
-open_image:
-    push r3
-
-    ; hack lol
-    mov r0, menu_items_root
-    call close_menu
-
-    call get_boot_disk_id
-    mov r1, r0
-    mov r0, fetcher_filename
-    mov r2, 0
-    mov r3, fetcher_open_arg
-    mov r4, selected_filename
-    mov r5, selected_disk
-    mov r6, 0
-    call launch_fxf_from_disk
-open_image_wait:
-    push r0
-    call yield_task
-    pop r0
-    call is_task_id_used
-    ifnz jmp open_image_wait
 
 clear_canvas_black:
     mov r0, 0xFF000000
@@ -446,7 +409,7 @@ color_button_green_widget:
     data.16 48                        ; x_pos
     data.16 80                        ; y_pos
 color_button_blue_widget:
-    data.32 color_button_yellow_widget                         ; next_ptr
+    data.32 color_button_yellow_widget ; next_ptr
     data.32 6                         ; id
     data.32 WIDGET_TYPE_BUTTON        ; type
     data.32 color_button_text         ; text_ptr
@@ -492,20 +455,13 @@ color_button_cyan_widget:
 color_button_text: data.strz "  "
 
 menu_items_root:
-    data.8 3                                                      ; number of menus
-    data.32 menu_items_file_list data.32 menu_items_file_name     ; pointer to menu list, pointer to menu name
+    data.8 2                                                      ; number of menus
     data.32 menu_items_canvas_list data.32 menu_items_canvas_name ; pointer to menu list, pointer to menu name
     data.32 menu_items_brush_list data.32 menu_items_brush_name   ; pointer to menu list, pointer to menu name
-menu_items_file_name:
-    data.8 4 data.strz "File" ; text length, text, null-terminator
 menu_items_canvas_name:
     data.8 6 data.strz "Canvas" ; text length, text, null-terminator
 menu_items_brush_name:
     data.8 7 data.strz "Brush" ; text length, text, null-terminator
-menu_items_file_list:
-    data.8 1                             ; number of items
-    data.8 15                            ; menu width (usually longest item + 2)
-    data.8 13 data.strz "Open Image..."  ; text length, text, null-terminator
 menu_items_canvas_list:
     data.8 2                             ; number of items
     data.8 16                            ; menu width (usually longest item + 2)
@@ -514,24 +470,17 @@ menu_items_canvas_list:
 menu_items_brush_list:
     data.8 7                   ; number of items
     data.8 7                   ; menu width (usually longest item + 2)
-	data.8 3 data.strz "1x1"   ; it's just common sense!
+    data.8 3 data.strz "1x1"   ; it's just common sense!
     data.8 3 data.strz "2x2"   ; text length, text, null-terminator
     data.8 3 data.strz "4x4"   ; text length, text, null-terminator
-	data.8 3 data.strz "6x6"	;listen I just like having options
-    data.8 3 data.strz "8x8"	; text length, text, null-terminator
-	data.8 5 data.strz "12x12"
+    data.8 3 data.strz "6x6"   ; listen I just like having options
+    data.8 3 data.strz "8x8"   ; text length, text, null-terminator
+    data.8 5 data.strz "12x12"
     data.8 5 data.strz "16x16" ; text length, text, null-terminator
 
 is_drawing: data.8 0
 brush_size: data.8 2
 color: data.32 0xFFFFFFFF
-
-fetcher_filename: data.strz "fetcher.fxf"
-fetcher_open_arg: data.strz "open"
-selected_filename: data.fill 0, 13
-selected_disk: data.32 0
-selected_file_struct: data.fill 0, 32
-selected_file_buffer_ptr: data.32 0
 
     #include "../../../fox32rom/fox32rom.def"
     #include "../../fox32os.def"
