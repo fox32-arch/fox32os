@@ -30,12 +30,26 @@ app_version: .ds "0.0.0" .db 0
 
 text_stream : ^File = NULLPTR
 PUBLIC windows : ^IconWindow[MAX_WINDOWS]
+PUBLIC last_clicked_window : ^IconWindow
 
 icons_file : File
 PUBLIC icons_graphics : ^UBYTE = NULLPTR
 
 filetype_file : File
 PUBLIC filetype_data : ^UBYTE = NULLPTR
+
+clipboard_lbr : Library
+copied_file : File
+EXTERN FN CopyFile(
+    IN library : ^Library,
+    IN file : ^File,
+    IN file_name : ^UBYTE,
+)
+EXTERN FN PullFile(
+    IN library : ^Library,
+    IN should_invalidate : UBYTE,
+    IN out_file_name : ^UBYTE, // pointer to 13 byte buffer
+) : ^File
 
 EXTERN link_icon : UBYTE[256]
 
@@ -88,6 +102,7 @@ FN Exit()
 END
 
 FN Error(IN error_string : ^UBYTE)
+    RtlPrint("filer: ")
     RtlPrint(error_string)
     RtlPrint("\n")
     Exit()
@@ -116,6 +131,10 @@ FN Initialize(
         filetype_data = AllocateMemory(filetype_file_size)
         Read(&filetype_file, filetype_data, filetype_file_size)
     END
+
+    IF NOT OpenLibrary("/system/library/clipbrd.lbr", GetBootDiskId(), &clipboard_lbr) THEN
+        RtlPrint("/system/library/clipbrd.lbr not available\n")
+    END
 END
 
 FN HandleMouseClick(
@@ -123,6 +142,8 @@ FN HandleMouseClick(
     IN x : UINT,
     IN y : UINT,
 )
+    last_clicked_window = windows[windowNumber]
+
     IF y < 16 THEN
         // user clicked title bar
         IF x < 8 THEN
@@ -189,16 +210,40 @@ FN HandleMenuClick (
     IN menu : UWORD,
     IN item : UWORD,
 )
+    concatPath : UBYTE[256]
     IF menu == 0 AND item == 0 THEN
         // "New"
         OpenNewDirWindow(windowNumber, &windows[windowNumber]^.Path[0])
     ELSEIF menu == 0 AND item == 2 THEN
         // "Get Info"
-        concatPath : UBYTE[256]
         IF windows[windowNumber]^.ClickIcon == 0xFF OR windows[windowNumber]^.ClickIcon >= windows[windowNumber]^.NumIcons THEN LEAVE END
         IF windows[windowNumber]^.Icon[windows[windowNumber]^.ClickIcon].IsDisk THEN LEAVE END // TODO: support getting disk info
         AppendNameToPath(&windows[windowNumber]^.Path[0], &windows[windowNumber]^.Icon[windows[windowNumber]^.ClickIcon].Name[0], &concatPath[0])
         OpenGetInfoWindow(windowNumber, &windows[windowNumber]^.Icon[windows[windowNumber]^.ClickIcon], &concatPath[0])
+    ELSEIF menu == 1 AND item == 0 THEN
+        // "Copy"
+        IF windows[windowNumber]^.ClickIcon == 0xFF OR windows[windowNumber]^.ClickIcon >= windows[windowNumber]^.NumIcons THEN LEAVE END
+        IF windows[windowNumber]^.Icon[windows[windowNumber]^.ClickIcon].IsDisk THEN LEAVE END
+        AppendNameToPath(&windows[windowNumber]^.Path[0], &windows[windowNumber]^.Icon[windows[windowNumber]^.ClickIcon].Name[0], &concatPath[0])
+
+        Open(&concatPath[0], GetBootDiskId(), &copied_file)
+        IF clipboard_lbr.JumpTableBase != 0 THEN
+            CopyFile(&clipboard_lbr, &copied_file, &windows[windowNumber]^.Icon[windows[windowNumber]^.ClickIcon].Name[0])
+        END
+    ELSEIF menu == 1 AND item == 1 THEN
+        // "Paste"
+        IF clipboard_lbr.JumpTableBase != 0 THEN
+            pulled_file_name : UBYTE[13]
+            pulled_file : ^File = PullFile(&clipboard_lbr, 1, &pulled_file_name[0])
+            dest_file : File
+            IF pulled_file != NULLPTR THEN
+                AppendNameToPath(&last_clicked_window^.Path[0], &pulled_file_name[0], &concatPath[0])
+                Create(&concatPath[0], GetBootDiskId(), &dest_file, 0)
+                Copy(pulled_file, &dest_file)
+            ELSE
+                RtlPrint("filer: Failed to paste file\n")
+            END
+        END
     END
 END
 

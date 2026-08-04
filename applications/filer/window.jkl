@@ -10,6 +10,7 @@
 
 EXTERN FN Error(IN error_string : ^UBYTE)
 EXTERN windows : ^IconWindow[]
+EXTERN last_clicked_window : ^IconWindow
 EXTERN icons_graphics : ^UBYTE
 
 EXTERN link_icon : UBYTE[256]
@@ -19,10 +20,12 @@ EXTERN menu_bar : Menu
 menu_bar:
 .global menu_bar
     // number of menus
-    .db 1
+    .db 2
     // "items" and "name" table pairs for each menu
     .dp menu_file_items
     .dp menu_file_name
+    .dp menu_edit_items
+    .dp menu_edit_name
 menu_file_name:
     // length, ASCII string, null
     .db 4 .ds "File" .db 0
@@ -35,6 +38,17 @@ menu_file_items:
     .db 6  .ds "New..." .db 0
     .db 0 // separator
     .db 11 .ds "Get Info..." .db 0
+menu_edit_name:
+    // length, ASCII string, null
+    .db 4 .ds "Edit" .db 0
+menu_edit_items:
+    // number of menu items
+    .db 2
+    // width of menu, generally 2 greater than the longest menu item
+    .db 7
+    // length, ASCII string, null for each menu item
+    .db 4 .ds "Copy" .db 0
+    .db 5 .ds "Paste" .db 0
 ]
 
 FN RenderWindow(
@@ -213,6 +227,7 @@ FN OpenWindow(IN path : ^UBYTE) : UWORD
         &window^.Icon[0].Widget
     )
     RenderWindow(w, TRUE)
+    last_clicked_window = windows[w]
     RETURN w
 END
 

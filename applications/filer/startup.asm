@@ -13,6 +13,8 @@
 // number of entries to copy from the jump table
 #DEFINE WINMGR_LBR_TABLE_ENTRIES 22
 
+#DEFINE ROM_copy_string 0xF0046008
+
 _gui_entry:
     call [0x00000820] // get_boot_disk_id
     mov r1, r0
@@ -111,6 +113,38 @@ set_title_bar_theme: jmp [_winmgr_lbr_fn_set_title_bar_theme]
 .global set_title_bar_theme
 set_internal_title_bar_theme: jmp [_winmgr_lbr_fn_set_internal_title_bar_theme]
 .global set_internal_title_bar_theme
+
+// CopyFile(
+//    IN library : ^Library,
+//    IN file : ^File,
+//    IN file_name : ^UBYTE,
+// )
+CopyFile:
+.global CopyFile
+    mov r0, a1
+    mov a0, [a0]
+    mov r1, a2
+    jmp [a0+8]
+
+// PullFile(
+//    IN library : ^Library,
+//    IN should_invalidate : UBYTE,
+//    IN out_file_name : ^UBYTE, // pointer to 13 byte buffer
+// ) : ^File // returns pointer to file struct
+PullFile:
+.global PullFile
+    mov r0, a1
+    mov a0, [a0]
+    call [a0+0]
+    push r0
+    mov r0, r3
+    mov r1, a2
+    call [ROM_copy_string]
+    pop r0
+    mov a3, r0
+    cmp r2, 1 // is the pulled item a file?
+    ifnz mov a3, 0
+    ret
 
 NewWindow:
 .global NewWindow

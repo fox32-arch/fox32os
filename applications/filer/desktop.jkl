@@ -121,7 +121,7 @@ FN RefreshDesktopFiles(
     tempFile : File
     directory := Open(&window^.Path[0], GetBootDiskId(), &tempFile)
     IF directory == 0 THEN
-        RtlPrint("Creating directory %s\n", &window^.Path)
+        RtlPrint("filer: Creating directory %s\n", &window^.Path)
         directory = CreateDir(&window^.Path[0], GetBootDiskId(), &tempFile)
     END
     IF directory == 0 THEN
