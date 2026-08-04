@@ -244,7 +244,7 @@ FN DrawDitheredIcon(
     CopyMemoryWords(&graphicData[0], &tempGraphic[0], 32*32)
     // dither pattern
     j := 0
-    k := 0
+    k := 1
     WHILE j < 1024 DO
         IF tempGraphic[j] & 0xFF000000 != 0 AND k % 2 == 0 AND isDithered THEN
             tempGraphic[j] = 0xFF000000
