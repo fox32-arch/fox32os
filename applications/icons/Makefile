@@ -11,7 +11,9 @@ ICONS16 := \
 	mnu.inc
 
 ICONS32 := \
+	_dir.inc \
 	dir.inc \
+	_dsk.inc \
 	dsk.inc \
 	fnt.inc \
 	fxf.inc \

@@ -3,13 +3,16 @@ const ICON_SIZE_16x16: 1024
 const ICON_SIZE_32x32: 4096
 
     ; format: "RES" magic bytes, version, number of resource IDs
-    data.str "RES" data.8 0 data.8 10
+    data.str "RES" data.8 0 data.8 13
 
     ; format: 3 character null-terminated ID, pointer to data, size
-    data.strz "ICN" data.32 ICN data.32 35
-    data.strz "IC2" data.32 IC2 data.32 30
+    data.strz "ICN" data.32 ICN data.32 31
+    data.strz "IC2" data.32 ICN data.32 33
+    data.strz "IC3" data.32 IC2 data.32 30
     data.strz "lnk" data.32 lnk data.32 ICON_SIZE_8x8
+    data.strz "Dir" data.32 Dir data.32 ICON_SIZE_32x32
     data.strz "dir" data.32 dir data.32 ICON_SIZE_32x32
+    data.strz "Dsk" data.32 Dsk data.32 ICON_SIZE_32x32
     data.strz "dsk" data.32 dsk data.32 ICON_SIZE_32x32
     data.strz "fnt" data.32 fnt data.32 ICON_SIZE_32x32
     data.strz "fxf" data.32 fxf data.32 ICON_SIZE_32x32
@@ -18,13 +21,19 @@ const ICON_SIZE_32x32: 4096
     data.strz "ssc" data.32 ssc data.32 ICON_SIZE_32x32
 
 ICN:
-    data.strz "icons by @spicymerlot.bsky.social"
+    data.strz "icons by https://zencorner.xyz/"
 IC2:
+    data.strz "icons by @spicymerlot.bsky.social"
+IC3:
     data.strz "icons by https://www.finlee.ee"
 lnk:
     #include "lnk.inc"
+Dir:
+    #include "_dir.inc"
 dir:
     #include "dir.inc"
+Dsk:
+    #include "_dsk.inc"
 dsk:
     #include "dsk.inc"
 fnt:

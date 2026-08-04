@@ -78,7 +78,12 @@ FN RenderWindow(
         IF window^.Icon[i].Graphic != NULLPTR THEN
             DrawDitheredIcon(windowNumber, i, window^.Icon[i].Graphic, i == window^.ClickIcon, TRUE)
         ELSEIF icons_graphics != NULLPTR THEN
-            iconDataPtr : ^ULONG = GetResource(icons_graphics, &window^.Icon[i].Name[extIndex], 4096)
+            iconDataPtr : ^ULONG
+            IF window^.Disk == GetBootDiskId() AND CompareString(&window^.Path[1], ":/") AND CompareString(&window^.Icon[i].Name[0], "system.dir") THEN
+                iconDataPtr = GetResource(icons_graphics, "Dir", 4096)
+            ELSE
+                iconDataPtr = GetResource(icons_graphics, &window^.Icon[i].Name[extIndex], 4096)
+            END
             IF iconDataPtr == NULLPTR THEN
                 iconDataPtr = GetResource(icons_graphics, "msc", 4096)
             END

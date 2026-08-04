@@ -43,7 +43,12 @@ FN RenderDesktop(
             DrawDitheredIcon(windowNumber, i, window^.Icon[i].Graphic, i == window^.ClickIcon, FALSE)
         ELSEIF icons_graphics != NULLPTR THEN
             IF window^.Icon[i].IsDisk THEN
-                iconDataPtr := GetResource(icons_graphics, "dsk", 4096)
+                iconDataPtr := NULLPTR
+                IF window^.Icon[i].DiskId == GetBootDiskId() THEN
+                    iconDataPtr = GetResource(icons_graphics, "Dsk", 4096)
+                ELSE
+                    iconDataPtr = GetResource(icons_graphics, "dsk", 4096)
+                END
                 IF iconDataPtr != NULLPTR THEN
                     DrawDitheredIcon(windowNumber, i, iconDataPtr, i == window^.ClickIcon, FALSE)
                     FreeMemory(iconDataPtr)
