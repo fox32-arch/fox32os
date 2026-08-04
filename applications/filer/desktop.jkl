@@ -46,6 +46,8 @@ FN RenderDesktop(
                 iconDataPtr := NULLPTR
                 IF window^.Icon[i].DiskId == GetBootDiskId() THEN
                     iconDataPtr = GetResource(icons_graphics, "Dsk", 4096)
+                ELSEIF window^.Icon[i].DiskId == 5 THEN
+                    iconDataPtr = GetResource(icons_graphics, "ram", 4096)
                 ELSE
                     iconDataPtr = GetResource(icons_graphics, "dsk", 4096)
                 END
