@@ -18,6 +18,7 @@ ICONS32 := \
 	fnt.inc \
 	fxf.inc \
 	msc.inc \
+	ram.inc \
 	ssc.inc
 
 %.inc: %.8.png
