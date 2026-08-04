@@ -207,21 +207,33 @@ canvas_menu_click_event:
 brush_menu_click_event:
     ; r2 contains the clicked root menu
     ; r3 contains the clicked menu item
+	
+	; 1x1
+	cmp r3, 0
+	ifz mov.8 [brush_size], 1
 
     ; 2x2
-    cmp r3, 0
+    cmp r3, 1
     ifz mov.8 [brush_size], 2
 
     ; 4x4
-    cmp r3, 1
+    cmp r3, 2
     ifz mov.8 [brush_size], 4
+	
+	; 6x6
+	cmp r3, 3
+	ifz mov.8 [brush_size], 6
 
     ; 8x8
-    cmp r3, 2
+    cmp r3, 4
     ifz mov.8 [brush_size], 8
 
+	; 12x12
+	cmp r3, 5
+	ifz mov.8 [brush_size], 12
+	
     ; 16x16
-    cmp r3, 3
+    cmp r3, 6
     ifz mov.8 [brush_size], 16
 
     ret
@@ -239,17 +251,37 @@ tools_button_click_event:
     cmp r1, 1
     ifz mov [color], 0xFFFFFFFF
 
+	; light grey
+	cmp r1, 2
+	ifz mov [color], 0xFFAAAAAA
+	
+	; dark grey
+	cmp r1, 3
+	ifz mov [color], 0xFF555555
+	
     ; red
-    cmp r1, 2
+    cmp r1, 4
     ifz mov [color], 0xFF0000FF
 
     ; green
-    cmp r1, 3
+    cmp r1, 5
     ifz mov [color], 0xFF00FF00
 
     ; blue
-    cmp r1, 4
+    cmp r1, 6
     ifz mov [color], 0xFFFF0000
+	
+	; yellow
+	cmp r1, 7
+	ifz mov [color], 0xFF00FFFF
+	
+	; magenta
+	cmp r1, 8
+	ifz mov [color], 0xFFFF00FF
+	
+	; cyan
+	cmp r1, 9
+	ifz mov [color], 0xFFFFFF00
 
     ; redraw the "color" text in the clicked color
     mov r0, tools_window_struct
@@ -302,40 +334,6 @@ open_image_wait:
     pop r0
     call is_task_id_used
     ifnz jmp open_image_wait
-open_image_draw:
-    mov r0, 0xE0000 ; 512x448x4
-    call allocate_memory
-    cmp r0, 0
-    ifz pop r3
-    ifz ret
-    mov [selected_file_buffer_ptr], r0
-    mov r0, selected_filename
-    mov r1, [selected_disk]
-    mov r2, selected_file_struct
-    call open
-    cmp r0, 0
-    ifz pop r3
-    ifz ret
-    mov r0, 0xE0000 ; 512x448x4
-    mov r1, selected_file_struct
-    mov r2, [selected_file_buffer_ptr]
-    call read
-    mov r0, [selected_file_buffer_ptr]
-    mov r1, 512
-    mov r2, 448
-    call set_tilemap
-    mov r0, canvas_window_struct
-    call get_window_overlay_number
-    mov r3, r0
-    mov r0, 0
-    mov r1, 0
-    mov r2, 16
-    call draw_tile_to_overlay
-    mov r0, [selected_file_buffer_ptr]
-    call free_memory
-
-    pop r3
-    ret
 
 clear_canvas_black:
     mov r0, 0xFF000000
@@ -380,7 +378,7 @@ canvas_window_struct: data.fill 0, 40
 tools_window_title: data.strz "FoxPaint tools"
 tools_window_struct: data.fill 0, 40
 
-color_section_text: data.strz "Color "
+color_section_text: data.strz "Color "    ; now cga compatible I think!
 color_button_black_widget:
     data.32 color_button_white_widget ; next_ptr
     data.32 0                         ; id
@@ -393,7 +391,7 @@ color_button_black_widget:
     data.16 32                        ; x_pos
     data.16 64                        ; y_pos
 color_button_white_widget:
-    data.32 color_button_red_widget   ; next_ptr
+    data.32 color_button_lgrey_widget   ; next_ptr
     data.32 1                         ; id
     data.32 WIDGET_TYPE_BUTTON        ; type
     data.32 color_button_text         ; text_ptr
@@ -403,39 +401,94 @@ color_button_white_widget:
     data.16 0                         ; reserved
     data.16 48                        ; x_pos
     data.16 64                        ; y_pos
+color_button_lgrey_widget:
+    data.32 color_button_dgrey_widget ; next_ptr
+    data.32 2                         ; id
+    data.32 WIDGET_TYPE_BUTTON        ; type
+    data.32 color_button_text         ; text_ptr
+    data.32 0xFFFFFFFF                ; foreground_color
+    data.32 0xFFAAAAAA                ; background_color
+    data.16 16                        ; width
+    data.16 0                         ; reserved
+    data.16 64                        ; x_pos
+    data.16 64                        ; y_pos
+color_button_dgrey_widget:
+    data.32 color_button_red_widget ; next_ptr
+    data.32 3                         ; id
+    data.32 WIDGET_TYPE_BUTTON        ; type
+    data.32 color_button_text         ; text_ptr
+    data.32 0xFFFFFFFF                ; foreground_color
+    data.32 0xFF555555                ; background_color
+    data.16 16                        ; width
+    data.16 0                         ; reserved
+    data.16 80                        ; x_pos
+    data.16 64                        ; y_pos
 color_button_red_widget:
     data.32 color_button_green_widget ; next_ptr
-    data.32 2                         ; id
+    data.32 4                         ; id
     data.32 WIDGET_TYPE_BUTTON        ; type
     data.32 color_button_text         ; text_ptr
     data.32 0xFFFFFFFF                ; foreground_color
     data.32 0xFF0000FF                ; background_color
     data.16 16                        ; width
     data.16 0                         ; reserved
-    data.16 64                        ; x_pos
-    data.16 64                        ; y_pos
+    data.16 32                        ; x_pos
+    data.16 80                        ; y_pos
 color_button_green_widget:
     data.32 color_button_blue_widget  ; next_ptr
-    data.32 3                         ; id
+    data.32 5                         ; id
     data.32 WIDGET_TYPE_BUTTON        ; type
     data.32 color_button_text         ; text_ptr
     data.32 0xFFFFFFFF                ; foreground_color
     data.32 0xFF00FF00                ; background_color
     data.16 16                        ; width
     data.16 0                         ; reserved
-    data.16 32                        ; x_pos
+    data.16 48                        ; x_pos
     data.16 80                        ; y_pos
 color_button_blue_widget:
-    data.32 0                         ; next_ptr
-    data.32 4                         ; id
+    data.32 color_button_yellow_widget; next_ptr
+    data.32 6                         ; id
     data.32 WIDGET_TYPE_BUTTON        ; type
     data.32 color_button_text         ; text_ptr
     data.32 0xFFFFFFFF                ; foreground_color
     data.32 0xFFFF0000                ; background_color
     data.16 16                        ; width
     data.16 0                         ; reserved
-    data.16 48                        ; x_pos
+    data.16 64                        ; x_pos
     data.16 80                        ; y_pos
+color_button_yellow_widget:
+    data.32 color_button_magenta_widget ; next_ptr
+    data.32 7                         ; id
+    data.32 WIDGET_TYPE_BUTTON        ; type
+    data.32 color_button_text         ; text_ptr
+    data.32 0xFFFFFFFF                ; foreground_color
+    data.32 0xFF00FFFF                ; background_color
+    data.16 16                        ; width
+    data.16 0                         ; reserved
+    data.16 80                        ; x_pos
+    data.16 80                        ; y_pos
+color_button_magenta_widget:
+    data.32 color_button_cyan_widget ; next_ptr
+    data.32 8                         ; id
+    data.32 WIDGET_TYPE_BUTTON        ; type
+    data.32 color_button_text         ; text_ptr
+    data.32 0xFFFFFFFF                ; foreground_color
+    data.32 0xFFFF00FF                ; background_color
+    data.16 16                        ; width
+    data.16 0                         ; reserved
+    data.16 48                        ; x_pos
+    data.16 96                        ; y_pos
+color_button_cyan_widget:
+    data.32 0 ; next_ptr
+    data.32 9                         ; id
+    data.32 WIDGET_TYPE_BUTTON        ; type
+    data.32 color_button_text         ; text_ptr
+    data.32 0xFFFFFFFF                ; foreground_color
+    data.32 0xFFFFFF00                ; background_color
+    data.16 16                        ; width
+    data.16 0                         ; reserved
+    data.16 64                        ; x_pos
+    data.16 96                        ; y_pos
 color_button_text: data.strz "  "
 
 menu_items_root:
@@ -448,7 +501,7 @@ menu_items_file_name:
 menu_items_canvas_name:
     data.8 6 data.strz "Canvas" ; text length, text, null-terminator
 menu_items_brush_name:
-    data.8 5 data.strz "Brush" ; text length, text, null-terminator
+    data.8 7 data.strz "Brush" ; text length, text, null-terminator
 menu_items_file_list:
     data.8 1                             ; number of items
     data.8 15                            ; menu width (usually longest item + 2)
@@ -459,23 +512,18 @@ menu_items_canvas_list:
     data.8 14 data.strz "Clear to Black" ; text length, text, null-terminator
     data.8 14 data.strz "Clear to White" ; text length, text, null-terminator
 menu_items_brush_list:
-    data.8 4                   ; number of items
+    data.8 7                   ; number of items
     data.8 7                   ; menu width (usually longest item + 2)
+	data.8 3 data.strz "1x1"   ; it's just common sense!
     data.8 3 data.strz "2x2"   ; text length, text, null-terminator
     data.8 3 data.strz "4x4"   ; text length, text, null-terminator
+	data.8 3 data.strz "6x6"   ; listen I just like having options
     data.8 3 data.strz "8x8"   ; text length, text, null-terminator
+	data.8 5 data.strz "12x12" ; grrawrrr rrrwrh grrwrwrawr
     data.8 5 data.strz "16x16" ; text length, text, null-terminator
-menu_items_color_list:
-    data.8 5                   ; number of items
-    data.8 7                   ; menu width (usually longest item + 2)
-    data.8 5 data.strz "Black" ; text length, text, null-terminator
-    data.8 5 data.strz "White" ; text length, text, null-terminator
-    data.8 3 data.strz "Red"   ; text length, text, null-terminator
-    data.8 5 data.strz "Green" ; text length, text, null-terminator
-    data.8 4 data.strz "Blue"  ; text length, text, null-terminator
 
 is_drawing: data.8 0
-brush_size: data.8 4
+brush_size: data.8 2
 color: data.32 0xFFFFFFFF
 
 fetcher_filename: data.strz "fetcher.fxf"
