@@ -380,7 +380,7 @@ tools_window_struct: data.fill 0, 40
 
 color_section_text: data.strz "Color "
 color_button_black_widget:
-    data.32 color_button_white_widget ; next_ptr
+    data.32 color_button_dgrey_widget ; next_ptr
     data.32 0                         ; id
     data.32 WIDGET_TYPE_BUTTON        ; type
     data.32 color_button_text         ; text_ptr
