@@ -289,6 +289,7 @@ color_table:
     data.32 sea
     data.32 c64
     ; light
+    data.32 launchpad
     data.32 foxmages
 foxwitches:
     data.32 0xff1f0403 ; black
@@ -339,6 +340,16 @@ c64:
     data.32 0xff7881c1 ; magenta
     data.32 0xffccc584 ; cyan
     data.32 0xffde7a86 ; white
+    data.32 0x00000000 ; transparent
+launchpad:
+    data.32 0xffffffff ; background
+    data.32 0xff00006d ; red
+    data.32 0xff006d00 ; green
+    data.32 0xff006d91 ; yellow
+    data.32 0xff552400 ; blue
+    data.32 0xff55006d ; magenta
+    data.32 0xffaab648 ; cyan
+    data.32 0xff000000 ; white
     data.32 0x00000000 ; transparent
 foxmages:
     data.32 0xffdce7ee ; black
@@ -399,13 +410,14 @@ menu_items_window_list:
 menu_items_colors_name:
     data.8 6 data.strz "Colors" ; text length, text, null-terminator
 menu_items_colors_list:
-    data.8 6                                     ; number of items
+    data.8 7                                     ; number of items
     data.8 22                                    ; menu width
     data.8 22 data.strz "Foxwitches      (dark)" ; text length, text, null-terminator
     data.8 22 data.strz "Enberry         (dark)" ; text length, text, null-terminator
     data.8 22 data.strz "Catppuccin      (dark)" ; text length, text, null-terminator
     data.8 22 data.strz "Base2Tone Sea   (dark)" ; text length, text, null-terminator
     data.8 22 data.strz "C64             (dark)" ; text length, text, null-terminator
+    data.8 22 data.strz "Launchpad      (light)" ; the lack of automatic text alignment is cute
     data.8 22 data.strz "Foxmages       (light)" ; text length, text, null-terminator
 
     #include "stream.asm"
