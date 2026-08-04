@@ -9,6 +9,8 @@ get_os_api_version:        jmp [0x00000814]
 get_current_disk_id:       jmp [0x00000818]
 set_current_disk_id:       jmp [0x0000081C]
 get_boot_disk_id:          jmp [0x00000820]
+open_library:              jmp [0x00000824]
+close_library:             jmp [0x00000828]
 
 // FXF jump table
 parse_fxf_binary:          jmp [0x00000910]
@@ -60,6 +62,21 @@ GetCurrentDiskId:
     call get_current_disk_id
     mov a3, r0
     ret
+
+OpenLibrary:
+.global OpenLibrary
+    mov r0, a0
+    mov r1, a1
+    call open_library
+    mov [a2], r0   // jump table address
+    mov [a2+4], r1 // size
+    mov a3, r0
+    ret
+
+CloseLibrary:
+.global CloseLibrary
+    mov r0, [a0]
+    jmp close_library
 
 LaunchFxfFromDisk:
 .global LaunchFxfFromDisk
@@ -216,4 +233,10 @@ GetDirName:
     mov r0, a1
     mov r1, a0
     jmp get_dir_name
+
+Copy:
+.global Copy
+    mov r0, a0
+    mov r1, a1
+    jmp copy
 ]

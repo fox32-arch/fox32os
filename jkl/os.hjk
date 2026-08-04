@@ -2,9 +2,21 @@
 
 // system
 
+STRUCT Library
+    JumpTableBase : ^VOID,
+    Size : UWORD,
+END
+
 EXTERN FN GetBootDiskId() : UBYTE
 EXTERN FN GetCurrentDiskId() : UBYTE
-
+EXTERN FN OpenLibrary(
+    IN file_name : ^UBYTE,
+    IN disk_id : ULONG,
+    IN library : ^Library,
+) : UWORD
+EXTERN FN CloseLibrary(
+    IN library : ^Library,
+)
 
 
 // task
@@ -239,6 +251,11 @@ EXTERN FN CreateDir (
 EXTERN FN GetDirName (
     IN file : ^File,
     IN buf : ^UBYTE,
+)
+
+EXTERN FN Copy (
+    IN src_file : ^File,
+    IN dest_file : ^File,
 )
 
 // window flags
