@@ -40,14 +40,12 @@ FN RenderDesktop(
     WHILE i < window^.NumIcons DO
         extIndex := StringLength(&window^.Icon[i].Name[0]) - 3
         IF window^.Icon[i].Graphic != NULLPTR THEN
-            SetTilemap(window^.Icon[i].Graphic, 32, 32)
-            DrawTileToOverlay(0, window^.Icon[i].Pos.X, window^.Icon[i].Pos.Y, window^.Window.Overlay)
+            DrawDitheredIcon(windowNumber, i, window^.Icon[i].Graphic, i == window^.ClickIcon, FALSE)
         ELSEIF icons_graphics != NULLPTR THEN
             IF window^.Icon[i].IsDisk THEN
                 iconDataPtr := GetResource(icons_graphics, "dsk", 4096)
                 IF iconDataPtr != NULLPTR THEN
-                    SetTilemap(iconDataPtr, 32, 32)
-                    DrawTileToOverlay(0, window^.Icon[i].Pos.X, window^.Icon[i].Pos.Y, window^.Window.Overlay)
+                    DrawDitheredIcon(windowNumber, i, iconDataPtr, i == window^.ClickIcon, FALSE)
                     FreeMemory(iconDataPtr)
                 END
             ELSE
@@ -56,8 +54,7 @@ FN RenderDesktop(
                     iconDataPtr = GetResource(icons_graphics, "msc", 4096)
                 END
                 IF iconDataPtr != NULLPTR THEN
-                    SetTilemap(iconDataPtr, 32, 32)
-                    DrawTileToOverlay(0, window^.Icon[i].Pos.X, window^.Icon[i].Pos.Y, window^.Window.Overlay)
+                    DrawDitheredIcon(windowNumber, i, iconDataPtr, i == window^.ClickIcon, FALSE)
                     FreeMemory(iconDataPtr)
                 END
             END
