@@ -392,7 +392,7 @@ color_button_black_widget:
     data.16 64                        ; y_pos
 color_button_dgrey_widget:
     data.32 color_button_lgrey_widget ; next_ptr
-    data.32 3                         ; id
+    data.32 1                         ; id
     data.32 WIDGET_TYPE_BUTTON        ; type
     data.32 color_button_text         ; text_ptr
     data.32 0xFFFFFFFF                ; foreground_color
@@ -414,7 +414,7 @@ color_button_lgrey_widget:
     data.16 64                        ; y_pos
 color_button_white_widget:
     data.32 color_button_red_widget   ; next_ptr
-    data.32 1                         ; id
+    data.32 3                         ; id
     data.32 WIDGET_TYPE_BUTTON        ; type
     data.32 color_button_text         ; text_ptr
     data.32 0xFFFFFFFF                ; foreground_color
