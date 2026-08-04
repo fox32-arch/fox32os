@@ -247,18 +247,18 @@ tools_button_click_event:
     cmp r1, 0
     ifz mov [color], 0xFF000000
 
-    ; white
-    cmp r1, 1
-    ifz mov [color], 0xFFFFFFFF
+	; dark grey
+	cmp r1, 1
+	ifz mov [color], 0xFF555555
 
 	; light grey
 	cmp r1, 2
 	ifz mov [color], 0xFFAAAAAA
 	
-	; dark grey
-	cmp r1, 3
-	ifz mov [color], 0xFF555555
-	
+    ; white
+    cmp r1, 3
+    ifz mov [color], 0xFFFFFFFF
+		
     ; red
     cmp r1, 4
     ifz mov [color], 0xFF0000FF
@@ -378,7 +378,7 @@ canvas_window_struct: data.fill 0, 40
 tools_window_title: data.strz "FoxPaint tools"
 tools_window_struct: data.fill 0, 40
 
-color_section_text: data.strz "Color "    ; now cga compatible I think!
+color_section_text: data.strz "Color "
 color_button_black_widget:
     data.32 color_button_white_widget ; next_ptr
     data.32 0                         ; id
@@ -390,19 +390,19 @@ color_button_black_widget:
     data.16 0                         ; reserved
     data.16 32                        ; x_pos
     data.16 64                        ; y_pos
-color_button_white_widget:
-    data.32 color_button_lgrey_widget   ; next_ptr
-    data.32 1                         ; id
+color_button_dgrey_widget:
+    data.32 color_button_lgrey_widget ; next_ptr
+    data.32 3                         ; id
     data.32 WIDGET_TYPE_BUTTON        ; type
     data.32 color_button_text         ; text_ptr
     data.32 0xFFFFFFFF                ; foreground_color
-    data.32 0xFFFFFFFF                ; background_color
+    data.32 0xFF555555                ; background_color
     data.16 16                        ; width
     data.16 0                         ; reserved
     data.16 48                        ; x_pos
     data.16 64                        ; y_pos
 color_button_lgrey_widget:
-    data.32 color_button_dgrey_widget ; next_ptr
+    data.32 color_button_white_widget ; next_ptr
     data.32 2                         ; id
     data.32 WIDGET_TYPE_BUTTON        ; type
     data.32 color_button_text         ; text_ptr
@@ -412,13 +412,13 @@ color_button_lgrey_widget:
     data.16 0                         ; reserved
     data.16 64                        ; x_pos
     data.16 64                        ; y_pos
-color_button_dgrey_widget:
-    data.32 color_button_red_widget ; next_ptr
-    data.32 3                         ; id
+color_button_white_widget:
+    data.32 color_button_red_widget   ; next_ptr
+    data.32 1                         ; id
     data.32 WIDGET_TYPE_BUTTON        ; type
     data.32 color_button_text         ; text_ptr
     data.32 0xFFFFFFFF                ; foreground_color
-    data.32 0xFF555555                ; background_color
+    data.32 0xFFFFFFFF                ; background_color
     data.16 16                        ; width
     data.16 0                         ; reserved
     data.16 80                        ; x_pos
@@ -446,7 +446,7 @@ color_button_green_widget:
     data.16 48                        ; x_pos
     data.16 80                        ; y_pos
 color_button_blue_widget:
-    data.32 color_button_yellow_widget; next_ptr
+    data.32 color_button_yellow_widget                         ; next_ptr
     data.32 6                         ; id
     data.32 WIDGET_TYPE_BUTTON        ; type
     data.32 color_button_text         ; text_ptr
@@ -517,9 +517,9 @@ menu_items_brush_list:
 	data.8 3 data.strz "1x1"   ; it's just common sense!
     data.8 3 data.strz "2x2"   ; text length, text, null-terminator
     data.8 3 data.strz "4x4"   ; text length, text, null-terminator
-	data.8 3 data.strz "6x6"   ; listen I just like having options
-    data.8 3 data.strz "8x8"   ; text length, text, null-terminator
-	data.8 5 data.strz "12x12" ; grrawrrr rrrwrh grrwrwrawr
+	data.8 3 data.strz "6x6"	;listen I just like having options
+    data.8 3 data.strz "8x8"	; text length, text, null-terminator
+	data.8 5 data.strz "12x12"
     data.8 5 data.strz "16x16" ; text length, text, null-terminator
 
 is_drawing: data.8 0
