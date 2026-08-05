@@ -59,5 +59,10 @@ FN LinkToFile(
         END
         CopyString(&window^.Icon[iconNumber].LinkPath[j], &window^.Icon[iconNumber].Name[0])
         CopyString(&window^.Icon[iconNumber].Name[0], &window^.Icon[iconNumber].Text[0])
+
+        j = StringLength(&window^.Icon[iconNumber].Name[0])
+        IF CompareString(&window^.Icon[iconNumber].Name[j-3], "dir") THEN
+            window^.Icon[iconNumber].Text[j-4] = 0 // don't show the .dir extension
+        END
     END
 END

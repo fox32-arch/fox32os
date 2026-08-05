@@ -176,6 +176,9 @@ FN RefreshDesktopFiles(
             nameOffset += 11
 
             CopyString(&window^.Icon[i].Name[0], &window^.Icon[i].Text[0])
+            IF CompareString(&window^.Icon[i].Name[j+2], "dir") THEN
+                window^.Icon[i].Text[j+1] = 0 // don't show the .dir extension
+            END
             window^.Icon[i].Graphic = NULLPTR
 
             // if this is a link file, load the original file's attributes
