@@ -74,6 +74,8 @@ new_window:
     push r10
     push r11
     push r12
+    push r13
+    push r31
 
     ; first, set up the initial struct values
     ; title string
@@ -157,6 +159,8 @@ new_window:
     mov r0, r2
     mov r1, r3
     add r1, TITLE_BAR_HEIGHT
+    mov r10, r1 ; r10 = window height
+    mov r13, r2 ; r13 = window width
     mov r2, r11
     call resize_overlay
     mov r0, r12
@@ -164,11 +168,6 @@ new_window:
     call set_overlay_framebuffer_pointer
     mov r0, r11
     call enable_overlay
-    pop r0
-    push r0
-    mov r1, r0
-    mov r0, 0xFFFFFFFF
-    call fill_window
     pop r0
 
     ; then, draw the menu bar
@@ -184,11 +183,12 @@ new_window:
     ; if the current active window is on a higher overlay, swap
     push r0
     call get_window_overlay_number ; get the overlay number of the new window
-    mov r10, r0
+    mov r2, r0
     mov.8 r0, [active_window_offset] ; get the active window's overlay number
     cmp r0, 0xFF ; is there no active window?
     ifnz jmp new_window_active_window
     pop r0
+    push r0
     jmp new_window_skip_swap
 new_window_active_window:
     mul r0, 4
@@ -198,9 +198,68 @@ new_window_active_window:
     call get_window_overlay_number
     mov r11, r0
     pop r0
-    cmp r11, r10 ; if the active window is on a higher overlay, swap
+    push r0
+    cmp r11, r2 ; if the active window is on a higher overlay, swap
     ifnc call swap_windows
 new_window_skip_swap:
+    ; draw expanding box animation
+    pop r0
+    push r0
+    call get_window_overlay_number
+    mov r5, r0
+    mov r31, r13
+    cmp r10, r13
+    ifgt mov r31, r10
+    div r31, 4
+    mov r0, r13
+    div r0, 2
+    mov r1, r10
+    div r1, 2
+    mov r2, 1
+    mov r3, 1
+new_window_box_animation_loop:
+    mov r4, 0xFF000000
+    call draw_wireframe
+    push r0
+    mov r0, 1
+    call sleep_task
+    pop r0
+    mov r4, 0x00000000
+    call draw_wireframe
+    ; decrement position with bounds checking
+    cmp r0, 1
+    ifgt dec r0, 2
+    cmp r1, 1
+    ifgt dec r1, 2
+    ; increment size with bounds checking. this sucks
+    cmp r2, r13
+    iflt inc r2
+    cmp r2, r13
+    iflt inc r2
+    cmp r2, r13
+    iflt inc r2
+    cmp r2, r13
+    iflt inc r2
+    cmp r3, r10
+    iflt inc r3
+    cmp r3, r10
+    iflt inc r3
+    cmp r3, r10
+    iflt inc r3
+    cmp r3, r10
+    iflt inc r3
+    loop new_window_box_animation_loop
+
+    ; disable the overlay before filling to prevent flicker
+    mov r0, r5
+    call disable_overlay
+    pop r1
+    push r1
+    mov r0, 0xFFFFFFFF
+    call fill_window
+    mov r0, r5
+    call enable_overlay
+    pop r0
 
     ; (re)draw the title bar of the previously active window (if it exists) and our new window
     push r0
@@ -227,6 +286,8 @@ new_window_skip_redraw_title:
     mov r0, r1
     call draw_title_bar_to_window
 
+    pop r31
+    pop r13
     pop r12
     pop r11
     pop r10
@@ -1046,6 +1107,43 @@ get_active_window_struct:
     ifz mov r0, 0
     ifz ret
     call window_list_offset_to_struct
+    ret
+
+; draw a wireframe box to an overlay
+; inputs:
+; r0: X coordinate of top-left
+; r1: Y coordinate of top-left
+; r2: X size
+; r3: Y size
+; r4: color
+; r5: overlay number
+; outputs:
+; none
+draw_wireframe:
+    push r3
+    mov r3, 1
+    call draw_filled_rectangle_to_overlay
+    pop r3
+    push r2
+    mov r2, 1
+    call draw_filled_rectangle_to_overlay
+    pop r2
+    push r0
+    push r2
+    add r0, r2
+    dec r0
+    mov r2, 1
+    call draw_filled_rectangle_to_overlay
+    pop r2
+    pop r0
+    push r1
+    push r3
+    add r1, r3
+    dec r1
+    mov r3, 1
+    call draw_filled_rectangle_to_overlay
+    pop r3
+    pop r1
     ret
 
 memory_error:
