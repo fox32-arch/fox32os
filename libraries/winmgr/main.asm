@@ -210,7 +210,7 @@ new_window_skip_swap:
     mov r31, r13
     cmp r10, r13
     ifgt mov r31, r10
-    div r31, 4
+    div r31, 64
     mov r0, r13
     div r0, 2
     mov r1, r10
@@ -218,36 +218,26 @@ new_window_skip_swap:
     mov r2, 1
     mov r3, 1
 new_window_box_animation_loop:
-    mov r4, 0xFF000000
+    mov r4, 0xFF222222
     call draw_wireframe
     push r0
-    mov r0, 1
+    mov r0, 8
     call sleep_task
     pop r0
-    mov r4, 0x00000000
-    call draw_wireframe
     ; decrement position with bounds checking
-    cmp r0, 1
-    ifgt dec r0, 2
-    cmp r1, 1
-    ifgt dec r1, 2
-    ; increment size with bounds checking. this sucks
+    sub r0, 32
+    icmp r0, 0
+    iflt mov r0, 0
+    sub r1, 32
+    icmp r1, 0
+    iflt mov r1, 0
+    ; increment size with bounds checking
+    add r2, 64
     cmp r2, r13
-    iflt inc r2
-    cmp r2, r13
-    iflt inc r2
-    cmp r2, r13
-    iflt inc r2
-    cmp r2, r13
-    iflt inc r2
+    ifgt mov r2, r13
+    add r3, 64
     cmp r3, r10
-    iflt inc r3
-    cmp r3, r10
-    iflt inc r3
-    cmp r3, r10
-    iflt inc r3
-    cmp r3, r10
-    iflt inc r3
+    ifgt mov r3, r10
     loop new_window_box_animation_loop
 
     ; disable the overlay before filling to prevent flicker
