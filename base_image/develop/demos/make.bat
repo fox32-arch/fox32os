@@ -1,6 +1,8 @@
 echo "building " $0;
 /develop/jkl incdir=/develop/lib $0 out.asm;
+echo "assembling";
 /develop/xrasm incdir=/develop/lib out.asm out.o;
+echo "linking";
 /develop/xrlink link out.fxf out.o /develop/lib/fox.lib;
 del out.o;
 del out.asm;
