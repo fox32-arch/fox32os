@@ -145,6 +145,10 @@ entry_ok:
     sub r2, jump_table
     call copy_memory_bytes
 
+    ; install disk yield callback
+    mov r0, disk_yield_callback
+    call set_disk_data_yield_callback
+
 try_startup:
     mov r0, serial_stream
     mov r2, serial_stream_struct
@@ -313,6 +317,7 @@ set_busy_cursor:
 
     #include "allocator.asm"
     #include "crash.asm"
+    #include "dskyield.asm"
     #include "fxf/fxf.asm"
     #include "lbr/lbr.asm"
     #include "res.asm"
@@ -337,6 +342,6 @@ startup_bat_check_struct: data.fill 0, 32
 serial_stream: data.strz ":serial"
 serial_stream_struct: data.fill 0, 32
 
-    #include "../../fox32rom/fox32rom.def"
+    #include "../../fox32rom-diskintr/fox32rom.def"
 
 kernel_end:
