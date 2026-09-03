@@ -1,4 +1,5 @@
-# fox32os
+# fox32os has moved to Codeberg! [https://codeberg.org/fox32-arch](https://codeberg.org/fox32-arch)
+This repository will no longer be updated.
 
 **fox32os** is the main operating system for **fox32**. It runs on top of **fox32rom** and allows the use of relocatable FXF binaries, cooperative multitasking, filesystem access, memory allocation, and window management.
 
